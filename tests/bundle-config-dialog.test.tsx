@@ -78,7 +78,7 @@ describe("bundle configuration action", () => {
     const copy = pluginsCatalogs.en;
     expect(
       renderToStaticMarkup(
-        <PstackBundleConfigAction {...actionProps(bundleSubject("dsh-pstack"))} />,
+        <PstackBundleConfigAction {...actionProps(bundleSubject("@paipaipai666/dsh-pstack"))} />,
       ),
     ).toContain(copy.configureAction);
     expect(
@@ -91,7 +91,7 @@ describe("bundle configuration action", () => {
         <PstackBundleConfigAction
           {...actionProps({
             kind: "row",
-            pkg: packageRef("dsh-pstack"),
+            pkg: packageRef("@paipaipai666/dsh-pstack"),
             row: { rowId: "pstack", moduleName: "x", enabled: true },
           })}
         />,

@@ -19,25 +19,25 @@
 # without a per-call field: `dsh-tool-fs` registers `read` but not `write` or `edit`.
 - insert:
     - id: pstack
-      name: dsh-pstack
+      name: "@paipaipai666/dsh-pstack"
     - id: pstack-models
-      name: dsh-pstack/models
+      name: "@paipaipai666/dsh-pstack/models"
     - id: pstack-roles
-      name: dsh-pstack/roles
+      name: "@paipaipai666/dsh-pstack/roles"
     - id: pstack-role-catalog
-      name: dsh-pstack/role-catalog
+      name: "@paipaipai666/dsh-pstack/role-catalog"
     - id: pstack-doctor
-      name: dsh-pstack/doctor
+      name: "@paipaipai666/dsh-pstack/doctor"
     - id: pstack-script-policy
-      name: dsh-pstack/script-policy
+      name: "@paipaipai666/dsh-pstack/script-policy"
       config:
         mode: ask
     - id: pstack-subagent
-      name: dsh-pstack/subagent
+      name: "@paipaipai666/dsh-pstack/subagent"
       config:
         maxDepth: 3
     - id: pstack-script
-      name: dsh-pstack/script
+      name: "@paipaipai666/dsh-pstack/script"
     - id: preset-pstack
       name: '@deepseek-ai/dsh-agent-preset'
       config:

@@ -29,8 +29,8 @@ describe("bundle configuration", () => {
   });
 
   it("keeps every bundle subpath exported by the package", () => {
-    const rows = [...cordis.matchAll(/name:\s*dsh-pstack(\/[a-z-]+)?/g)].map((match) =>
-      match[1] === undefined ? "." : `.${match[1]}`,
+    const rows = [...cordis.matchAll(/name:\s*"@paipaipai666\/dsh-pstack(\/[a-z-]+)?"/g)].map(
+      (match) => (match[1] === undefined ? "." : `.${match[1]}`),
     );
     expect(rows).toContain(".");
     for (const key of rows) expect(manifest.exports[key], key).toBeDefined();
@@ -39,8 +39,8 @@ describe("bundle configuration", () => {
   it("exports the doctor, script policy, and native preset surfaces", () => {
     expect(manifest.exports["./doctor"]).toBe("./dist/doctor.mjs");
     expect(manifest.exports["./script-policy"]).toBe("./dist/script-policy.mjs");
-    expect(cordis).toContain("name: dsh-pstack/doctor");
-    expect(cordis).toContain("name: dsh-pstack/script-policy");
+    expect(cordis).toContain('name: "@paipaipai666/dsh-pstack/doctor"');
+    expect(cordis).toContain('name: "@paipaipai666/dsh-pstack/script-policy"');
     expect(cordis).toContain("id: pstack");
   });
 
@@ -85,6 +85,8 @@ describe("bundle configuration", () => {
 
   it("configures the script approval policy as ask by default", () => {
     expect(cordis).toContain("- id: pstack-script-policy");
-    expect(cordis).toMatch(/- id: pstack-script-policy\n\s+name: dsh-pstack\/script-policy\n\s+config:\n\s+mode: ask/);
+    expect(cordis).toMatch(
+      /- id: pstack-script-policy\n\s+name: "@paipaipai666\/dsh-pstack\/script-policy"\n\s+config:\n\s+mode: ask/,
+    );
   });
 });

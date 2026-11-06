@@ -10,7 +10,7 @@ import {
 
 describe("pstack role Remote contribution", () => {
   it("declares the three strict endpoints the page mounts", () => {
-    expect(pstackRolesRemote.package).toBe("dsh-pstack");
+    expect(pstackRolesRemote.package).toBe("@paipaipai666/dsh-pstack");
     expect(
       pstackRolesRemote.descriptors.map(
         (descriptor) => `${descriptor.namespace}/${descriptor.method}`,

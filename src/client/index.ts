@@ -108,7 +108,7 @@ export async function apply(ctx: Context): Promise<() => Promise<void>> {
       scope.slots.register(
         {
           name: "plugins.detail.actions",
-          id: "dsh-pstack",
+          id: "@paipaipai666/dsh-pstack",
           locale: PLUGINS_NS,
           inject: () => ({ api, optionalPlugins, rolesT: ctx.locale.bind(ROLES_NS) }),
         },
@@ -120,7 +120,7 @@ export async function apply(ctx: Context): Promise<() => Promise<void>> {
       scope.slots.register(
         {
           name: "plugins.bundle.activation",
-          key: "dsh-pstack",
+          key: "@paipaipai666/dsh-pstack",
           locale: PLUGINS_NS,
           inject: () => ({ optionalPlugins }),
         },

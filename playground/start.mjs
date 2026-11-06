@@ -76,7 +76,10 @@ function syncProfile() {
   cpSync(PROFILE_SRC, PROFILE_DEST, { recursive: true, force: true });
   const manifestPath = join(PROFILE_DEST, "package.json");
   const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
-  manifest.dependencies = { ...manifest.dependencies, "dsh-pstack": `link:${REPO_ROOT}` };
+  manifest.dependencies = {
+    ...manifest.dependencies,
+    "@paipaipai666/dsh-pstack": `link:${REPO_ROOT}`,
+  };
   writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
   log(`synced profile -> ${PROFILE_DEST}`);
 }
@@ -120,7 +123,9 @@ function syncHomePatch() {
 }
 
 function ensureInstall() {
-  const installed = existsSync(join(PROFILE_DEST, "node_modules", "dsh-pstack"));
+  const installed = existsSync(
+    join(PROFILE_DEST, "node_modules", "@paipaipai666", "dsh-pstack"),
+  );
   if (installed && !reinstall && !reset) {
     log("dsh-pstack already installed, skipped (use --reinstall to force)");
     return;

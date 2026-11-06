@@ -35,7 +35,7 @@ export default defineConfig({
       },
     },
     {
-      name: "dsh-pstack/client",
+      name: "@paipaipai666/dsh-pstack/client",
       cwd: ".",
       entry: ["./src/client/index.ts"],
       outDir: "dist",
@@ -60,7 +60,7 @@ export default defineConfig({
       },
       outputOptions: {
         entryFileNames: "client.mjs",
-        banner: 'window.__ModuleLoader__.load({ id: "dsh-pstack", factory: (require) => {',
+        banner: 'window.__ModuleLoader__.load({ id: "@paipaipai666/dsh-pstack", factory: (require) => {',
         footer: "return module.exports; } });",
         intro: "var module = { exports: {} }; var exports = module.exports;",
       },

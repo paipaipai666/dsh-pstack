@@ -195,7 +195,7 @@ export function PstackBundleConfigAction(
   props: PstackBundleConfigActionProps,
 ): ReactElement | null {
   const [open, setOpen] = useState(false);
-  if (props.subject.kind !== "bundle" || props.subject.pkg.name !== "dsh-pstack") return null;
+  if (props.subject.kind !== "bundle" || props.subject.pkg.name !== "@paipaipai666/dsh-pstack") return null;
   return (
     <>
       <PstackConfigureButton t={props.t} onClick={() => setOpen(true)} />

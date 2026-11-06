@@ -32,5 +32,32 @@ describe("pstack_doctor", () => {
     expect(result.platform).toBe(process.platform);
     expect(result.commands).toHaveLength(6);
     expect(result.scripts).toHaveLength(5);
+    expect(result.optionalPlugins).toHaveLength(8);
+    expect(result.optionalPlugins.every((plugin) => plugin.status === "unknown")).toBe(true);
+  });
+
+  it("reports enabled, installed, partial, and missing optional plugins from the profile manifest", () => {
+    const report = collectDoctorReport({
+      ...host,
+      profileDir: "/profile",
+      readFile: () =>
+        JSON.stringify({
+          dependencies: {
+            "@deepseek-ai/dsh-experimental-session-search": "1.0.0",
+            "@deepseek-ai/dsh-mcp-client": "1.0.0",
+            "@deepseek-ai/dsh-browser-use": "1.0.0",
+          },
+          dsh: {
+            profile: {
+              bundles: ["@deepseek-ai/dsh-experimental-session-search"],
+            },
+          },
+        }),
+    });
+    const byId = Object.fromEntries(report.optionalPlugins.map((plugin) => [plugin.id, plugin]));
+    expect(byId["OPT-06"]).toMatchObject({ status: "enabled" });
+    expect(byId["OPT-07"]).toMatchObject({ status: "installed" });
+    expect(byId["OPT-03"]).toMatchObject({ status: "partial" });
+    expect(byId["OPT-09"]).toMatchObject({ status: "missing" });
   });
 });

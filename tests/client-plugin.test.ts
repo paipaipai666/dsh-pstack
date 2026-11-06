@@ -71,7 +71,7 @@ describe("pstack roles browser half", () => {
 
     expect(inject).toEqual(["remote", "slots", "locale", "remote.pluginManager"]);
     expect(mounts).toHaveLength(1);
-    expect(mounts[0]!.package).toBe("dsh-pstack");
+    expect(mounts[0]!.package).toBe("@paipaipai666/dsh-pstack");
     expect(mounts[0]!.descriptors.map((descriptor) => descriptor.method)).toEqual([
       "status",
       "catalogue",
@@ -105,12 +105,12 @@ describe("pstack roles browser half", () => {
     expect(slots).toHaveLength(2);
     expect(slots[0]!.options).toMatchObject({
       name: "plugins.detail.actions",
-      id: "dsh-pstack",
+      id: "@paipaipai666/dsh-pstack",
       locale: "pstackPlugins",
     });
     expect(slots[1]!.options).toMatchObject({
       name: "plugins.bundle.activation",
-      key: "dsh-pstack",
+      key: "@paipaipai666/dsh-pstack",
       locale: "pstackPlugins",
     });
     expect(typeof slots[0]!.component).toBe("function");
@@ -127,7 +127,7 @@ describe("pstack roles browser half", () => {
       }
     ).inject();
     expect(await configFace.optionalPlugins.listBundles()).toEqual([]);
-    expect(await configFace.optionalPlugins.setBundleEnabled("dsh-pstack", true)).toEqual({
+    expect(await configFace.optionalPlugins.setBundleEnabled("@paipaipai666/dsh-pstack", true)).toEqual({
       application: "applied",
     });
     expect(configFace.rolesT("title")).toBe(rolesCatalogs[baseLocale].title);

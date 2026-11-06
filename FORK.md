@@ -16,8 +16,7 @@ ports [pstack](https://github.com/cursor/plugins/tree/main/pstack) to
 
 - GitHub fork created on 2026-11-06: `paipaipai666/dsh-pstack`.
 - `fork/main` is pushed and tracks `origin/fork/main`.
-- The package name is still `dsh-pstack` in this working tree. Publish the fork as
-  `@paipaipai666/dsh-pstack` after the build and install smoke pass.
+- The package is named `@paipaipai666/dsh-pstack` in this working tree.
 
 ## Branch strategy
 
@@ -78,7 +77,7 @@ Use a scoped package name so the upstream npm package is not shadowed:
 
 ```json
 {
-  "name": "@your-scope/dsh-pstack"
+  "name": "@paipaipai666/dsh-pstack"
 }
 ```
 

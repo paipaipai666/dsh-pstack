@@ -277,15 +277,16 @@ function ensureHeadlessProfile() {
   const manifest = {
     name: "dsh-profile-pstack-headless",
     private: true,
-    dependencies: { "dsh-pstack": `link:${REPO_ROOT}` },
+    dependencies: { "@paipaipai666/dsh-pstack": `link:${REPO_ROOT}` },
     dsh: {
       profile: {
-        bundles: ["@deepseek-ai/dsh-base", "@deepseek-ai/dsh-headless", "dsh-pstack"],
+        bundles: ["@deepseek-ai/dsh-base", "@deepseek-ai/dsh-headless", "@paipaipai666/dsh-pstack"],
       },
     },
   };
   writeFileSync(join(PROFILE_DIR, "package.json"), `${JSON.stringify(manifest, null, 2)}\n`);
-  const link = join(PROFILE_DIR, "node_modules", "dsh-pstack");
+  mkdirSync(join(PROFILE_DIR, "node_modules", "@paipaipai666"), { recursive: true });
+  const link = join(PROFILE_DIR, "node_modules", "@paipaipai666", "dsh-pstack");
   let linked = false;
   try {
     linked = lstatSync(link).isSymbolicLink() || lstatSync(link).isDirectory();

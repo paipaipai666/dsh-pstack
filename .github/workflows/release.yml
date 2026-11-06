@@ -7,7 +7,7 @@ on:
 
 # Publishes with npm trusted publishing (OIDC): no NPM_TOKEN is used.
 # The trusted publisher on npmjs.com must point at this file (release.yml)
-# in l246804/dsh-pstack, and the first publish must succeed within 2 days
+# in paipaipai666/dsh-pstack, and the first publish must succeed within 2 days
 # of creating that configuration, otherwise it expires.
 permissions:
   contents: write

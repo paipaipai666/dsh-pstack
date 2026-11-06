@@ -95,7 +95,7 @@ jobs:
       - name: Install fork into isolated DSH_HOME
         env:
           DSH_CLI: dsh
-        run: node scripts/smoke-install.mjs ./dsh-pstack-0.3.0-beta.1.tgz
+        run: node scripts/smoke-install.mjs ./*dsh-pstack-0.3.0-beta.1.tgz
 
   windows-smoke:
     name: Check (Windows smoke)

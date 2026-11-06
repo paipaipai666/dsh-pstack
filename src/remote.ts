@@ -33,7 +33,7 @@ import type {
 } from "./internal/role-wire.ts";
 
 /** npm package that owns these methods. */
-export const REMOTE_PACKAGE = "dsh-pstack";
+export const REMOTE_PACKAGE = "@paipaipai666/dsh-pstack";
 
 /** Cordis service key and wire namespace of the Host role service. */
 export const ROLES_SERVICE = "pstackRoles";

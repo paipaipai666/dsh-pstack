@@ -30,8 +30,8 @@ Requirements:
 - git submodules for `upstream/cursor-plugins` and `upstream/deepseek-harness`
 
 ```bash
-git submodule update --init --recursive
-pnpm install
+pnpm fork:check
+pnpm fork:bootstrap
 pnpm exec vp run typecheck
 pnpm exec vp test
 pnpm exec vp run build

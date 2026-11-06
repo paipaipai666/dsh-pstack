@@ -48,6 +48,8 @@
     "./locale/*.json": "./locale/*.json"
   },
   "scripts": {
+    "fork:check": "node scripts/fork-check.mjs",
+    "fork:bootstrap": "git submodule update --init --recursive && pnpm install --frozen-lockfile",
     "prepare": "vp config && skills experimental_sync -y -a universal",
     "prerelease": "vp run build && vp run -r check && vp run typecheck && vp run -r test",
     "release": "bumpp",

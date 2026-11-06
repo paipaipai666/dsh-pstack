@@ -34,6 +34,12 @@ Updated 2026-11-06.
 | FIX-08 real DSH integration tests | Done | `Install smoke (Linux)` CI job installs `@deepseek-ai/dsh@0.2.2-rc.1`, installs the built tarball into an isolated `DSH_HOME`, and asserts every bundle row; model-backed session coverage remains future work |
 | ADD-01 `pstack_doctor` | Done | New `pstack_doctor` tool; unit tests and CI green |
 
+## Quality audit
+
+- Upstream parity: 58 skills, 23 playbooks, 24 principles, 2 agent definitions, 11 guide pages.
+- Test suite: 22 files, about 138 cases; CI runs Linux build/test, Windows build/smoke, and a real DSH install smoke.
+- Full audit: [AUDIT.md](AUDIT.md).
+
 ## Still open
 
 - Publish the fork as a scoped npm package; package name rename is a release task.

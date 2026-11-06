@@ -74,6 +74,8 @@
    /poteto-mode
    ```
 
+   如果希望整段会话都保持该模式，新建 Session 时选择 **pstack** agent preset。
+
 ### ⚙️ 配置角色模型
 
 初始化后，打开 **插件 → 已安装插件 → dsh-pstack → 配置**，即可查看或修改路由。
@@ -104,7 +106,7 @@
 | `pstack_subagent` | 应用角色路由与 agent preset，支持并行子代理。 |
 | `pstack_script` | 用 Node.js 运行 `check-plan`、`watch-pr`、`worktree-audit`、`log` 或 `statechart`。 |
 
-`poteto-agent` preset 用于实现型委派，`comment-sicko` preset 用于只读评论审查。
+`pstack` preset 用于让 `poteto-mode` 在整段会话中常驻；`poteto-agent` preset 用于实现型委派，`comment-sicko` preset 用于只读评论审查。
 
 > [!CAUTION]
 > `pstack_script` 运行前会请求 the agent harness 审批服务；没有应答者时按拒绝处理。

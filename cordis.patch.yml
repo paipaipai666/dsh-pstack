@@ -12,10 +12,11 @@
 # `pstack-script` registers `pstack_script`, the only supported way to run the bundled
 # Node artefacts under both the npm CLI and the Desktop (Electron) runtime.
 #
-# The two presets are ordinary `@deepseek-ai/dsh-agent-preset` declarations. They own the
-# child persona and tool composition; `pstack_subagent` only passes `agentPreset`. Keeping
-# the tool list here is what makes `comment-sicko` read-only without a per-call field:
-# `dsh-tool-fs` registers `read` but not `write` or `edit`.
+# The presets are ordinary `@deepseek-ai/dsh-agent-preset` declarations. They own the
+# child persona and tool composition; `pstack_subagent` only passes `agentPreset`. The
+# `pstack` preset is the persistent root mode; `poteto-agent` and `comment-sicko` are
+# delegate presets. Keeping the tool list here is what makes `comment-sicko` read-only
+# without a per-call field: `dsh-tool-fs` registers `read` but not `write` or `edit`.
 - insert:
     - id: pstack
       name: dsh-pstack

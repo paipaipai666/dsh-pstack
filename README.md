@@ -74,6 +74,8 @@ See the [capability map](./pstack/README.md) for the complete porting review.
    /poteto-mode
    ```
 
+   To keep the mode active for a whole session, choose the **pstack** agent preset when creating a new session.
+
 ### ⚙️ Configure role models
 
 To view or edit routes after setup, open **Plugins → Installed plugins → dsh-pstack → Configure**.
@@ -104,7 +106,7 @@ To view or edit routes after setup, open **Plugins → Installed plugins → dsh
 | `pstack_subagent` | Applies role routing and agent presets. Supports parallel subagents. |
 | `pstack_script` | Runs `check-plan`, `watch-pr`, `worktree-audit`, `log`, or `statechart` with Node.js. |
 
-The `poteto-agent` preset handles implementation delegation. The `comment-sicko` preset handles read-only comment review.
+The `pstack` preset keeps `poteto-mode` active for a whole session. The `poteto-agent` preset handles implementation delegation. The `comment-sicko` preset handles read-only comment review.
 
 > [!CAUTION]
 > `pstack_script` requests the Host approval service before running and fails closed without an

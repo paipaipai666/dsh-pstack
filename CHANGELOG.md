@@ -14,3 +14,4 @@
 - Added Host approval for `pstack_script`; a missing or rejected answerer fails closed.
 - Added `pstack_doctor` for local command, script, and role-file preflight.
 - Added `scripts/smoke-install.mjs` for isolated DSH bundle installation checks.
+- Added the persistent `pstack` agent preset so `/poteto-mode` can stay active for a whole session.

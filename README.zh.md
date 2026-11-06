@@ -100,6 +100,7 @@
 | `pstack_skill` | 按名称加载隐藏的 pstack 技能及其相对资源。 |
 | `pstack_models` | 列出可用的 provider、model 和 reasoning effort。 |
 | `pstack_roles` | 展示角色 shape 与自动面板状态，确保委派时使用正确的参数。 |
+| `pstack_doctor` | 报告缺失的外部命令、随包脚本与角色配置文件。 |
 | `pstack_subagent` | 应用角色路由与 agent preset，支持并行子代理。 |
 | `pstack_script` | 用 Node.js 运行 `check-plan`、`watch-pr`、`worktree-audit`、`log` 或 `statechart`。 |
 

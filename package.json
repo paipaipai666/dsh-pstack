@@ -39,6 +39,7 @@
     "./models": "./dist/models.mjs",
     "./remote": "./dist/remote.mjs",
     "./role-catalog": "./dist/role-catalog.mjs",
+    "./doctor": "./dist/doctor.mjs",
     "./roles": "./dist/roles.mjs",
     "./script": "./dist/script.mjs",
     "./skill": "./dist/skill.mjs",

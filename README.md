@@ -100,6 +100,7 @@ To view or edit routes after setup, open **Plugins → Installed plugins → dsh
 | `pstack_skill` | Loads hidden pstack skills and their relative resources by name. |
 | `pstack_models` | Lists available providers, models, and reasoning efforts. |
 | `pstack_roles` | Shows role shapes and automatic-panel status so delegation uses the correct parameters. |
+| `pstack_doctor` | Reports missing external commands, bundled scripts, and the role configuration file. |
 | `pstack_subagent` | Applies role routing and agent presets. Supports parallel subagents. |
 | `pstack_script` | Runs `check-plan`, `watch-pr`, `worktree-audit`, `log`, or `statechart` with Node.js. |
 

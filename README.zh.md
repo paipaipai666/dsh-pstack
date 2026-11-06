@@ -110,7 +110,8 @@
 
 > [!CAUTION]
 > `pstack-script-policy` 行会在 `pstack_script` 运行前请求 the agent harness 审批服务；
-> 没有应答者时调用会被拒绝。该工具仍绕过文件系统沙箱，请将其视为受信入口。
+> 没有应答者时调用会被拒绝。其 `mode` 配置支持 `ask`（默认）、`allow`、`deny`；只应在受信
+> headless profile 中使用 `allow`。该工具仍绕过文件系统沙箱，请将其视为受信入口。
 
 ### 📚 额外技能
 

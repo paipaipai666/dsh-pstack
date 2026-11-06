@@ -30,6 +30,8 @@
       name: dsh-pstack/doctor
     - id: pstack-script-policy
       name: dsh-pstack/script-policy
+      config:
+        mode: ask
     - id: pstack-subagent
       name: dsh-pstack/subagent
       config:

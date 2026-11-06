@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { GATED_TOOL, apply } from "../src/script-policy.ts";
+import { GATED_TOOL, apply, normalizePolicyConfig } from "../src/script-policy.ts";
 
 type Listener = (
   exec: { readonly name: string; readonly arguments: unknown },
   next: () => Promise<unknown>,
 ) => Promise<unknown>;
 
-function listener(): Listener {
+function listener(config?: unknown): Listener {
   let captured: Listener | undefined;
   const ctx = {
     on: (event: string, handler: Listener) => {
@@ -15,7 +15,7 @@ function listener(): Listener {
       return () => {};
     },
   } as never;
-  apply(ctx);
+  apply(ctx, config);
   if (captured === undefined) throw new Error("policy listener was not registered");
   return captured;
 }
@@ -40,5 +40,23 @@ describe("pstack-script-policy", () => {
       kind: "allow",
     }));
     expect(decision).toMatchObject({ kind: "ask", reason: 'Run bundled pstack script "unknown".' });
+  });
+
+  it("supports explicit allow and deny modes for trusted or locked profiles", async () => {
+    const allow = listener({ mode: "allow" });
+    expect(
+      await allow({ name: GATED_TOOL, arguments: { id: "log" } }, async () => ({ kind: "allow" })),
+    ).toEqual({ kind: "allow" });
+
+    const deny = listener({ mode: "deny" });
+    expect(
+      await deny({ name: GATED_TOOL, arguments: { id: "log" } }, async () => ({ kind: "allow" })),
+    ).toMatchObject({ kind: "deny", reason: 'pstack_script "log" is disabled by policy.' });
+  });
+
+  it("rejects invalid policy modes at configuration time", () => {
+    expect(normalizePolicyConfig(undefined)).toEqual({ mode: "ask" });
+    expect(() => normalizePolicyConfig({ mode: "sometimes" })).toThrow(/mode must be/);
+    expect(() => normalizePolicyConfig({ extra: true })).toThrow(/unknown config field/);
   });
 });

@@ -130,5 +130,5 @@ jobs:
       - name: Build
         run: pnpm exec vp run build
 
-      - name: Script smoke
-        run: pnpm exec vp test tests/script.test.ts
+      - name: Test
+        run: pnpm exec vp test

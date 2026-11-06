@@ -110,8 +110,9 @@ The `pstack` preset keeps `poteto-mode` active for a whole session. The `poteto-
 
 > [!CAUTION]
 > The `pstack-script-policy` row asks the Host approval service before `pstack_script` runs.
-> A missing or non-granting answerer leaves the call denied. The tool still bypasses the
-> filesystem sandbox, so treat it as a trusted entry point.
+> A missing or non-granting answerer leaves the call denied. Its `mode` config accepts `ask`
+> (default), `allow`, or `deny`; use `allow` only for a trusted headless profile. The tool still
+> bypasses the filesystem sandbox, so treat it as a trusted entry point.
 
 ### 📚 Additional skills
 

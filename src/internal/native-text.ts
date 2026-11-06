@@ -27,9 +27,14 @@ const REPLACEMENTS: readonly (readonly [RegExp, string])[] = [
   [/\bAskQuestion\b/g, "ask_user_question"],
   [/\bTodoWrite\b/g, "todo_write"],
   [/\bgrok-4\.7-xhigh-fast\b/g, "the configured code role"],
+  [/\bgrok-4\.7-medium-fast\b/g, "the configured code role"],
   [/\bclaude-opus-5-5-xhigh\b/g, "the configured judgment role"],
+  [/\bclaude-opus-5-5-medium\b/g, "the configured judgment role"],
   [/\bclaude-opus-5-5-max\b/g, "the configured judgment role"],
   [/\bgpt-5\.6-sol-max\b/g, "the configured judgment role"],
+  [/\b(?:cursor-grok|composer)-\*/g, "the configured code role family"],
+  [/\bclaude-\*/g, "the configured judgment role family"],
+  [/\bgrok-\*/g, "the configured code role family"],
 ];
 
 /** Translate Cursor-only names in one skill body without changing upstream files. */

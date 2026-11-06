@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vite-plus/test";
 
 const ROOT = resolve(import.meta.dirname, "..");
-const cordis = readFileSync(resolve(ROOT, "cordis.patch.yml"), "utf8");
+const cordis = readFileSync(resolve(ROOT, "cordis.patch.yml"), "utf8").replace(/\r\n/g, "\n");
 const manifest = JSON.parse(readFileSync(resolve(ROOT, "package.json"), "utf8")) as {
   exports: Record<string, string>;
 };

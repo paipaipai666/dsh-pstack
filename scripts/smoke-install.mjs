@@ -61,6 +61,7 @@ try {
     "- id: pstack-doctor",
     "- id: pstack-subagent",
     "- id: pstack-script",
+    "- id: preset-pstack",
   ];
   for (const line of required) {
     if (!config.includes(line)) throw new Error(`missing bundle row: ${line}`);

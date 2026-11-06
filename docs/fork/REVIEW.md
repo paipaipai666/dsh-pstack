@@ -79,4 +79,8 @@
 - `poteto-agent` 的委派 prompt 改为调用 `pstack_skill` 加载 `poteto-mode`，不再注入原始 `SKILL.md` 路径；旧 `POTETO_MODE_SKILL_PATH` 已移除。
 - `pstack_doctor` 改用 `spawnSync` 同时读取 stdout 和 stderr，并增加真实可执行文件版本探测测试。
 
-`pstack_script` 的 headless 审批策略仍是待决策项，当前保持 fail-closed 安全默认。
+后续提交 `47d32ab` 又纠正了策略分层：
+
+- `pstack_script` 不再直接调用 `ctx.approval`。
+- 新增独立的 `pstack-script-policy` 行，通过 `tools/pre-execute` 返回 `{ kind: "ask" }`，由 the agent harness 统一执行审批。
+- 移除了 `pstack_script` 自带的 `outputLimitBytes` 和 64 KiB 截断。完整输出交给 the agent harness 的 tool-result 与 `dsh-spill-policy` 处理。

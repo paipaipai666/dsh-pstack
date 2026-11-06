@@ -51,6 +51,8 @@ describe("pstack_skill", () => {
 
     expect(result).toMatchObject({ name: "how", provider: "pstack", content: "# How\n" });
     expect(renderLoadedSkill(result as never)).toContain('<skill_content name="how">');
+    expect(renderLoadedSkill(result as never)).toContain("<dsh_adapter>");
+    expect(renderLoadedSkill(result as never)).toContain("`pstack_subagent`");
     const base = definition.resourceBase;
     expect(base?.kind).toBe("directory");
     expect(renderLoadedSkill(result as never)).toContain(

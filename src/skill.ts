@@ -64,6 +64,16 @@ export interface LoadSkillResult {
   readonly resource?: SkillResourceResult;
 }
 
+/** Compact translation rules for upstream pstack text that still names Cursor concepts. */
+export const DSH_ADAPTER_RULES = [
+  "A pstack skill body may use Cursor names. Translate them before acting:",
+  "- `Task` / `subagent_type` -> `pstack_subagent`, passing `agent` and optional `role`; do not send `model`, `reasoning_effort`, or `thinking` on the spawn call.",
+  "- `~/.cursor/rules/pstack-models.mdc` -> `$DSH_HOME/pstack-models.mdc`.",
+  "- `.cursor/skills/` -> `.dsh/skills/`; `.cursor/plugins/` -> the installed `dsh-pstack` package resources.",
+  "- `AskQuestion` -> `ask_user_question`; `TodoWrite` -> `todo_write`.",
+  "- Cursor model slugs in a skill body are defaults only; use `pstack_roles` and `pstack_models` for live routes.",
+].join("\n");
+
 /** Render one loaded skill in the canonical `<skill_content>` shape. */
 export function renderLoadedSkill(result: LoadSkillResult): string {
   const lines = [`<skill_content name="${escapeAttr(result.name)}">`, "<skill_resources>"];
@@ -94,6 +104,10 @@ export function renderLoadedSkill(result: LoadSkillResult): string {
     "<skill_instructions>",
     result.content,
     "</skill_instructions>",
+    "",
+    "<dsh_adapter>",
+    DSH_ADAPTER_RULES,
+    "</dsh_adapter>",
   );
   if (result.resource !== undefined) {
     lines.push(

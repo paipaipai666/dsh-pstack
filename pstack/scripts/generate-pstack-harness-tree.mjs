@@ -77,6 +77,11 @@ function file(path) {
   return { bytes: readFileSync(path), executable: (statSync(path).mode & 0o111) !== 0 };
 }
 
+/** Read Markdown as LF so Windows checkout line endings cannot change parsing. */
+function readText(path) {
+  return readFileSync(path, "utf8").replace(/\r\n/g, "\n");
+}
+
 const skills = readdirSync(SKILLS).filter((name) => existsSync(join(SKILLS, name, "SKILL.md")));
 
 function classify(skill) {
@@ -93,13 +98,13 @@ function classify(skill) {
     );
   const usesCursorNames = new Set();
   for (const path of walk(dir).filter((path) => path.endsWith(".md"))) {
-    const text = readFileSync(path, "utf8");
+    const text = readText(path);
     for (const term of TERMS) if (term.re.test(text)) usesCursorNames.add(term.key);
     if (text.split("\n").some(namesBareSkill)) usesCursorNames.add(ROUTE_KEY);
   }
   // A skill whose SKILL.md the harness tree overrides is read through origin here too, so the
   // H1 the pointer is inserted under is the one that ships.
-  const text = readFileSync(origin(`skills/${skill}/SKILL.md`), "utf8");
+  const text = readText(origin(`skills/${skill}/SKILL.md`));
   const wrap = usesCursorNames.size > 0 && /^# /m.test(text);
   return { usesCursorNames, wrap };
 }
@@ -113,8 +118,7 @@ for (const [skill, { usesCursorNames, wrap }] of classes) {
   for (const key of usesCursorNames) users.set(key, [...(users.get(key) ?? []), skill]);
   // Cursor runs a skill by its folder name and the host lists it by its frontmatter `name`, so the two must match. The Agent Skills spec limits both to SKILL_NAME.
   const frontmatter =
-    readFileSync(origin(`skills/${skill}/SKILL.md`), "utf8").match(/^---\n([\s\S]*?)\n---/)?.[1] ??
-    "";
+    readText(origin(`skills/${skill}/SKILL.md`)).match(/^---\n([\s\S]*?)\n---/)?.[1] ?? "";
   const name = frontmatter
     .match(/^name:(.*)$/m)?.[1]
     .trim()
@@ -128,7 +132,7 @@ for (const [skill, { usesCursorNames, wrap }] of classes) {
       `skills/${skill} is not lowercase words joined by hyphens, at most 64 characters`,
     );
 }
-const adapter = readFileSync(origin(ADAPTER), "utf8");
+const adapter = readText(origin(ADAPTER));
 for (const [key, using] of users) {
   if (!adapter.includes(key))
     problems.push(`DSH adapter has no row for ${key}, used by ${using.join(", ")}`);
@@ -169,7 +173,7 @@ function render() {
   files.set("LICENSE", file(join(PSTACK, "LICENSE")));
   for (const [path, entry] of files) {
     if (!path.endsWith(".md")) continue;
-    const text = entry.bytes.toString("utf8").replace(LINK, (link, href) => {
+    const text = entry.bytes.toString("utf8").replace(/\r\n/g, "\n").replace(LINK, (link, href) => {
       const target = resolve(path, href);
       if (!target || target.split("/")[0] === ".." || has(files, target)) return link;
       const kind = statSync(origin(target)).isDirectory() ? "tree" : "blob";

@@ -84,6 +84,7 @@
     "@types/react-dom": "catalog:ui",
     "agent-browser": "catalog:browser",
     "bumpp": "catalog:cli",
+    "@vitest/coverage-v8": "catalog:testing",
     "js-yaml": "catalog:testing",
     "react": "catalog:ui",
     "react-dom": "catalog:ui",

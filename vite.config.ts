@@ -68,6 +68,16 @@ export default defineConfig({
   ],
   test: {
     include: ["tests/**/*.test.{ts,tsx}"],
+    coverage: {
+      provider: "v8",
+      include: ["src/**/*.ts", "src/**/*.tsx"],
+      thresholds: {
+        lines: 50,
+        functions: 45,
+        branches: 40,
+        statements: 50,
+      },
+    },
   },
   run: {
     tasks: {

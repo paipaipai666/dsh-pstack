@@ -48,6 +48,21 @@ afterEach(() => {
 });
 
 describe("pstack_subagent planning", () => {
+  it("defaults omitted optional arguments to null", () => {
+    const parsed = parseDelegationArgs({
+      description: "minimal brief",
+      prompt: "Do the task.",
+      agent: "general",
+    });
+    expect(parsed).toMatchObject({
+      role: null,
+      roleIndex: null,
+      reasoningEffort: null,
+      cwd: null,
+      maxDepth: null,
+    });
+  });
+
   it("maps poteto-agent and comment-sicko to their presets and general to the parent preset", () => {
     const dshHome = homeWithRoles(undefined);
     expect(planDelegation(args(), runtime(dshHome)).children[0]!.agentPreset).toBe("poteto-agent");

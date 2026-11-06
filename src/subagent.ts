@@ -232,21 +232,13 @@ export const DELEGATION_ARGUMENT_KEYS = [
 ] as const;
 
 /**
- * Keys a call must pass. `maxDepth` is accepted but not required: a missing or unusable
- * value resolves to `DEFAULT_CHILD_MAX_DEPTH` instead of forcing the caller to guess an
- * integer, which is where the reflexive `0` came from.
+ * Keys a call must pass. `maxDepth`, `role`, `roleIndex`, `reasoningEffort`, and `cwd`
+ * are optional: omitted values default to null, so a caller only supplies the settings
+ * it actually uses.
  */
-export const REQUIRED_DELEGATION_ARGUMENT_KEYS = [
-  "description",
-  "prompt",
-  "agent",
-  "role",
-  "roleIndex",
-  "reasoningEffort",
-  "cwd",
-] as const;
+export const REQUIRED_DELEGATION_ARGUMENT_KEYS = ["description", "prompt", "agent"] as const;
 
-/** Validate every required model-facing argument. Null declines an optional setting. */
+/** Validate every required model-facing argument. Null or omission declines an optional setting. */
 export function parseDelegationArgs(raw: unknown): DelegationArgs {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw))
     throw new DelegationError("arguments must be an object");
@@ -254,9 +246,7 @@ export function parseDelegationArgs(raw: unknown): DelegationArgs {
 
   for (const key of REQUIRED_DELEGATION_ARGUMENT_KEYS) {
     if (!Object.hasOwn(record, key))
-      throw new DelegationError(
-        `missing required argument "${key}"; every argument except maxDepth must be passed explicitly`,
-      );
+      throw new DelegationError(`missing required argument "${key}"`);
   }
   for (const key of Object.keys(record)) {
     if (!(DELEGATION_ARGUMENT_KEYS as readonly string[]).includes(key))
@@ -278,11 +268,11 @@ export function parseDelegationArgs(raw: unknown): DelegationArgs {
     );
   }
 
-  const role = record["role"];
+  const role = record["role"] ?? null;
   if (role !== null && !isNonEmptyString(role))
     throw new DelegationError("role must be a non-empty string or null");
 
-  const cwd = record["cwd"];
+  const cwd = record["cwd"] ?? null;
   if (cwd !== null && !isNonEmptyString(cwd))
     throw new DelegationError("cwd must be a non-empty string or null");
 
@@ -291,13 +281,13 @@ export function parseDelegationArgs(raw: unknown): DelegationArgs {
   if (maxDepth !== null && !isNonNegativeSafeInteger(maxDepth))
     throw new DelegationError("maxDepth must be a non-negative safe integer, or null/omitted");
 
-  const roleIndex = record["roleIndex"];
+  const roleIndex = record["roleIndex"] ?? null;
   if (roleIndex !== null && !isNonNegativeSafeInteger(roleIndex))
     throw new DelegationError("roleIndex must be a non-negative safe integer or null");
   if (roleIndex !== null && role === null)
     throw new DelegationError("roleIndex requires a non-null role");
 
-  const requestedEffort = record["reasoningEffort"];
+  const requestedEffort = record["reasoningEffort"] ?? null;
   if (requestedEffort !== null && !isNonEmptyString(requestedEffort)) {
     throw new DelegationError("reasoningEffort must be a non-empty string or null");
   }
@@ -774,9 +764,9 @@ export async function delegate(
 const TOOL_DESCRIPTION = [
   "Delegate self-contained work to one or more fresh child agents.",
   "",
-  "Every argument is required except maxDepth. Pass null for role, roleIndex, reasoningEffort,",
-  "or cwd when that setting is not used. Choose agent explicitly. maxDepth is optional: omit it",
-  "(or pass null) for the safe default of 1, where the child exists but cannot start its own",
+  "description, prompt, and agent are required. role, roleIndex, reasoningEffort, cwd, and",
+  "maxDepth are optional; omit them or pass null when a setting is not used. Choose agent",
+  "explicitly. maxDepth defaults to 1, where the child exists but cannot start its own",
   "children; pass 2 or more, within this row's configured cap, to let it delegate further. A 0 is",
   "treated as 1, because a child is already depth 1 and 0 can never start one.",
   "",
@@ -824,12 +814,12 @@ function buildParameters(): Record<string, unknown> {
       role: {
         type: ["string", "null"],
         description:
-          "Required pstack role key, matched exactly. It selects the child's model route and effort. Null inherits the parent route.",
+          "Optional pstack role key, matched exactly. It selects the child's model route and effort. Omit or null to inherit the parent route.",
       },
       cwd: {
         type: ["string", "null"],
         description:
-          "Required initial working directory, inside this session's directory or a separate Git worktree. Relative paths resolve against this session's directory. Null inherits the session directory.",
+          "Optional initial working directory, inside this session's directory or a separate Git worktree. Relative paths resolve against this session's directory. Omit or null to inherit the session directory.",
       },
       maxDepth: {
         type: ["integer", "null"],
@@ -839,12 +829,12 @@ function buildParameters(): Record<string, unknown> {
       roleIndex: {
         type: ["integer", "null"],
         description:
-          "Required entry index for a list-valued role that is not an automatic panel, 0 or greater. Requires a non-null role. Null selects the first entry. Call `pstack_roles` to see which roles accept an index.",
+          "Optional entry index for a list-valued role that is not an automatic panel, 0 or greater. Requires a non-null role. Omit or null selects the first entry. Call `pstack_roles` to see which roles accept an index.",
       },
       reasoningEffort: {
         type: ["string", "null"],
         description:
-          "Required reasoning-effort override for every child this call starts. Use one token the target model advertises, or null to keep the role line's starting effort. An unknown token fails the whole call before any child starts.",
+          "Optional reasoning-effort override for every child this call starts. Use one token the target model advertises, or omit/null to keep the role line's starting effort. An unknown token fails the whole call before any child starts.",
       },
     },
     required: [...REQUIRED_DELEGATION_ARGUMENT_KEYS],

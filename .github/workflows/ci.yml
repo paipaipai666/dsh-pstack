@@ -66,6 +66,37 @@ jobs:
           path: artifacts/*.tgz
           if-no-files-found: error
 
+  install-smoke:
+    name: Install smoke (Linux)
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Download package tarball
+        uses: actions/download-artifact@v4
+        with:
+          name: dsh-pstack-tarball
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          version: 12.15.0
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.22.1
+
+      - name: Install DSH CLI
+        run: pnpm add -g @deepseek-ai/dsh@0.2.2-rc.1
+
+      - name: Install fork into isolated DSH_HOME
+        env:
+          DSH_CLI: dsh
+        run: node scripts/smoke-install.mjs ./dsh-pstack-0.3.0-beta.1.tgz
+
   windows-smoke:
     name: Check (Windows smoke)
     runs-on: windows-latest

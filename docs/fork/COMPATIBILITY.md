@@ -21,8 +21,12 @@
   `pstack-script`, plus the two agent presets.
 
 This proves the DSH 0.2.2-rc.1 plugin installation path and bundle layer are compatible with
-the upstream package. It does not yet prove the fork build, because the fork has not been
-built in this environment.
+the upstream package.
+
+The fork's own `Build` and `Test` steps also pass on Linux and Windows in GitHub Actions run
+[42152714331](https://github.com/paipaipai666/dsh-pstack/actions/runs/42152714331). That run
+includes the generated-tree check after the build. A live install of the fork into an isolated
+`DSH_HOME` is still pending.
 
 ## Version constraints
 

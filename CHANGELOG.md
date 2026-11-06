@@ -12,11 +12,12 @@
 - Raised the default subagent depth cap from 2 to 3 for `/orchestrate`.
 - Removed Cursor-only Custom Mode instructions from the shipped help and setup guides.
 - Added `pstack-script-policy` for `pstack_script`; DSH owns approval, with `ask`, `allow`, and `deny` modes.
-- Added `pstack_doctor` for local command, script, and role-file preflight.
+- Added `pstack_doctor` for local command, script, role-file, and optional-plugin preflight.
 - Added `scripts/smoke-install.mjs` for isolated DSH bundle installation checks.
 - Added the persistent `pstack` agent preset so `/poteto-mode` can stay active for a whole session.
 - Made `pstack_subagent` optional arguments default to null instead of requiring explicit nulls.
 - Added DSH translation rules to every skill loaded through `pstack_skill`.
 - Added a CI install-smoke job that installs the real DSH CLI and the fork tarball into an isolated home.
 - Added load-time translation of Cursor-only names in pstack skill content.
+- Renamed the npm package to `@paipaipai666/dsh-pstack` and moved all bundle, Client, Remote, and playground references to the scoped name.
 - Added full Windows test execution and CRLF normalization for the harness-doc checker.

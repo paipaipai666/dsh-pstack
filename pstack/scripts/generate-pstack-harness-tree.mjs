@@ -152,6 +152,55 @@ function has(files, path) {
   return files.has(path) || [...files.keys()].some((key) => key.startsWith(`${path}/`));
 }
 
+// Exact prose rewrites for Cursor-only instructions that DSH cannot follow. Keep this list
+// narrow: a rewrite must remove a statement that is false in DSH, not reword upstream prose.
+const TEXT_REWRITES = [
+  {
+    from: "mention once that a Custom Mode keeps it on.",
+    to: "mention once that re-invoking `/poteto-mode` keeps it on.",
+  },
+  {
+    from: "- Option+Enter on Mac or Alt+Enter on Windows, or Use as Mode from the skill entry, makes it a Custom Mode. It stays in context every turn until the user exits the mode, and it stays out of casual turns.",
+    to: "- Enter on `/poteto-mode` attaches the skill to one message. DeepSeek Harness has no persistent Custom Mode; re-invoke `/poteto-mode` for each new task.",
+  },
+  {
+    from: "- Cursor's docs list Custom Modes in the Agents Window and the CLI. Elsewhere, start each new task with `/poteto-mode`.",
+    to: "- Start each new task with `/poteto-mode`.",
+  },
+  {
+    from: "Link [Cursor's skills docs](https://cursor.com/docs/skills) when this comes up.",
+    to: "Mention that DeepSeek Harness has no persistent Custom Mode when this comes up.",
+  },
+  {
+    from: 'spawn it with `subagent_type: "poteto-agent"`.',
+    to: 'spawn it with `pstack_subagent` and `agent: "poteto-agent"`.',
+  },
+  {
+    from: "- No `~/.cursor/rules/pstack-models.mdc` means",
+    to: "- No `$DSH_HOME/pstack-models.mdc` means",
+  },
+  {
+    from: "| The mode stopped applying after a few turns | It was started with Enter. Start it as a Custom Mode, or start each task with `/poteto-mode`. |",
+    to: "| The mode stopped applying after a few turns | DeepSeek Harness has no persistent Custom Mode; start each task with `/poteto-mode`. |",
+  },
+  {
+    from: "It writes `~/.cursor/rules/pstack-models.mdc`, a small rule every pstack skill reads.",
+    to: "It writes `$DSH_HOME/pstack-models.mdc`, a small file every pstack skill reads.",
+  },
+  {
+    from: "Say yes and it writes `.cursor/skills/verify-<app>/`",
+    to: "Say yes and it writes `.dsh/skills/verify-<app>/`",
+  },
+  {
+    from: "From here you can type normal follow-ups. To keep `/poteto-mode` on for the whole chat, pick it from the `/` menu with Option+Enter (Mac) or Alt+Enter (Windows) instead of Enter. That makes it a [Custom Mode](https://cursor.com/docs/skills#using-a-skill-as-a-custom-mode), which stays in context on every turn until you exit it. Custom Modes are available in the Agents Window and the CLI. Plain Enter attaches the skill to one message, and it fades as the chat moves on.",
+    to: "From here you can type normal follow-ups. DeepSeek Harness has no persistent Custom Mode; start each new task with `/poteto-mode`. Plain Enter attaches the skill to one message, and it fades as the chat moves on.",
+  },
+  {
+    from: "Short works because the playbook holds the structure, and a Custom Mode keeps `/poteto-mode` in context on every turn.",
+    to: "Short works because the playbook holds the structure; re-invoke `/poteto-mode` for each new task.",
+  },
+];
+
 function render() {
   // Skills read the adapter, the guide, and the README at runtime, so the tree carries them.
   const copies = [
@@ -173,7 +222,9 @@ function render() {
   files.set("LICENSE", file(join(PSTACK, "LICENSE")));
   for (const [path, entry] of files) {
     if (!path.endsWith(".md")) continue;
-    const text = entry.bytes.toString("utf8").replace(/\r\n/g, "\n").replace(LINK, (link, href) => {
+    let text = entry.bytes.toString("utf8").replace(/\r\n/g, "\n");
+    for (const rewrite of TEXT_REWRITES) text = text.replaceAll(rewrite.from, rewrite.to);
+    text = text.replace(LINK, (link, href) => {
       const target = resolve(path, href);
       if (!target || target.split("/")[0] === ".." || has(files, target)) return link;
       const kind = statSync(origin(target)).isDirectory() ? "tree" : "blob";

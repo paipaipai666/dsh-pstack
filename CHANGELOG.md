@@ -18,3 +18,4 @@
 - Made `pstack_subagent` optional arguments default to null instead of requiring explicit nulls.
 - Added DSH translation rules to every skill loaded through `pstack_skill`.
 - Added a CI install-smoke job that installs the real DSH CLI and the fork tarball into an isolated home.
+- Added load-time translation of Cursor-only names in pstack skill content.

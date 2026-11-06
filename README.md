@@ -107,7 +107,8 @@ To view or edit routes after setup, open **Plugins → Installed plugins → dsh
 The `poteto-agent` preset handles implementation delegation. The `comment-sicko` preset handles read-only comment review.
 
 > [!CAUTION]
-> `pstack_script` bypasses bash approval and the filesystem sandbox. Treat it as a trusted entry point.
+> `pstack_script` requests the Host approval service before running and fails closed without an
+> answerer. It still bypasses the filesystem sandbox, so treat it as a trusted entry point.
 
 ### 📚 Additional skills
 

@@ -14,6 +14,7 @@ import { spawn as spawnChild, type ChildProcess } from "node:child_process";
 import { isAbsolute, join, resolve } from "node:path";
 
 import type {
+  Agent,
   JobId,
   JobsHost,
   JsonSchemaNode,
@@ -413,12 +414,12 @@ const TOOL_DESCRIPTION = [
   "The run starts in this session's directory, so a relative path in `args` lands inside the",
   "workspace or worktree the session is using.",
   "",
-  "**This tool does not go through command approval, and the Host's sandbox policy does not apply**",
-  "to it. It spawns a Node process directly instead of asking `ctx.shell` to run a command, which is",
-  "what keeps it working where no `node` is on PATH. The scripts are this package's own audited",
-  "artefacts and `id` cannot name anything else, but the consequence is real: unlike a bash call, no",
-  "approval prompt is shown and no filesystem policy is enforced on what the script writes. Say so",
-  "when a task depends on that difference.",
+  "**Every run requests the Host approval service first; a missing or non-granting answerer fails**",
+  "closed. The Host's filesystem sandbox policy does not apply to it. It spawns a Node process",
+  "directly instead of asking `ctx.shell` to run a command, which is what keeps it working where",
+  "no `node` is on PATH. The scripts are this package's own audited artefacts and `id` cannot name",
+  "anything else, but the consequence is real: no filesystem policy is enforced on what the script",
+  "writes. Say so when a task depends on that difference.",
   "",
   "A nonzero exit, a signal, a timeout, and truncated output all come back in the result with the",
   "captured output, so a failed run is visible rather than silent.",
@@ -517,11 +518,24 @@ export const OUTPUT_SCHEMA: JsonSchemaNode = {
   ],
 };
 
+/** The one-shot approval seam this tool consults before running a bundled script. */
+export interface ApprovalHost {
+  request(request: {
+    readonly agent: Agent;
+    readonly toolName: string;
+    readonly reason?: string;
+    readonly signal?: AbortSignal;
+  }): Promise<"allowed-once" | "rejected" | "cancelled" | "unavailable">;
+}
+
 /** The slices of the Cordis context this tool needs. */
 export interface PstackScriptHost {
   readonly tools: ToolsHost;
   readonly workingDirectory: WorkingDirectoryHost;
   readonly getJobs?: () => JobsHost | undefined;
+  readonly getApproval?: () => ApprovalHost | undefined;
+  /** Default true: a missing approval service makes the call fail closed. */
+  readonly requireApproval?: boolean;
 }
 
 /** Build the tool for one row. */
@@ -540,6 +554,27 @@ export function createPstackScriptTool(host: PstackScriptHost): ToolDefinition {
     timeoutMs: MAX_TIMEOUT_MS,
     async execute(rawArgs, exec: ToolRunContext) {
       const args = parseScriptArgs(rawArgs);
+      const approval = host.getApproval?.();
+      if (approval === undefined) {
+        if (host.requireApproval !== false) {
+          throw new Error(
+            `pstack_script "${args.id}" requires the Host approval service; refusing to run because no approval answerer is available.`,
+          );
+        }
+      } else {
+        if (exec.agent === undefined) {
+          throw new Error(`pstack_script "${args.id}" requires a calling agent for approval`);
+        }
+        const outcome = await approval.request({
+          agent: exec.agent,
+          toolName: TOOL_NAME,
+          reason: `Run the bundled pstack script "${args.id}" with ${args.args.length} argument(s).`,
+          signal: exec.signal,
+        });
+        if (outcome !== "allowed-once") {
+          throw new Error(`pstack_script "${args.id}" was not approved (${outcome})`);
+        }
+      }
       const sessionCwd =
         exec.agent === undefined
           ? undefined
@@ -568,13 +603,14 @@ export const inject = ["tools", "workingDirectory"];
 
 /** Register `pstack_script` for this row. */
 export function apply(
-  ctx: PstackScriptHost & { get?: (name: string) => JobsHost | undefined },
+  ctx: PstackScriptHost & { get?: (name: string) => JobsHost | ApprovalHost | undefined },
 ): void {
   ctx.tools.register(
     createPstackScriptTool({
       tools: ctx.tools,
       workingDirectory: ctx.workingDirectory,
-      getJobs: () => ctx.get?.("jobs"),
+      getJobs: () => ctx.get?.("jobs") as JobsHost | undefined,
+      getApproval: () => ctx.get?.("approval") as ApprovalHost | undefined,
     }),
   );
 }

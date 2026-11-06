@@ -7,6 +7,7 @@ import {
   DEFAULT_OUTPUT_LIMIT_BYTES,
   MAX_TIMEOUT_MS,
   SCRIPT_IDS,
+  createPstackScriptTool,
   parseScriptArgs,
   renderScriptOutcome,
   resolveWorkingDirectory,
@@ -83,6 +84,31 @@ describe("pstack_script arguments", () => {
     await expect(
       runBackground(parseScriptArgs({ id: "log", background: true }), {}),
     ).rejects.toThrow(/needs the Host jobs service/);
+  });
+});
+
+describe("pstack_script approval", () => {
+  const exec = {
+    agent: { id: "parent" },
+    signal: new AbortController().signal,
+  } as never;
+
+  it("fails closed when the Host has no approval service", async () => {
+    const tool = createPstackScriptTool({
+      tools: {} as never,
+      workingDirectory: {} as never,
+      getApproval: () => undefined,
+    });
+    await expect(tool.execute({ id: "log", args: [] }, exec)).rejects.toThrow(/approval service/);
+  });
+
+  it("refuses a rejected approval before touching the script", async () => {
+    const tool = createPstackScriptTool({
+      tools: {} as never,
+      workingDirectory: {} as never,
+      getApproval: () => ({ request: async () => "rejected" }),
+    });
+    await expect(tool.execute({ id: "log", args: [] }, exec)).rejects.toThrow(/not approved/);
   });
 });
 

@@ -107,7 +107,8 @@
 `poteto-agent` preset 用于实现型委派，`comment-sicko` preset 用于只读评论审查。
 
 > [!CAUTION]
-> `pstack_script` 会绕过 bash 审批和文件系统沙箱，请将其视为受信入口。
+> `pstack_script` 运行前会请求 the agent harness 审批服务；没有应答者时按拒绝处理。
+> 它仍绕过文件系统沙箱，请将其视为受信入口。
 
 ### 📚 额外技能
 

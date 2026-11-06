@@ -21,6 +21,16 @@ Updated 2026-11-06.
 - `pstack/scripts/generate-pstack-harness-tree.mjs` failed on Windows CRLF and backslash path separators; both fixed.
 - CI originally ran tests before build; build-dependent tests now run after build.
 
+## B. Fixes
+
+| Item | Status | Evidence |
+|---|---|---|
+| FIX-03 default subagent depth | Done | `cordis.patch.yml` and generated `dsh.md` now use `maxDepth: 3`; CI run [42154085255](https://github.com/paipaipai666/dsh-pstack/actions/runs/42154085255) |
+| FIX-04 Cursor Custom Mode docs | Done | Removed the false Option+Enter/Custom Mode instructions from `poteto-help`, setup guide, and poteto-mode guide; exact rewrites live in `pstack/scripts/generate-pstack-harness-tree.mjs` |
+| FIX-01 `pstack_script` approval | Pending | Needs DSH `ctx.approval.request` integration and a real Desktop smoke |
+| FIX-02 root `pstack` preset | Pending | Needs the DSH 0.2.2 agent-preset composition shape verified |
+| FIX-08 real DSH integration tests | Pending | CI currently builds and installs the tarball, but does not run a model-backed session |
+
 ## Still open
 
 - Publish the fork as a scoped npm package; package name rename is a release task.

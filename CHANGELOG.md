@@ -9,3 +9,5 @@
 - Verified the packaged tarball installs into an isolated DSH 0.2.2-rc.1 profile.
 - Fixed stale version assertions and Windows path/line-ending handling in the generator and
   script tests.
+- Raised the default subagent depth cap from 2 to 3 for `/orchestrate`.
+- Removed Cursor-only Custom Mode instructions from the shipped help and setup guides.

@@ -1,0 +1,17 @@
+dsh-pstack fork
+
+This repository is a modified fork of dsh-pstack:
+https://github.com/l246804/dsh-pstack
+
+Original copyright:
+Copyright (c) 2026-PRESENT leiwang <leiwang2000@foxmail.com>
+
+The original project is licensed under the MIT License; see LICENSE.
+
+pstack, the upstream skill collection this project ports, is:
+Copyright (c) Lauren Tan
+Licensed under the MIT License; see the upstream project:
+https://github.com/cursor/plugins/tree/main/pstack
+
+This fork is not affiliated with or endorsed by the original author, Cursor,
+or DeepSeek.

@@ -21,4 +21,5 @@
 - Added load-time translation of Cursor-only names in pstack skill content.
 - Renamed the npm package to `@paipaipai666/dsh-pstack` and moved all bundle, Client, Remote, and playground references to the scoped name.
 - Added a V8 coverage gate to the Linux CI job.
+- Added an upstream pstack commit/tree drift check.
 - Added full Windows test execution and CRLF normalization for the harness-doc checker.

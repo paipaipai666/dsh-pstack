@@ -39,8 +39,9 @@ Updated 2026-11-06.
 ## Quality audit
 
 - Upstream parity: 58 skills, 23 playbooks, 24 principles, 2 agent definitions, 11 guide pages.
-- Test suite: 23 files, about 148 cases; CI runs Linux build/test with a V8 coverage gate, full Windows test, and a real DSH install smoke.
+- Test suite: 24 files, about 150 cases; CI runs Linux build/test with a V8 coverage gate, full Windows test, and a real DSH install smoke.
 - Coverage gate: lines 50%, functions 45%, branches 40%, statements 50%; CI run [42177056672](https://github.com/paipaipai666/dsh-pstack/actions/runs/42177056672) is green.
+- Upstream drift: the submodule commit and checked-out tree hash are pinned in `tests/upstream-drift.test.ts`.
 - Full audit: [AUDIT.md](AUDIT.md).
 
 ## Still open

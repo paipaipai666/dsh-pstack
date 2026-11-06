@@ -1,0 +1,95 @@
+# pstack 上游对照与质量审查
+
+> 审查时间：2026-11-06  
+> 上游基线：`cursor/plugins` 的 `pstack` 0.15.36（提交 `ae5650f`，由 `pstack/README.md` 记录）  
+> 当前 fork：`l246804/dsh-pstack` v0.3.0-beta.1 + 本仓修复  
+> 目标宿主：DeepSeek Harness `0.2.2-rc.1`
+
+## 1. 资产盘点
+
+| 资产 | 上游 pstack | 当前 fork | 结论 |
+|---|---:|---:|---|
+| `SKILL.md` | 58（34 普通 + 24 principle） | 58 | 一致 |
+| Playbook | 23 | 23 | 一致 |
+| Agent 定义 | 2（`poteto-agent`、`comment-sicko`） | 2 | 一致 |
+| Guide 文档 | 11 | 11 | 一致 |
+| 技能 reference | 29 | 62（含上游 copy 与本地/生成引用） | 多于上游，属于打包差异 |
+| 原生工具 | Cursor 的 Task/AskQuestion 等 | 6 个：`pstack_skill`、`pstack_models`、`pstack_roles`、`pstack_doctor`、`pstack_subagent`、`pstack_script` | 已替换为 DSH 原生接口 |
+| Agent preset | Cursor custom modes | 3 个：`pstack`（常驻）、`poteto-agent`、`comment-sicko` | 覆盖常驻模式与委派 |
+| 脚本入口 | 5 个 | 5 个：`check-plan`、`watch-pr`、`worktree-audit`、`log`、`statechart` | 一致，均 Node 重写 |
+| 测试文件 | 上游无 DSH 测试 | 22 个测试文件、约 138 个用例 | 已建立 QA 基线 |
+
+## 2. 与上游的功能差异
+
+### 已保留
+
+- 58 个技能、23 个 playbook、24 条 principle 的正文全部随包发布。
+- `poteto-mode` 的 23 个 playbook 路由、principle 索引、PR/验证/自动化工作流。
+- `poteto-agent` / `comment-sicko` 两个子代理角色。
+- 5 个脚本的 Node 版本，保留原 CLI 参数、退出码和输出格式。
+
+### 已替换为 DSH 原生能力
+
+| 上游 Cursor 概念 | 当前 DSH 实现 |
+|---|---|
+| `Task` / `subagent_type` | `pstack_subagent` + `agent` / `role` |
+| Cursor 模型 slug（`grok-*`、`claude-*` 等） | `pstack_models` 实时目录 + `pstack-models.mdc` 角色路由 |
+| `AskQuestion` | `ask_user_question` |
+| `TodoWrite` | `todo_write` |
+| `~/.cursor/rules/pstack-models.mdc` | `$DSH_HOME/pstack-models.mdc` |
+| `.cursor/skills/` | `.dsh/skills/` 或 `.agents/skills/` |
+| Cursor Custom Mode | `pstack` agent preset 常驻模式 |
+| Cursor 脚本路径 | `pstack_script` 的 5 个固定 `id` |
+
+### 明确不移植（平台边界）
+
+这些是 Cursor 平台能力，当前 fork 不假装实现：
+
+- Cursor Automations、webhook、`SendToUser`、routine wake
+- Bugbot 的启动、配置、等待
+- Cursor cloud agents、Projects
+- macOS 之外的 CUA 完整支持
+- 内置录屏、视频渲染、图像生成
+
+`pstack_script` 已接入 Host 审批；它仍绕过文件系统沙箱，这是 DSH 运行时限制，已在 README 和 DSH 适配文档中标注。
+
+## 3. 测试与质量保障
+
+### 新增的守卫
+
+- `tests/upstream-parity.test.ts`：技能/playbook/principle/agent 数量与名称一致性
+- `tests/cordis-config.test.ts`：bundle 行、preset、`maxDepth: 3`、package exports
+- `tests/native-text.test.ts`：Cursor 名称运行时转译、路径前缀、幂等性
+- `tests/skill-provider.test.ts`：skill provider 返回内容确实经过转译
+- `tests/subagent.test.ts`：可选参数默认 null
+- `tests/script.test.ts`：`pstack_script` 缺失/拒绝审批 fail closed
+- `tests/doctor.test.ts`：命令/脚本/角色文件预检
+- `tests/skill.test.ts`：`pstack_skill` 附加 DSH 适配规则
+
+### CI 质量门
+
+- Linux：typecheck → build → test → generated-tree check → package tarball
+- Windows：typecheck → build → script smoke
+- Install smoke (Linux)：安装真实 `@deepseek-ai/dsh@0.2.2-rc.1`，把 tarball 装入隔离 `DSH_HOME`，校验全部 bundle 行和 `preset-pstack`
+- 最新 CI：`42164429877` 全部通过
+
+## 4. 仍存在的质量缺口
+
+| 缺口 | 影响 | 建议 |
+|---|---|---|
+| 没有覆盖率阈值 | 新代码可能漏测 | 后续接入 `vitest --coverage`，先设合理阈值而不是追求 100% |
+| 没有真实模型会话的端到端测试 | 无法证明 `/poteto-mode` 的完整推理链路 | 增加一个带 `DEEPSEEK_API_KEY` 的可选 e2e job，或在 Desktop 手工验收 |
+| `pstack/pstack` 生成树仍保留上游 Cursor 原文 | 审计时需要知道文本与运行时的差异 | 已由 `native-text.ts` 运行时转译；生成树保持上游可追溯 |
+| `pstack_doctor` 只检查命令与文件，不检查 DSH 可选插件状态 | 推荐插件缺失时仍可能降级 | 后续可扩展 `doctor` 查询插件管理器 |
+| 没有性能/包体预算 | 生成树与 58 技能会持续增大 | 可加 `npm pack` 大小和启动时间基线 |
+| 上游 135 项能力表未逐项映射到测试 | 能力回归靠人工审查 | 可把 `pstack/README.md` 的能力编号做成清单，逐步覆盖高风险项 |
+
+## 5. 结论
+
+当前 fork 已达到“上游资产完整、核心调用层 DSH 原生、CI 可构建可安装可测”的状态。  
+与上游的差异集中在两类：
+
+1. **有意的平台替换**：Task/模型/路径/审批等改为 DSH 接口；
+2. **有意的平台排除**：Cursor Automations、Bugbot、cloud、CUA 等不假装支持。
+
+质量保障已从“只有构建”提升为“类型检查 + 单测 + Windows 构建 + 隔离安装 smoke”。下一阶段若继续提升，应优先补覆盖率门槛与真实模型会话 e2e，而不是继续增加新功能。

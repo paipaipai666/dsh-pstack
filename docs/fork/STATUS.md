@@ -30,18 +30,21 @@ Updated 2026-11-06.
 | FIX-01 `pstack_script` approval | Done | `pstack-script-policy` returns `{ kind: "ask" }` from `tools/pre-execute`; DSH owns approval and fails closed without an answerer. Config supports `ask`/`allow`/`deny`; tests cover all modes |
 | FIX-02 root `pstack` preset | Done | Added `pstack` agent preset with persistent poteto-mode persona and full tool composition; installed tarball boots a temp DSH web host with the preset in `--dump-config` |
 | FIX-05 native skill text | Done | Custom Mode rewrites shipped; the skill provider, `pstack_skill` resources, and delegate bootstrap translate Cursor names at load time. A test scans all 58 generated skill bodies and asserts no Cursor-only names reach the model |
+| FIX-06 Windows compatibility | Done | Windows CI now runs the full test suite, not only the script smoke; CRLF handling is normalized in the generator, harness-doc checker, and tests |
 | FIX-07 subagent argument schema | Done | `description`/`prompt`/`agent` are required; `role`/`roleIndex`/`reasoningEffort`/`cwd`/`maxDepth` are optional and default to null; test added |
 | FIX-08 real DSH integration tests | Done | `Install smoke (Linux)` CI job installs `@deepseek-ai/dsh@0.2.2-rc.1`, installs the built tarball into an isolated `DSH_HOME`, and asserts every bundle row; model-backed session coverage remains future work |
+| FIX-09 docs and release | Partial | README and compatibility matrix use `v0.3.0-beta.1`; npm publishing and package rename remain release work |
 | ADD-01 `pstack_doctor` | Done | New `pstack_doctor` tool; unit tests and CI green |
 
 ## Quality audit
 
 - Upstream parity: 58 skills, 23 playbooks, 24 principles, 2 agent definitions, 11 guide pages.
-- Test suite: 22 files, about 138 cases; CI runs Linux build/test, Windows build/smoke, and a real DSH install smoke.
+- Test suite: 23 files, about 144 cases; CI runs Linux build/test, full Windows test, and a real DSH install smoke.
 - Full audit: [AUDIT.md](AUDIT.md).
 
 ## Still open
 
 - Publish the fork as a scoped npm package; package name rename is a release task.
-- Install the built fork into an isolated `DSH_HOME` and run `/poteto-mode` end to end.
+- Run `/poteto-mode` with a real model session end to end; install smoke only proves bundle loading.
+- Publish the fork as `@paipaipai666/dsh-pstack`; package name remains `dsh-pstack` in the working tree.
 - Local developer environment: this machine's sandbox blocks pnpm store locks, so local install/build is not yet run outside CI. CI is the authoritative build signal for now.

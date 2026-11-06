@@ -62,6 +62,16 @@ git rebase main
 
 Keep fork-only commits small and grouped by concern so they can be proposed upstream as PRs.
 
+## Installing this fork
+
+The fork is distributed as a built tarball until the scoped npm package is published:
+
+```bash
+dsh plugin --profile <profile> add /path/to/dsh-pstack-0.3.0-beta.1.tgz
+```
+
+Do not use the upstream `dsh-pstack` npm package for this fork. It is a different build.
+
 ## Releasing this fork
 
 Use a scoped package name so the upstream npm package is not shadowed:

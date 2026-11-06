@@ -31,7 +31,7 @@ Updated 2026-11-06.
 | FIX-02 root `pstack` preset | Done | Added `pstack` agent preset with persistent poteto-mode persona and full tool composition; installed tarball boots a temp DSH web host with the preset in `--dump-config` |
 | FIX-05 native skill text | Partial | Custom Mode rewrites shipped and `pstack_skill` now appends DSH translation rules; remaining `Task`/`subagent_type`/model-slug text is still upstream |
 | FIX-07 subagent argument schema | Done | `description`/`prompt`/`agent` are required; `role`/`roleIndex`/`reasoningEffort`/`cwd`/`maxDepth` are optional and default to null; test added |
-| FIX-08 real DSH integration tests | Partial | `scripts/smoke-install.mjs` installs a built tarball into an isolated `DSH_HOME` and asserts every bundle row; not yet wired into CI or model-backed sessions |
+| FIX-08 real DSH integration tests | Done | `Install smoke (Linux)` CI job installs `@deepseek-ai/dsh@0.2.2-rc.1`, installs the built tarball into an isolated `DSH_HOME`, and asserts every bundle row; model-backed session coverage remains future work |
 | ADD-01 `pstack_doctor` | Done | New `pstack_doctor` tool; unit tests and CI green |
 
 ## Still open

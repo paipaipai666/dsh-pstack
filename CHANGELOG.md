@@ -17,3 +17,4 @@
 - Added the persistent `pstack` agent preset so `/poteto-mode` can stay active for a whole session.
 - Made `pstack_subagent` optional arguments default to null instead of requiring explicit nulls.
 - Added DSH translation rules to every skill loaded through `pstack_skill`.
+- Added a CI install-smoke job that installs the real DSH CLI and the fork tarball into an isolated home.

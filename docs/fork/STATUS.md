@@ -39,7 +39,7 @@ Updated 2026-11-06.
 ## Quality audit
 
 - Upstream parity: 58 skills, 23 playbooks, 24 principles, 2 agent definitions, 11 guide pages.
-- Test suite: 23 files, about 144 cases; CI runs Linux build/test, full Windows test, and a real DSH install smoke.
+- Test suite: 23 files, about 147 cases; CI runs Linux build/test, full Windows test, and a real DSH install smoke.
 - Full audit: [AUDIT.md](AUDIT.md).
 
 ## Still open

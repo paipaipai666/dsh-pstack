@@ -15,3 +15,5 @@
 - Added `pstack_doctor` for local command, script, and role-file preflight.
 - Added `scripts/smoke-install.mjs` for isolated DSH bundle installation checks.
 - Added the persistent `pstack` agent preset so `/poteto-mode` can stay active for a whole session.
+- Made `pstack_subagent` optional arguments default to null instead of requiring explicit nulls.
+- Added DSH translation rules to every skill loaded through `pstack_skill`.

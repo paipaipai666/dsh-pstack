@@ -26,6 +26,7 @@ import type {
   ToolRunContext,
   ToolsHost,
 } from "./internal/host-contract.ts";
+import { toDshText } from "./internal/native-text.ts";
 
 /** Model-facing tool name. */
 export const TOOL_NAME = "pstack_skill";
@@ -150,7 +151,7 @@ export async function readSkillResource(
     throw new Error(`resource "${resource}" escapes the skill directory`);
   }
   try {
-    return { path: resource, content: await readFile(target, "utf8") };
+    return { path: resource, content: toDshText(await readFile(target, "utf8")) };
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code;
     if (code === "ENOENT" || code === "EISDIR") {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { collectDoctorReport, createPstackDoctorTool } from "../src/doctor.ts";
+import { collectDoctorReport, createPstackDoctorTool, runCommandVersion } from "../src/doctor.ts";
 
 const host = {
   dshHome: "/tmp/dsh-home",
@@ -9,6 +9,10 @@ const host = {
 };
 
 describe("pstack_doctor", () => {
+  it("reads the version from a real executable", () => {
+    expect(runCommandVersion(process.execPath)).toMatch(/^v\d+/);
+  });
+
   it("reports installed and missing commands without throwing", () => {
     const report = collectDoctorReport(host);
     const git = report.commands.find((command) => command.name === "git");

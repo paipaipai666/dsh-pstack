@@ -34,9 +34,6 @@ export const VENDORED_SKILLS_ROOT = join(DIST_ROOT, "skills", "vendored");
 /** Absolute path of the skills authored in this repository. */
 export const AUTHORED_SKILLS_ROOT = join(DIST_ROOT, "skills", "authored");
 
-/** Absolute path of the `poteto-mode` instructions injected into a poteto-agent brief. */
-export const POTETO_MODE_SKILL_PATH = join(SKILLS_ROOT, "poteto-mode", "SKILL.md");
-
 /** Absolute path of the shipped harness mapping document. */
 export const HARNESS_DOC_PATH = join(PORT_ROOT, "docs", "harness", "dsh.md");
 

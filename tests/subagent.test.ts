@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
 import {
+  composeChildPrompt,
   parseDelegationArgs,
   planDelegation,
   startPlannedChildren,
@@ -48,6 +49,16 @@ afterEach(() => {
 });
 
 describe("pstack_subagent planning", () => {
+  it("composes a pstack_skill bootstrap without a raw skill path", () => {
+    const prompt = composeChildPrompt({
+      bootstrap: 'Before work, call `pstack_skill` with `{"name":"poteto-mode"}`.',
+      task: "Do the task.",
+    });
+    expect(prompt).toContain("`pstack_skill`");
+    expect(prompt).toContain("Task:");
+    expect(prompt).not.toContain("SKILL.md");
+  });
+
   it("defaults omitted optional arguments to null", () => {
     const parsed = parseDelegationArgs({
       description: "minimal brief",
@@ -61,6 +72,13 @@ describe("pstack_subagent planning", () => {
       cwd: null,
       maxDepth: null,
     });
+  });
+
+  it("bootstraps poteto-agent through pstack_skill instead of a raw SKILL.md path", () => {
+    const plan = planDelegation(args({ agent: "poteto-agent" }), runtime(homeWithRoles(undefined)));
+    expect(plan.prompt).toContain('`pstack_skill`');
+    expect(plan.prompt).toContain("`{\"name\":\"poteto-mode\"}`");
+    expect(plan.prompt).not.toContain("SKILL.md");
   });
 
   it("maps poteto-agent and comment-sicko to their presets and general to the parent preset", () => {

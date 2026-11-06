@@ -6,7 +6,7 @@
  * `pstack_models` owns those.
  */
 
-import { execFileSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 
@@ -63,16 +63,15 @@ export interface DoctorHost {
 
 /** Run one command and return its first output line, or undefined when it is unavailable. */
 export function runCommandVersion(command: string): string | undefined {
-  try {
-    const output = execFileSync(command, ["--version"], {
-      encoding: "utf8",
-      timeout: 5_000,
-      stdio: ["ignore", "pipe", "ignore"],
-    });
-    return output.trim().split(/\r?\n/, 1)[0] || "available";
-  } catch {
-    return undefined;
-  }
+  const result = spawnSync(command, ["--version"], {
+    encoding: "utf8",
+    timeout: 5_000,
+    windowsHide: true,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  if (result.error !== undefined || result.status !== 0) return undefined;
+  const output = `${result.stdout ?? ""}${result.stderr ?? ""}`.trim();
+  return output.split(/\r?\n/, 1)[0] || "available";
 }
 
 /** Build the report without touching any external service. */

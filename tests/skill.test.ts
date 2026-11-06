@@ -19,6 +19,10 @@ function temporarySkill(): { directory: string; definition: SkillDefinition } {
   mkdirSync(join(directory, "references"), { recursive: true });
   writeFileSync(join(directory, "references", "explorer-prompt.md"), "explore this\n");
   writeFileSync(
+    join(directory, "references", "cursor-terms.md"),
+    'Use `Task` with `subagent_type: "generalPurpose"` and `~/.cursor/rules/pstack-models.mdc`.\n',
+  );
+  writeFileSync(
     join(directory, "SKILL.md"),
     "---\nname: how\ndescription: walk the code\n---\n\n# How\n",
   );
@@ -60,10 +64,15 @@ describe("pstack_skill", () => {
     );
   });
 
-  it("reads a relative resource but refuses traversal", async () => {
+  it("reads a relative resource, translates Cursor names, and refuses traversal", async () => {
     const { definition } = temporarySkill();
     const loaded = await readSkillResource(definition, "references/explorer-prompt.md");
     expect(loaded.content).toBe("explore this\n");
+    const translated = await readSkillResource(definition, "references/cursor-terms.md");
+    expect(translated.content).toContain("pstack_subagent");
+    expect(translated.content).toContain('agent: "general"');
+    expect(translated.content).toContain("$DSH_HOME/pstack-models.mdc");
+    expect(translated.content).not.toContain("subagent_type");
     await expect(readSkillResource(definition, "../secret.txt")).rejects.toThrow(
       /escapes the skill directory/,
     );

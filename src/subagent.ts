@@ -41,7 +41,6 @@ import {
   type RouteSelection,
 } from "./internal/role-config.ts";
 import type { RoleSpec } from "./internal/role-manifest.ts";
-import { POTETO_MODE_SKILL_PATH } from "./internal/paths.ts";
 
 /** Cordis row name, used by Loader diagnostics. */
 export const name = "pstack-subagent";
@@ -197,20 +196,11 @@ export function agentPresetFor(agent: AgentKind): string | undefined {
 
 /** Compose the self-contained prompt one child receives. */
 export function composeChildPrompt(input: {
-  readonly injectedPaths?: readonly { readonly label: string; readonly path: string }[];
+  readonly bootstrap?: string;
   readonly task: string;
 }): string {
   const sections: string[] = [];
-  const injected = input.injectedPaths ?? [];
-  if (injected.length > 0) {
-    sections.push(
-      [
-        "Absolute paths injected by `pstack_subagent`. Read them directly; do not search a plugin directory.",
-        "",
-        ...injected.map((entry) => `- ${entry.label}: \`${entry.path}\``),
-      ].join("\n"),
-    );
-  }
+  if (input.bootstrap !== undefined) sections.push(input.bootstrap);
   if (sections.length === 0) return input.task;
   sections.push(`Task:\n\n${input.task}`);
   return sections.join("\n\n---\n\n");
@@ -442,11 +432,17 @@ export function planDelegation(
     }
   }
 
-  const injected =
+  const bootstrap =
     args.agent === "poteto-agent"
-      ? [{ label: "`poteto-mode` SKILL.md", path: POTETO_MODE_SKILL_PATH }]
-      : [];
-  const prompt = composeChildPrompt({ injectedPaths: injected, task: args.prompt });
+      ? [
+          "Before any work, call `pstack_skill` with `{\"name\":\"poteto-mode\"}` and follow the returned instructions in full, including its inline Principles index and playbooks.",
+          "Resolve every relative path in those files against the base directory the tool reports.",
+        ].join("\n")
+      : undefined;
+  const prompt = composeChildPrompt({
+    ...(bootstrap === undefined ? {} : { bootstrap }),
+    task: args.prompt,
+  });
   const agentPreset = agentPresetFor(args.agent);
 
   const depth = resolveDelegationDepth(
@@ -775,7 +771,7 @@ const TOOL_DESCRIPTION = [
   "Never wait or poll for them, and keep working on something useful meanwhile.",
   "",
   "`agent` picks a DSH agent preset: `poteto-agent` mounts the pstack implementation delegate",
-  "and receives the absolute path of the poteto-mode instructions; `comment-sicko` mounts the",
+  "and tells it to load the translated poteto-mode instructions through `pstack_skill`; `comment-sicko` mounts the",
   "read-only comment reviewer; `general` joins the parent preset with no pstack persona.",
   "",
   "`role` selects a configured pstack role and therefore the child's model route and reasoning",

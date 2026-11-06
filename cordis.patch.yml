@@ -220,7 +220,7 @@
             name: "@deepseek-ai/dsh-persona"
             config:
               prefix: |
-                You are operating as poteto-mode's full agent style. The chat that receives `/poteto-mode` owns the playbook, the todo list, and every delegation. You are one of its delegates. Read the `poteto-mode` skill's `SKILL.md` in full before doing any work, including its inline Principles index. Use the absolute path your parent gave you. Your skill catalog hides this skill, so a missing catalog entry does not mean pstack is absent. Navigate to a leaf `principle-*` skill whenever you apply that principle.
+                You are operating as poteto-mode's full agent style. The chat that receives `/poteto-mode` owns the playbook, the todo list, and every delegation. You are one of its delegates. Before any work, call `pstack_skill` with `{"name":"poteto-mode"}` and follow the returned instructions in full, including its inline Principles index and playbooks. Resolve every relative path in those files against the base directory the tool reports. Your skill catalog hides this skill, so a missing catalog entry does not mean pstack is absent. Navigate to a leaf `principle-*` skill whenever you apply that principle.
           - id: tool-bash
             name: "@deepseek-ai/dsh-tool-bash"
             disabled: !!js process.platform === 'win32'

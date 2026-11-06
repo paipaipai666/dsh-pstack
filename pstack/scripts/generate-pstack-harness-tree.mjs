@@ -155,9 +155,9 @@ function has(files, path) {
 function render() {
   // Skills read the adapter, the guide, and the README at runtime, so the tree carries them.
   const copies = [
-    ...walk(SKILLS).map((path) => relative(PSTACK, path)),
-    ...walk(join(PSTACK, "agents")).map((path) => relative(PSTACK, path)),
-    ...walk(join(PSTACK, GUIDE)).map((path) => relative(PSTACK, path)),
+    ...walk(SKILLS).map((path) => relative(PSTACK, path).replaceAll("\\", "/")),
+    ...walk(join(PSTACK, "agents")).map((path) => relative(PSTACK, path).replaceAll("\\", "/")),
+    ...walk(join(PSTACK, GUIDE)).map((path) => relative(PSTACK, path).replaceAll("\\", "/")),
     ADAPTER,
     "README.md",
   ];
@@ -203,7 +203,9 @@ if (dangling.length > 0) process.exit(1);
 
 if (process.argv.includes("--check")) {
   const onDisk = new Map(
-    existsSync(OUT) ? walk(OUT).map((path) => [relative(OUT, path), file(path)]) : [],
+    existsSync(OUT)
+      ? walk(OUT).map((path) => [relative(OUT, path).replaceAll("\\", "/"), file(path)])
+      : [],
   );
   const drifted = [...new Set([...rendered.keys(), ...onDisk.keys()])].sort().filter((path) => {
     const [want, have] = [rendered.get(path), onDisk.get(path)];

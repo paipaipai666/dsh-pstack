@@ -36,9 +36,55 @@ describe("bundle configuration", () => {
     for (const key of rows) expect(manifest.exports[key], key).toBeDefined();
   });
 
-  it("exports the doctor and native preset surfaces", () => {
+  it("exports the doctor, script policy, and native preset surfaces", () => {
     expect(manifest.exports["./doctor"]).toBe("./dist/doctor.mjs");
+    expect(manifest.exports["./script-policy"]).toBe("./dist/script-policy.mjs");
     expect(cordis).toContain("name: dsh-pstack/doctor");
+    expect(cordis).toContain("name: dsh-pstack/script-policy");
     expect(cordis).toContain("id: pstack");
+  });
+
+  it("exports every public source entry", () => {
+    const entries: Record<string, string> = {
+      ".": "./dist/index.mjs",
+      "./doctor": "./dist/doctor.mjs",
+      "./models": "./dist/models.mjs",
+      "./remote": "./dist/remote.mjs",
+      "./role-catalog": "./dist/role-catalog.mjs",
+      "./roles": "./dist/roles.mjs",
+      "./script": "./dist/script.mjs",
+      "./script-policy": "./dist/script-policy.mjs",
+      "./skill": "./dist/skill.mjs",
+      "./subagent": "./dist/subagent.mjs",
+    };
+    for (const [key, target] of Object.entries(entries)) {
+      expect(manifest.exports[key], key).toBe(target);
+    }
+  });
+
+  it("keeps the pstack preset able to run a full session", () => {
+    const start = cordis.indexOf("- id: preset-pstack");
+    const end = cordis.indexOf("- id: preset-poteto-agent");
+    expect(start, "preset-pstack").toBeGreaterThan(-1);
+    expect(end, "preset-poteto-agent").toBeGreaterThan(start);
+    const preset = cordis.slice(start, end);
+    for (const packageName of [
+      "@deepseek-ai/dsh-persona",
+      "@deepseek-ai/dsh-agent-instructions",
+      "@deepseek-ai/dsh-tool-fs",
+      "@deepseek-ai/dsh-tool-fs-search",
+      "@deepseek-ai/dsh-tool-jobs",
+      "@deepseek-ai/dsh-skill-filesystem",
+      "@deepseek-ai/dsh-tool-skill",
+      "@deepseek-ai/dsh-tool-todo",
+      "@deepseek-ai/dsh-tool-web",
+    ]) {
+      expect(preset, packageName).toContain(packageName);
+    }
+  });
+
+  it("configures the script approval policy as ask by default", () => {
+    expect(cordis).toContain("- id: pstack-script-policy");
+    expect(cordis).toMatch(/- id: pstack-script-policy\n\s+name: dsh-pstack\/script-policy\n\s+config:\n\s+mode: ask/);
   });
 });

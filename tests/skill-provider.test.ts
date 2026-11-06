@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
 import { parseFrontmatter, validateSkillFrontmatter } from "../src/internal/frontmatter.ts";
+import { toDshText } from "../src/internal/native-text.ts";
 import {
   createPstackSkillProvider,
   loadBundledSkillIndexes,
@@ -84,6 +85,43 @@ describe("bundled skill provider", () => {
         { path: second, label: "second" },
       ]),
     ).toThrow(/offered by both/);
+  });
+
+  it("translates Cursor-only names in loaded skill content", async () => {
+    const root = skillRoot();
+    const directory = join(root, "how");
+    mkdirSync(directory, { recursive: true });
+    writeFileSync(
+      join(directory, "SKILL.md"),
+      [
+        "---",
+        "name: how",
+        "description: Test how",
+        "---",
+        '# How',
+        "",
+        'Use `Task` with `subagent_type: "generalPurpose"` and `~/.cursor/rules/pstack-models.mdc`.',
+        "",
+      ].join("\n"),
+    );
+    const provider = createPstackSkillProvider(
+      loadBundledSkillIndexes([{ path: root, label: "test" }]),
+    );
+    const listing = await provider.list({ signal: new AbortController().signal });
+    const candidates = "candidates" in listing ? listing.candidates : listing;
+    const loaded = await provider.get(candidates[0]!, {
+      signal: new AbortController().signal,
+    });
+    expect(loaded?.content).toContain("pstack_subagent");
+    expect(loaded?.content).toContain('agent: "general"');
+    expect(loaded?.content).toContain("$DSH_HOME/pstack-models.mdc");
+    expect(loaded?.content).not.toContain("subagent_type");
+  });
+
+  it("translates the standalone adapter helper", () => {
+    expect(toDshText("Task tool and pstack-models.mdc")).toBe(
+      "pstack_subagent tool and $DSH_HOME/pstack-models.mdc",
+    );
   });
 
   it("loads its own skill and refuses forged or renamed locators", async () => {

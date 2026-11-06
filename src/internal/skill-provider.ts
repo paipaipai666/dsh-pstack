@@ -16,6 +16,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { basename, join } from "node:path";
 
 import { parseFrontmatter, validateSkillFrontmatter } from "./frontmatter.ts";
+import { toDshText } from "./native-text.ts";
 import type {
   SkillCandidate,
   SkillDefinition,
@@ -207,7 +208,7 @@ export function createPstackSkillProvider(
         provider: providerName,
         path: skill.instructionFile,
         resourceBase: { kind: "directory", path: skill.directory } satisfies SkillResourceBase,
-        content: body,
+        content: toDshText(body),
       } satisfies SkillDefinition;
     },
   };

@@ -9,12 +9,13 @@
  *     node scripts/smoke-install.mjs path/to/dsh-pstack.tgz
  */
 
-import { closeSync, mkdtempSync, openSync, readFileSync, rmSync } from "node:fs";
+import { closeSync, mkdirSync, mkdtempSync, openSync, readFileSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
+mkdirSync(join(ROOT, ".tmp"), { recursive: true });
 const tarball = process.argv[2];
 if (!tarball) {
   console.error("usage: node scripts/smoke-install.mjs <dsh-pstack.tgz>");

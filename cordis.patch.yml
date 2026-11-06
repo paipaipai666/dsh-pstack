@@ -28,7 +28,7 @@
     - id: pstack-subagent
       name: dsh-pstack/subagent
       config:
-        maxDepth: 2
+        maxDepth: 3
     - id: pstack-script
       name: dsh-pstack/script
     - id: preset-poteto-agent

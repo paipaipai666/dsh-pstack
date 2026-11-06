@@ -47,7 +47,7 @@ const EXTRA_SECTIONS = new Set(["Local replacements", "Optional plugins"]);
 function read(root, path) {
   const full = join(root, path);
   if (!existsSync(full)) return undefined;
-  return readFileSync(full, "utf8");
+  return readFileSync(full, "utf8").replace(/\r\n/g, "\n");
 }
 
 /** Split Markdown on `## ` headings. Returns name -> body lines, plus order. */

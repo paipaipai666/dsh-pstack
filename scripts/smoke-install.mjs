@@ -9,7 +9,7 @@
  *     node scripts/smoke-install.mjs path/to/dsh-pstack.tgz
  */
 
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { closeSync, mkdtempSync, openSync, readFileSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -26,16 +26,28 @@ const useShell = process.platform === "win32";
 const home = mkdtempSync(join(ROOT, ".tmp", "dsh-smoke-"));
 
 function run(args, options = {}) {
-  const result = spawnSync(cli, args, {
+  const command = useShell ? `"${cli}"` : cli;
+  const commandArgs = useShell ? args.map((arg) => `"${arg.replaceAll('"', '\\"')}"`) : args;
+  const stdoutPath = join(home, ".stdout.log");
+  const stderrPath = join(home, ".stderr.log");
+  const stdoutFd = options.capture ? openSync(stdoutPath, "w") : undefined;
+  const stderrFd = options.capture ? openSync(stderrPath, "w") : undefined;
+  const result = spawnSync(command, commandArgs, {
     encoding: "utf8",
-    stdio: options.capture ? ["ignore", "pipe", "pipe"] : "inherit",
+    stdio: options.capture ? ["ignore", stdoutFd, stderrFd] : "inherit",
     shell: useShell,
+    maxBuffer: 16 * 1024 * 1024,
     env: { ...process.env, DSH_HOME: home },
   });
+  if (stdoutFd !== undefined) closeSync(stdoutFd);
+  if (stderrFd !== undefined) closeSync(stderrFd);
   if (result.status !== 0) {
-    throw new Error(`${cli} ${args.join(" ")} failed (${String(result.status)}): ${result.stderr ?? ""}`);
+    const stderr = options.capture ? readFileSync(stderrPath, "utf8") : "";
+    throw new Error(
+      `${cli} ${args.join(" ")} failed (${String(result.status)}): ${stderr} ${result.error?.message ?? ""}`,
+    );
   }
-  return result.stdout ?? "";
+  return options.capture ? readFileSync(stdoutPath, "utf8") : "";
 }
 
 try {

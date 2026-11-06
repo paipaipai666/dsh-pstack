@@ -83,12 +83,13 @@ describe("optional plugin catalogue", () => {
       version: string;
       engines: { dsh: string };
     };
-    expect(manifest.version).toBe("0.2.1");
+    expect(manifest.version).toBe("0.3.0-beta.1");
     expect(manifest.engines.dsh).toBe(">=0.2.2-alpha.3");
     for (const file of ["../README.md", "../README.zh.md"]) {
       const text = readFileSync(new URL(file, import.meta.url), "utf8");
       expect(text).toContain(">=0.2.2-alpha.3");
       expect(text).toContain("0.2.2-alpha.2");
+      expect(text).toContain("v0.3.0-beta.1");
       expect(text).toContain("v0.2.1");
       expect(text).not.toContain(">=0.2.1-rc.5");
     }

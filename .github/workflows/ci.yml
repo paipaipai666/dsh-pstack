@@ -45,11 +45,11 @@ jobs:
       - name: Typecheck
         run: pnpm exec vp run typecheck
 
-      - name: Test
-        run: pnpm exec vp test
-
       - name: Build
         run: pnpm exec vp run build
+
+      - name: Test
+        run: pnpm exec vp test
 
       - name: Generated tree is current
         run: node pstack/scripts/generate-pstack-harness-tree.mjs --check
@@ -83,6 +83,9 @@ jobs:
 
       - name: Typecheck
         run: pnpm exec vp run typecheck
+
+      - name: Build
+        run: pnpm exec vp run build
 
       - name: Script smoke
         run: pnpm exec vp test tests/script.test.ts

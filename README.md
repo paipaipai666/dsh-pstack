@@ -180,7 +180,7 @@ Each row lists the latest compatible dsh-pstack release and its included pstack 
 
 | DSH version | Latest compatible dsh-pstack release | Included pstack version |
 |---|---|---|
-| `0.2.2-alpha.3` and later | Next release from this source tree | `0.15.36` |
+| `0.2.2-alpha.3` and later | `v0.3.0-beta.1` | `0.15.36` |
 | `0.2.2-alpha.2` and earlier | `v0.2.1` | `0.15.36` |
 
 When a DSH breaking change creates a new compatibility boundary, add a row.

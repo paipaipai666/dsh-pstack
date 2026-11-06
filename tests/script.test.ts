@@ -44,9 +44,13 @@ describe("pstack_script arguments", () => {
   });
 
   it("resolves a relative cwd against the session directory and keeps an absolute one", () => {
-    expect(resolveWorkingDirectory(undefined, "/session")).toBe("/session");
-    expect(resolveWorkingDirectory("worktree", "/session")).toBe("/session/worktree");
-    expect(resolveWorkingDirectory("/absolute/worktree", "/session")).toBe("/absolute/worktree");
+    const session = process.platform === "win32" ? "C:\\session" : "/session";
+    const relative = process.platform === "win32" ? "C:\\session\\worktree" : "/session/worktree";
+    const absolute =
+      process.platform === "win32" ? "C:\\absolute\\worktree" : "/absolute/worktree";
+    expect(resolveWorkingDirectory(undefined, session)).toBe(session);
+    expect(resolveWorkingDirectory("worktree", session)).toBe(relative);
+    expect(resolveWorkingDirectory(absolute, session)).toBe(absolute);
   });
 
   it("passes the caller environment through, adding the Electron selector only under Electron", () => {

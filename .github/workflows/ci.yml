@@ -54,6 +54,18 @@ jobs:
       - name: Generated tree is current
         run: node pstack/scripts/generate-pstack-harness-tree.mjs --check
 
+      - name: Package tarball
+        run: |
+          mkdir -p artifacts
+          npm pack --ignore-scripts --pack-destination artifacts
+
+      - name: Upload package tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: dsh-pstack-tarball
+          path: artifacts/*.tgz
+          if-no-files-found: error
+
   windows-smoke:
     name: Check (Windows smoke)
     runs-on: windows-latest

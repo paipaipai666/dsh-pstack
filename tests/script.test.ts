@@ -4,10 +4,8 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
 import {
-  DEFAULT_OUTPUT_LIMIT_BYTES,
   MAX_TIMEOUT_MS,
   SCRIPT_IDS,
-  createPstackScriptTool,
   parseScriptArgs,
   renderScriptOutcome,
   resolveWorkingDirectory,
@@ -36,11 +34,10 @@ describe("pstack_script arguments", () => {
     expect(() => parseScriptArgs({ id: "../package.json" })).toThrow(/must be one of/);
   });
 
-  it("rejects malformed args, cwd, timeout, and output limit before spawning", () => {
+  it("rejects malformed args, cwd, and timeout before spawning", () => {
     expect(() => parseScriptArgs({ id: "log", args: [1] })).toThrow(/only strings/);
     expect(() => parseScriptArgs({ id: "log", cwd: "" })).toThrow(/non-empty/);
     expect(() => parseScriptArgs({ id: "log", timeoutMs: MAX_TIMEOUT_MS + 1 })).toThrow(/at most/);
-    expect(() => parseScriptArgs({ id: "log", outputLimitBytes: 0 })).toThrow(/positive integer/);
     expect(() => parseScriptArgs({ id: "log", unknown: true })).toThrow(/unknown argument/);
   });
 
@@ -71,8 +68,6 @@ describe("pstack_script arguments", () => {
       timedOut: false,
       stdout: "",
       stderr: "usage: log.mjs\n",
-      stdoutTruncated: false,
-      stderrTruncated: false,
       durationMs: 3,
     });
     expect(rendered).toContain("log exited with code 1");
@@ -84,31 +79,6 @@ describe("pstack_script arguments", () => {
     await expect(
       runBackground(parseScriptArgs({ id: "log", background: true }), {}),
     ).rejects.toThrow(/needs the Host jobs service/);
-  });
-});
-
-describe("pstack_script approval", () => {
-  const exec = {
-    agent: { id: "parent" },
-    signal: new AbortController().signal,
-  } as never;
-
-  it("fails closed when the Host has no approval service", async () => {
-    const tool = createPstackScriptTool({
-      tools: {} as never,
-      workingDirectory: {} as never,
-      getApproval: () => undefined,
-    });
-    await expect(tool.execute({ id: "log", args: [] }, exec)).rejects.toThrow(/approval service/);
-  });
-
-  it("refuses a rejected approval before touching the script", async () => {
-    const tool = createPstackScriptTool({
-      tools: {} as never,
-      workingDirectory: {} as never,
-      getApproval: () => ({ request: async () => "rejected" }),
-    });
-    await expect(tool.execute({ id: "log", args: [] }, exec)).rejects.toThrow(/not approved/);
   });
 });
 
@@ -125,7 +95,6 @@ describe("pstack_script execution", () => {
       parseScriptArgs({
         id: "log",
         args: [file, "phase", "decision", "why", "evidence", "result"],
-        outputLimitBytes: DEFAULT_OUTPUT_LIMIT_BYTES,
       }),
     );
     expect(result.exitCode).toBe(0);

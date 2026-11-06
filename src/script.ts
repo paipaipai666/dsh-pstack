@@ -14,7 +14,6 @@ import { spawn as spawnChild, type ChildProcess } from "node:child_process";
 import { isAbsolute, join, resolve } from "node:path";
 
 import type {
-  Agent,
   JobId,
   JobsHost,
   JsonSchemaNode,
@@ -37,7 +36,6 @@ export type ScriptId = (typeof SCRIPT_IDS)[number];
 
 export const DEFAULT_TIMEOUT_MS = 120_000;
 export const MAX_TIMEOUT_MS = 600_000;
-export const DEFAULT_OUTPUT_LIMIT_BYTES = 64 * 1024;
 
 /** Raised for an argument problem, before anything is spawned. */
 export class ScriptInputError extends Error {
@@ -61,7 +59,6 @@ export interface ScriptArgs {
   readonly cwd?: string;
   readonly background: boolean;
   readonly timeoutMs?: number;
-  readonly outputLimitBytes?: number;
 }
 
 export interface ScriptResult {
@@ -72,8 +69,6 @@ export interface ScriptResult {
   readonly timedOut: boolean;
   readonly stdout: string;
   readonly stderr: string;
-  readonly stdoutTruncated: boolean;
-  readonly stderrTruncated: boolean;
   readonly durationMs: number;
 }
 
@@ -109,7 +104,7 @@ export function parseScriptArgs(raw: unknown): ScriptArgs {
   const record = raw as Record<string, unknown>;
 
   for (const key of Object.keys(record)) {
-    if (!["id", "args", "cwd", "background", "timeoutMs", "outputLimitBytes"].includes(key)) {
+    if (!["id", "args", "cwd", "background", "timeoutMs"].includes(key)) {
       throw new ScriptInputError(`unknown argument "${key}"`);
     }
   }
@@ -146,24 +141,12 @@ export function parseScriptArgs(raw: unknown): ScriptArgs {
       throw new ScriptInputError(`"timeoutMs" must be at most ${MAX_TIMEOUT_MS}`);
   }
 
-  const outputLimitBytes = record["outputLimitBytes"];
-  if (outputLimitBytes !== undefined) {
-    if (
-      typeof outputLimitBytes !== "number" ||
-      !Number.isInteger(outputLimitBytes) ||
-      outputLimitBytes <= 0
-    ) {
-      throw new ScriptInputError('"outputLimitBytes" must be a positive integer');
-    }
-  }
-
   return {
     id: id as ScriptId,
     args,
     ...(cwd === undefined ? {} : { cwd: cwd as string }),
     background,
     ...(timeoutMs === undefined ? {} : { timeoutMs: timeoutMs as number }),
-    ...(outputLimitBytes === undefined ? {} : { outputLimitBytes: outputLimitBytes as number }),
   };
 }
 
@@ -190,7 +173,6 @@ export async function runForeground(
   const path = scriptPath(args.id);
   const started = Date.now();
   const timeoutMs = args.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-  const limit = args.outputLimitBytes ?? DEFAULT_OUTPUT_LIMIT_BYTES;
 
   return await new Promise<ScriptResult>((resolve, reject) => {
     const child = spawnChild(options.execPath ?? process.execPath, [path, ...args.args], {
@@ -203,31 +185,14 @@ export async function runForeground(
 
     let stdout = "";
     let stderr = "";
-    let stdoutTruncated = false;
-    let stderrTruncated = false;
     let timedOut = false;
 
-    const collect = (chunk: Buffer, to: "out" | "err"): void => {
-      const text = chunk.toString("utf8");
-      if (to === "out") {
-        if (stdout.length >= limit) {
-          stdoutTruncated = true;
-          return;
-        }
-        stdout += text.slice(0, limit - stdout.length);
-        if (stdout.length >= limit) stdoutTruncated = true;
-        return;
-      }
-      if (stderr.length >= limit) {
-        stderrTruncated = true;
-        return;
-      }
-      stderr += text.slice(0, limit - stderr.length);
-      if (stderr.length >= limit) stderrTruncated = true;
-    };
-
-    child.stdout?.on("data", (chunk: Buffer) => collect(chunk, "out"));
-    child.stderr?.on("data", (chunk: Buffer) => collect(chunk, "err"));
+    child.stdout?.on("data", (chunk: Buffer) => {
+      stdout += chunk.toString("utf8");
+    });
+    child.stderr?.on("data", (chunk: Buffer) => {
+      stderr += chunk.toString("utf8");
+    });
 
     const timer = setTimeout(() => {
       timedOut = true;
@@ -249,8 +214,6 @@ export async function runForeground(
         timedOut,
         stdout,
         stderr,
-        stdoutTruncated,
-        stderrTruncated,
         durationMs: Date.now() - started,
       });
     });
@@ -294,7 +257,6 @@ export async function runBackground(
     kind: "bash",
     label: `pstack_script ${args.id}`,
     ...(options.caller === undefined ? {} : { owner: options.caller }),
-    outputLimitBytes: args.outputLimitBytes ?? DEFAULT_OUTPUT_LIMIT_BYTES,
     run: (job) => {
       state.ran = true;
       const settleStarted = reportStarted as (failure: string | null) => void;
@@ -394,8 +356,6 @@ export function renderScriptOutcome(outcome: ScriptOutcome): string {
     lines.push("", "stdout (exact bytes):", ...renderCapturedStream(outcome.stdout));
   if (outcome.stderr !== "")
     lines.push("", "stderr (exact bytes):", ...renderCapturedStream(outcome.stderr));
-  if (outcome.stdoutTruncated) lines.push("", "stdout was truncated at the output limit.");
-  if (outcome.stderrTruncated) lines.push("", "stderr was truncated at the output limit.");
   if (outcome.exitCode !== 0 || outcome.signal !== null || outcome.timedOut) {
     lines.push("", "This run failed. Read the output above; do not report success.");
   }
@@ -414,15 +374,16 @@ const TOOL_DESCRIPTION = [
   "The run starts in this session's directory, so a relative path in `args` lands inside the",
   "workspace or worktree the session is using.",
   "",
-  "**Every run requests the Host approval service first; a missing or non-granting answerer fails**",
-  "closed. The Host's filesystem sandbox policy does not apply to it. It spawns a Node process",
-  "directly instead of asking `ctx.shell` to run a command, which is what keeps it working where",
-  "no `node` is on PATH. The scripts are this package's own audited artefacts and `id` cannot name",
-  "anything else, but the consequence is real: no filesystem policy is enforced on what the script",
-  "writes. Say so when a task depends on that difference.",
+  "**The deployment may attach a pre-execute approval policy to this tool; run the policy before**",
+  "relying on the result. The Host's filesystem sandbox policy does not apply to it. It spawns a",
+  "Node process directly instead of asking `ctx.shell` to run a command, which is what keeps it",
+  "working where no `node` is on PATH. The scripts are this package's own audited artefacts and",
+  "`id` cannot name anything else, but the consequence is real: no filesystem policy is enforced",
+  "on what the script writes. Say so when a task depends on that difference.",
   "",
-  "A nonzero exit, a signal, a timeout, and truncated output all come back in the result with the",
-  "captured output, so a failed run is visible rather than silent.",
+  "A nonzero exit, a signal, and a timeout all come back in the result with the captured output,",
+  "so a failed run is visible rather than silent. Oversized output is handled by the Host's tool",
+  "result retention policy, not by this tool.",
   "",
   "Set `background: true` for a long run. That needs the Host jobs service; without it the call is",
   "refused with a reason instead of hanging. Background runs return a job id and a settlement notice",
@@ -459,10 +420,6 @@ export function buildScriptParameters(): Record<string, unknown> {
         type: "integer",
         description: `Foreground wall-clock limit; 1 or greater, and values below 1 are rejected. Defaults to ${DEFAULT_TIMEOUT_MS}; values above ${MAX_TIMEOUT_MS} are rejected.`,
       },
-      outputLimitBytes: {
-        type: "integer",
-        description: `Per-stream capture limit; 1 or greater, and values below 1 are rejected. Defaults to ${DEFAULT_OUTPUT_LIMIT_BYTES}.`,
-      },
     },
     required: ["id"],
   };
@@ -487,22 +444,9 @@ export const OUTPUT_SCHEMA: JsonSchemaNode = {
         },
         stdout: { type: "string" },
         stderr: { type: "string" },
-        stdoutTruncated: { type: "boolean" },
-        stderrTruncated: { type: "boolean" },
         durationMs: { type: "integer" },
       },
-      required: [
-        "kind",
-        "id",
-        "exitCode",
-        "signal",
-        "timedOut",
-        "stdout",
-        "stderr",
-        "stdoutTruncated",
-        "stderrTruncated",
-        "durationMs",
-      ],
+      required: ["kind", "id", "exitCode", "signal", "timedOut", "stdout", "stderr", "durationMs"],
     },
     {
       type: "object",
@@ -518,24 +462,11 @@ export const OUTPUT_SCHEMA: JsonSchemaNode = {
   ],
 };
 
-/** The one-shot approval seam this tool consults before running a bundled script. */
-export interface ApprovalHost {
-  request(request: {
-    readonly agent: Agent;
-    readonly toolName: string;
-    readonly reason?: string;
-    readonly signal?: AbortSignal;
-  }): Promise<"allowed-once" | "rejected" | "cancelled" | "unavailable">;
-}
-
 /** The slices of the Cordis context this tool needs. */
 export interface PstackScriptHost {
   readonly tools: ToolsHost;
   readonly workingDirectory: WorkingDirectoryHost;
   readonly getJobs?: () => JobsHost | undefined;
-  readonly getApproval?: () => ApprovalHost | undefined;
-  /** Default true: a missing approval service makes the call fail closed. */
-  readonly requireApproval?: boolean;
 }
 
 /** Build the tool for one row. */
@@ -554,27 +485,6 @@ export function createPstackScriptTool(host: PstackScriptHost): ToolDefinition {
     timeoutMs: MAX_TIMEOUT_MS,
     async execute(rawArgs, exec: ToolRunContext) {
       const args = parseScriptArgs(rawArgs);
-      const approval = host.getApproval?.();
-      if (approval === undefined) {
-        if (host.requireApproval !== false) {
-          throw new Error(
-            `pstack_script "${args.id}" requires the Host approval service; refusing to run because no approval answerer is available.`,
-          );
-        }
-      } else {
-        if (exec.agent === undefined) {
-          throw new Error(`pstack_script "${args.id}" requires a calling agent for approval`);
-        }
-        const outcome = await approval.request({
-          agent: exec.agent,
-          toolName: TOOL_NAME,
-          reason: `Run the bundled pstack script "${args.id}" with ${args.args.length} argument(s).`,
-          signal: exec.signal,
-        });
-        if (outcome !== "allowed-once") {
-          throw new Error(`pstack_script "${args.id}" was not approved (${outcome})`);
-        }
-      }
       const sessionCwd =
         exec.agent === undefined
           ? undefined
@@ -603,14 +513,13 @@ export const inject = ["tools", "workingDirectory"];
 
 /** Register `pstack_script` for this row. */
 export function apply(
-  ctx: PstackScriptHost & { get?: (name: string) => JobsHost | ApprovalHost | undefined },
+  ctx: PstackScriptHost & { get?: (name: string) => JobsHost | undefined },
 ): void {
   ctx.tools.register(
     createPstackScriptTool({
       tools: ctx.tools,
       workingDirectory: ctx.workingDirectory,
-      getJobs: () => ctx.get?.("jobs") as JobsHost | undefined,
-      getApproval: () => ctx.get?.("approval") as ApprovalHost | undefined,
+      getJobs: () => ctx.get?.("jobs"),
     }),
   );
 }

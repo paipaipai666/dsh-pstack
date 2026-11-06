@@ -28,6 +28,8 @@
       name: dsh-pstack/role-catalog
     - id: pstack-doctor
       name: dsh-pstack/doctor
+    - id: pstack-script-policy
+      name: dsh-pstack/script-policy
     - id: pstack-subagent
       name: dsh-pstack/subagent
       config:

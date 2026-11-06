@@ -109,8 +109,9 @@ To view or edit routes after setup, open **Plugins → Installed plugins → dsh
 The `pstack` preset keeps `poteto-mode` active for a whole session. The `poteto-agent` preset handles implementation delegation. The `comment-sicko` preset handles read-only comment review.
 
 > [!CAUTION]
-> `pstack_script` requests the Host approval service before running and fails closed without an
-> answerer. It still bypasses the filesystem sandbox, so treat it as a trusted entry point.
+> The `pstack-script-policy` row asks the Host approval service before `pstack_script` runs.
+> A missing or non-granting answerer leaves the call denied. The tool still bypasses the
+> filesystem sandbox, so treat it as a trusted entry point.
 
 ### 📚 Additional skills
 

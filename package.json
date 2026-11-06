@@ -40,6 +40,7 @@
     "./remote": "./dist/remote.mjs",
     "./role-catalog": "./dist/role-catalog.mjs",
     "./doctor": "./dist/doctor.mjs",
+    "./script-policy": "./dist/script-policy.mjs",
     "./roles": "./dist/roles.mjs",
     "./script": "./dist/script.mjs",
     "./skill": "./dist/skill.mjs",

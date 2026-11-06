@@ -109,8 +109,8 @@
 `pstack` preset 用于让 `poteto-mode` 在整段会话中常驻；`poteto-agent` preset 用于实现型委派，`comment-sicko` preset 用于只读评论审查。
 
 > [!CAUTION]
-> `pstack_script` 运行前会请求 the agent harness 审批服务；没有应答者时按拒绝处理。
-> 它仍绕过文件系统沙箱，请将其视为受信入口。
+> `pstack-script-policy` 行会在 `pstack_script` 运行前请求 the agent harness 审批服务；
+> 没有应答者时调用会被拒绝。该工具仍绕过文件系统沙箱，请将其视为受信入口。
 
 ### 📚 额外技能
 

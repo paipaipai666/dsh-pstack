@@ -16,6 +16,7 @@ describe("bundle configuration", () => {
       "pstack-roles",
       "pstack-role-catalog",
       "pstack-doctor",
+      "pstack-script-policy",
       "pstack-subagent",
       "pstack-script",
     ]) {

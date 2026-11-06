@@ -1,0 +1,60 @@
+name: Upstream sync check
+
+on:
+  schedule:
+    - cron: "0 2 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    name: Check upstream dsh-pstack
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.22.1
+
+      - name: Compare upstream release
+        id: upstream
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          latest="$(gh api 'repos/l246804/dsh-pstack/releases?per_page=10' \
+            --jq 'map(select(.draft == false)) | .[0].tag_name')"
+          current="$(node -p "require('./package.json').version")"
+          echo "latest=$latest" >> "$GITHUB_OUTPUT"
+          echo "current=$current" >> "$GITHUB_OUTPUT"
+          if [ "$latest" = "v$current" ] || [ "$latest" = "$current" ]; then
+            echo "up_to_date=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "up_to_date=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open sync issue
+        if: steps.upstream.outputs.up_to_date == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LATEST: ${{ steps.upstream.outputs.latest }}
+          CURRENT: ${{ steps.upstream.outputs.current }}
+        run: |
+          existing="$(gh issue list --state open --search 'upstream release in:title' --json number --jq 'length')"
+          if [ "$existing" != "0" ]; then
+            echo "An open upstream release issue already exists."
+            exit 0
+          fi
+          gh issue create \
+            --title "Upstream release: ${LATEST}" \
+            --body "Upstream l246804/dsh-pstack has a newer release.
+
+            - Current fork version: \`${CURRENT}\`
+            - Upstream latest release: \`${LATEST}\`
+
+            Review the upstream diff, rebase \`fork/main\`, regenerate the pstack tree, and run CI."

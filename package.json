@@ -11,9 +11,9 @@
     "pstack",
     "workflow"
   ],
-  "homepage": "https://github.com/l246804/dsh-pstack#readme",
+  "homepage": "https://github.com/paipaipai666/dsh-pstack#readme",
   "bugs": {
-    "url": "https://github.com/l246804/dsh-pstack/issues"
+    "url": "https://github.com/paipaipai666/dsh-pstack/issues"
   },
   "license": "MIT",
   "author": {
@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/l246804/dsh-pstack.git"
+    "url": "git+https://github.com/paipaipai666/dsh-pstack.git"
   },
   "files": [
     "dist",
@@ -106,7 +106,7 @@
   },
   "engines": {
     "dsh": ">=0.2.2-alpha.3",
-    "node": ">=24.21.1"
+    "node": ">=24.21.0"
   },
   "dsh": {
     "manifestVersion": 1,

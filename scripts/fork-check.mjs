@@ -51,7 +51,16 @@ try {
   }).trim();
   record("pnpm", true, `current ${pnpmVersion}`);
 } catch {
-  record("pnpm", false, "not found on PATH");
+  try {
+    const pnpmVersion = execFileSync("corepack", ["pnpm", "--version"], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+      env: { ...process.env, COREPACK_HOME: join(ROOT, ".tmp", "corepack") },
+    }).trim();
+    record("pnpm", true, `current ${pnpmVersion} (via corepack)`);
+  } catch {
+    record("pnpm", false, "not found on PATH or via corepack");
+  }
 }
 
 record(

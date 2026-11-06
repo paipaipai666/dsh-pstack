@@ -70,3 +70,13 @@
 ## Recommendation
 
 先修 P1 的两个转译盲区，再处理 `pstack_script` 的 headless 审批降级。P1 修复应只补测试和运行时路径，不扩大功能面。P2 可以作为下一轮维护项，不需要现在重构架构。
+
+## Fix status
+
+修复提交 `61a4fa4` 已处理以下两项：
+
+- `pstack_skill` 的 `resource` 读取现在经过 `toDshText`，并新增资源级测试。
+- `poteto-agent` 的委派 prompt 改为调用 `pstack_skill` 加载 `poteto-mode`，不再注入原始 `SKILL.md` 路径；旧 `POTETO_MODE_SKILL_PATH` 已移除。
+- `pstack_doctor` 改用 `spawnSync` 同时读取 stdout 和 stderr，并增加真实可执行文件版本探测测试。
+
+`pstack_script` 的 headless 审批策略仍是待决策项，当前保持 fail-closed 安全默认。

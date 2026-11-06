@@ -24,9 +24,12 @@ This proves the DSH 0.2.2-rc.1 plugin installation path and bundle layer are com
 the upstream package.
 
 The fork's own `Build` and `Test` steps also pass on Linux and Windows in GitHub Actions run
-[42152714331](https://github.com/paipaipai666/dsh-pstack/actions/runs/42152714331). That run
-includes the generated-tree check after the build. A live install of the fork into an isolated
-`DSH_HOME` is still pending.
+[42153283637](https://github.com/paipaipai666/dsh-pstack/actions/runs/42153283637), which
+includes the generated-tree check and a packaged tarball artifact.
+
+The artifact `dsh-pstack-0.3.0-beta.1.tgz` installed into a throwaway `DSH_HOME` with
+`dsh plugin --profile web add`, and `dsh --profile web --dump-config` showed all six
+`dsh-pstack` rows plus the two presets.
 
 ## Version constraints
 

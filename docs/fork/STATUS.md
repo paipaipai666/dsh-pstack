@@ -8,7 +8,7 @@ Updated 2026-11-06.
 |---|---|---|
 | FND-01 GitHub fork and remotes | Done | `origin` = `https://github.com/paipaipai666/dsh-pstack.git`, `upstream` = `https://github.com/l246804/dsh-pstack.git`; `fork/main` pushed |
 | FND-01 package rename | Pending | Package remains `dsh-pstack`; publish as `@paipaipai666/dsh-pstack` after release smoke |
-| FND-02 DSH 0.2.2-rc.1 baseline | Done for CI/build | `dsh --version` = `0.2.2-rc.1`; temp `DSH_HOME` installed published `dsh-pstack@0.2.1` and `--dump-config` showed all rows; fork CI build/test passed on Linux and Windows |
+| FND-02 DSH 0.2.2-rc.1 baseline | Done | `dsh --version` = `0.2.2-rc.1`; temp `DSH_HOME` installed published `dsh-pstack@0.2.1`; the fork tarball from CI run 42153283637 installed as `dsh-pstack@0.3.0-beta.1`; `--dump-config` showed all rows; CI build/test passed on Linux and Windows |
 | FND-03 PR CI with Windows runner | Done | GitHub Actions run [42152714331](https://github.com/paipaipai666/dsh-pstack/actions/runs/42152714331) is green for both jobs |
 | FND-04 upstream sync workflow | Done | `.github/workflows/upstream-sync.yml` |
 | FND-05 fork docs and notice | Done | `FORK.md`, `NOTICE`, `CHANGELOG.md` |

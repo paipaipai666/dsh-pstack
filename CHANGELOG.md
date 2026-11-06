@@ -11,3 +11,6 @@
   script tests.
 - Raised the default subagent depth cap from 2 to 3 for `/orchestrate`.
 - Removed Cursor-only Custom Mode instructions from the shipped help and setup guides.
+- Added Host approval for `pstack_script`; a missing or rejected answerer fails closed.
+- Added `pstack_doctor` for local command, script, and role-file preflight.
+- Added `scripts/smoke-install.mjs` for isolated DSH bundle installation checks.

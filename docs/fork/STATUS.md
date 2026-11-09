@@ -33,7 +33,7 @@ Updated 2026-11-06.
 | FIX-06 Windows compatibility | Done | Windows CI now runs the full test suite, not only the script smoke; CRLF handling is normalized in the generator, harness-doc checker, and tests |
 | FIX-07 subagent argument schema | Done | `description`/`prompt`/`agent` are required; `role`/`roleIndex`/`reasoningEffort`/`cwd`/`maxDepth` are optional and default to null; test added |
 | FIX-08 real DSH integration tests | Done | `Install smoke (Linux)` CI job installs `@deepseek-ai/dsh@0.2.2-rc.1`, installs the built tarball into an isolated `DSH_HOME`, and asserts every bundle row; model-backed session coverage remains future work |
-| FIX-09 docs and release | Partial | Scoped package rename and README are done; npm publish passes `--dry-run` but needs the account's 2FA OTP before the `beta` tag can be written |
+| FIX-09 docs and release | Partial | Scoped package rename and README are done; npm `publish --dry-run` passes. Real publish is blocked by an invalid local auth token (`npm whoami` returns E401), which the registry reports as E404 for the not-yet-created package |
 | ADD-01 `pstack_doctor` | Done | Commands, scripts, role file, and optional-plugin state; unit tests and CI green |
 
 ## Quality audit
@@ -46,6 +46,6 @@ Updated 2026-11-06.
 
 ## Still open
 
-- Finish the npm publish with the account's 2FA OTP or a granular token that can bypass 2FA.
+- Finish the npm publish. The `~/.npmrc` token (`npm_…`, granular) currently fails `npm whoami` with E401; an unauthenticated `PUT` for a package that does not exist yet returns E404. Fix by re-running `npm login` until `npm whoami` prints `paipaipai666`, then publish with `--otp=<6-digit code>`, or replace the token with a granular token that has Read/Write on the `@paipaipai666` scope and "bypass 2FA" enabled. An earlier attempt with a still-valid token returned E403: "Two-factor authentication or granular access token with bypass 2fa enabled is required to publish packages."
 - Run `/poteto-mode` with a real model session end to end; install smoke only proves bundle loading.
 - Local developer environment: this machine's sandbox blocks pnpm store locks, so local install/build is not yet run outside CI. CI is the authoritative build signal for now.

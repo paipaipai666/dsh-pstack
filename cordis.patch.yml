@@ -67,6 +67,8 @@
       config:
         mode: ask
         targets: []
+    - id: pstack-chart
+      name: "@paipaipai666/dsh-pstack/chart"
     - id: preset-poteto-mode
       name: "@paipaipai666/dsh-pstack/preset"
       config:

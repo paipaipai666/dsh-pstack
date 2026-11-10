@@ -30,6 +30,7 @@ describe("bundle configuration", () => {
       "pstack-script-policy",
       "pstack-script",
       "pstack-remote",
+      "pstack-chart",
       "preset-poteto-mode",
       "preset-poteto-mode-creator",
       "preset-poteto-agent",
@@ -48,12 +49,19 @@ describe("bundle configuration", () => {
     for (const key of keys) expect(manifest.exports[key], key).toBeDefined();
   });
 
-  it("exposes the fork-only doctor, script, script policy, and remote surfaces", () => {
+  it("exposes the fork-only doctor, script, script policy, remote, and chart surfaces", () => {
     expect(manifest.exports["./doctor"]).toBe("./dist/doctor.mjs");
     expect(manifest.exports["./script"]).toBe("./dist/script.mjs");
     expect(manifest.exports["./script-policy"]).toBe("./dist/script-policy.mjs");
     expect(manifest.exports["./remote"]).toBe("./dist/remote.mjs");
-    for (const id of ["pstack-doctor", "pstack-script", "pstack-script-policy", "pstack-remote"]) {
+    expect(manifest.exports["./chart"]).toBe("./dist/chart.mjs");
+    for (const id of [
+      "pstack-doctor",
+      "pstack-script",
+      "pstack-script-policy",
+      "pstack-remote",
+      "pstack-chart",
+    ]) {
       expect(rows.map((row) => row.id)).toContain(id);
     }
   });
@@ -102,6 +110,11 @@ describe("bundle configuration", () => {
     const policy = rows.find((row) => row.id === "pstack-script-policy")?.block ?? "";
     expect(policy).toContain('name: "@paipaipai666/dsh-pstack/script-policy"');
     expect(policy).toMatch(/config:\s*\n\s+mode: ask\n/);
+  });
+
+  it("renders a chart without a Mermaid dependency", () => {
+    const chart = rows.find((row) => row.id === "pstack-chart")?.block ?? "";
+    expect(chart).toContain('name: "@paipaipai666/dsh-pstack/chart"');
   });
 
   it("ships an empty remote registry that asks before dispatching", () => {

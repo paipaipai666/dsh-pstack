@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.5.0-beta.4
+
+Renders the charts `statechart` produces. The script writes the colours into `chart.mmd`, but DSH had
+no renderer, so every diagram arrived as text. A first-party renderer closes that gap without pulling
+in Mermaid or a browser.
+
+### Added
+
+- `pstack_chart` (`src/chart.ts`, row `pstack-chart`): parses the Mermaid subset the statechart backend
+  emits and writes a standalone SVG. States become rounded rectangles, groups become bordered boxes,
+  parallel regions sit side by side, transitions keep their labels, and the
+  `breaks`/`mayBreak`/`bugPath`/`repeats` marks keep their colours. `bugPath` and `repeats` get a
+  built-in palette because the backend declares only the first two with `classDef`.
+  `chart.mmd` stays authoritative; a line the parser cannot read is reported with its line number.
+- `tests/chart.test.ts`: parsing, grouping, marks, XML escaping, syntax errors, and an SVG for every
+  chart in the statechart corpus.
+
+### Changed
+
+- The `statechart` row in both adapters (`port/dsh.md`, `port/dsh.zh.md`) now points at `pstack_chart`
+  instead of telling the model to return the Mermaid text.
+- `port/audit.md` reclassifies what is covered today: CAP-046 as an official plugin (the webhook seam),
+  CAP-047 as a direct mapping (`--host`), CAP-035 as a plugin implementation (the automation recipes),
+  and CAP-065 as a plugin implementation (this renderer). The dropped list is now six items, and the
+  video case stays deferred.
 ## 0.5.0-beta.3
 
 Closes the migration gap that was still silent: a Cursor project's `.mdc` rules never load here, and

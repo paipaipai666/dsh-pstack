@@ -21,7 +21,7 @@
     <tr>
       <td align="center"><strong>58</strong><br /><sub>pstack 技能</sub></td>
       <td align="center"><strong>23</strong><br /><sub>playbook</sub></td>
-      <td align="center"><strong>7</strong><br /><sub>原生工具</sub></td>
+      <td align="center"><strong>8</strong><br /><sub>原生工具</sub></td>
       <td align="center"><strong>5</strong><br /><sub>agent preset</sub></td>
       <td align="center"><strong>5</strong><br /><sub>随包脚本</sub></td>
     </tr>
@@ -43,7 +43,7 @@
 `dsh-pstack` 将 [pstack](https://github.com/cursor/plugins/tree/main/pstack) 移植到 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（DSH），保留其技能、playbook 与参考文档，并提供原生技能路由、按角色配置模型和按角色路由的子代理。
 
 > [!NOTE]
-> 本仓库是社区 fork [`paipaipai666/dsh-pstack`](https://github.com/paipaipai666/dsh-pstack)，基于上游 `0.3.1` 重建。除移植本身外，它还增加了四样东西：`pstack_script` 启动器（让随包工作流跑在宿主自带的 Node 上，桌面端没有 PATH 上的 `node`）、`pstack_doctor` 环境检查、把任务派发到你运行的另一台机器的 `pstack_remote`，以及在运行时改写上流技能文本里残留的 Cursor 名称的翻译层。完整差异见 [FORK.md](./FORK.md)。
+> 本仓库是社区 fork [`paipaipai666/dsh-pstack`](https://github.com/paipaipai666/dsh-pstack)，基于上游 `0.3.1` 重建。除移植本身外，它还增加了这些内容：`pstack_script` 启动器（让随包工作流跑在宿主自带的 Node 上，桌面端没有 PATH 上的 `node`）、`pstack_doctor` 环境检查、把任务派发到你运行的另一台机器的 `pstack_remote`、把 statechart 图渲染成 SVG 的 `pstack_chart`，以及在运行时改写上流技能文本里残留的 Cursor 名称的翻译层。完整差异见 [FORK.md](./FORK.md)。
 完整的移植审查见[能力审核](./port/audit.md)与[运行时映射](./port/dsh.zh.md)。
 
 当前审核覆盖 68 项面向 Cursor 的能力：39 项直接映射、2 项官方插件、16 项插件实现、11 项有意舍弃。
@@ -145,6 +145,7 @@
 | `pstack_script` | 在宿主自带的 Node 运行时下运行五个随包工作流之一（`check-plan`、`watch-pr`、`worktree-audit`、`log`、`statechart`）。`pstack-script-policy` 行会在每次调用前请求审批；`background: true` 把长任务交给 job 系统。 |
 | `pstack_doctor` | 报告随包工作流需要的本机依赖（`git`、`gh`、`node`、`bun`、`ffmpeg`、`mise`、`java`、`jq`）、已配置的模型角色、当前 profile 中可选插件的状态，以及工作区里那些 DSH 永远不会加载的 `.cursor/rules/*.mdc` 文件。 |
 | `pstack_remote` | 把一次任务派发到你登记的机器，读取它的事件流，并可以停止它。本插件不提供机器：目标是 PATH 里有 `dsh` 的 SSH 主机，或流式输出 NDJSON 的 HTTP worker。 |
+| `pstack_chart` | 把 statechart 的 `chart.mmd` 渲染成独立 SVG，配色一并还原。它只画 statechart 脚本发出的 Mermaid 子集，不需要浏览器或外部二进制；读不懂的语法按行号报错，不猜。 |
 
 ### 🎭 Agent preset
 
@@ -215,7 +216,7 @@ vendored 技能的来源与哈希记录在 [`skills/skills-lock.json`](./skills/
 | `.cursor/rules/*.mdc` 常驻规则 | 把文字搬进 `AGENTS.md`。DSH 从不加载 `.mdc`；唯一例外是角色文件，由 `pstack_subagent` 从 `$DSH_HOME/pstack-models.mdc` 读取。 |
 | `claude-opus-5-5-xhigh` 这类模型 slug | 改传 `role: "<角色键>"`。先运行 `pstack_models` 看本部署实际提供的路由，再用 `setup-pstack` 写入。 |
 | Task 调用里的 `environment: "cloud"` | 用 `pstack_remote` 登记一台机器并指名，或者让该步骤退回本地 worktree。DSH 不提供 VM。 |
-| 图表、视频、入站 webhook | 装替代插件，不要改写技能：图表用 `@nagi-ovo/dsh-visualize`，媒体后处理用 `dsh-ffmpeg`，入站事件用 `@deepseek-ai/dsh-webhook` 加一个 provider 适配器。 |
+| 图表、视频、入站 webhook | `statechart` 的图不需要额外安装：`pstack_chart` 会把 `chart.mmd` 渲染成 SVG。其余情况装替代插件，不要改写技能：对话卡片用 `@nagi-ovo/dsh-visualize`，媒体后处理用 `dsh-ffmpeg`，入站事件用 `@deepseek-ai/dsh-webhook` 加一个 provider 适配器。 |
 
 `pstack_doctor` 会检查当前会话的工作区，把发现的 `.cursor/rules/*.mdc` 文件逐个列出来，所以第一行不必靠记忆。自动化配方（包括无人值守怎么跑）见 [docs/automations.md](./docs/automations.md)。
 
@@ -230,7 +231,7 @@ vendored 技能的来源与哈希记录在 [`skills/skills-lock.json`](./skills/
 | PR 编排 | 没有模型侧变更请求工具，也没有 Agent Teams 式的 PR 跟踪面板与共享记录；`watch-pr` 仍提供 stack verdict。 |
 | 模式切换 | 没有 Option+Enter 开关或会话中切换模式的入口。新建会话时选择 `poteto-mode` 或 `poteto-mode-creator`；其它 preset 每个任务调用 `/poteto-mode`。 |
 | 事件驱动循环 | 不订阅 forge 事件。官方 `dsh-webhook` 接缝能用已验证的投递启动会话，但没有去重、没有完成回报，且只有 GitHub 适配器。 |
-| 图表渲染 | 不提供内置渲染器。图表以 Mermaid 文本返回；需要对话内卡片时安装 `@nagi-ovo/dsh-visualize`，需要图片时自行用外部工具渲染。 |
+| 图表渲染 | 只内置 statechart 这一条路径：`pstack_chart` 用自带的分层布局画 `chart.mmd`，还原 `breaks`/`mayBreak`/`bugPath`/`repeats` 配色，排版与 Mermaid 不完全一致。其它 Mermaid 图仍没有渲染器；需要对话内卡片时安装 `@nagi-ovo/dsh-visualize`。 |
 | 视频证据 | 没有内置视频渲染、录屏与逐帧验证，需要外部录屏或 FFmpeg 工具。 |
 | 桌面覆盖 | computer use 仅支持 macOS PTC 桌面控制会话，Windows 支持尚不完整。 |
 | MCP 发现 | 不会自动发现证据类别，需要显式配置并识别 MCP 工具。 |
@@ -253,7 +254,7 @@ vendored 技能的来源与哈希记录在 [`skills/skills-lock.json`](./skills/
 <!-- compatibility-keys: ["dsh-0.2.2-rc.1+port-v1","dsh-0.2.1-rc.5+legacy-v1","dsh-0.2.0-0.3.0+legacy-v1"] -->
 | DSH 版本 | dsh-pstack 发布版本 | 包含的 pstack 版本 |
 |---|---|---|
-| `>=0.2.2-rc.1` | `0.4.0-beta.2`、`0.5.0-beta.3` | `0.15.36` |
+| `>=0.2.2-rc.1` | `0.4.0-beta.2`、`0.5.0-beta.4` | `0.15.36` |
 | `>=0.2.1-rc.5` | `0.2.2` | `0.15.36` |
 | `>=0.2.0 < 0.3.0` | `0.1.0` | `0.15.29` |
 

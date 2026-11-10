@@ -80,7 +80,7 @@ DeepSeek Harness 没有 Cursor Automations、Bugbot、Cursor 云代理或内置 
 | `/automate` | 用 `writing-for-agents` 把已验证的工作模式写成个人技能。需要历史证据时用 Optional plugins 里的 session-search 后备。 |
 | Custom Mode | 新建会话时选择随包 `poteto-mode` 根 preset 使用标准工具面，或选择 `poteto-mode-creator` 使用创造模式工具面。两者都把完整技能常驻系统提示直到会话结束。如果会话使用其它 preset，就在每个任务调用 `/poteto-mode`。 |
 | `/visualize` | 优先用社区插件 `@nagi-ovo/dsh-visualize`：它的 `visualize` 工具把 HTML 片段渲染成对话内可交互卡片，最接近内置图表命令。没有它时用 Mermaid 画关系图，返回 Mermaid 文本，不要声称已生成图片。 |
-| `statechart` | 图表用 Mermaid。DSH 没有内置 SVG 渲染器，忽略 `references/render.md` 的渲染步骤，返回 `chart.mmd` 文本，不要声称已生成图片。 |
+| `statechart` | 图表交给 `pstack_chart`：它读 `chart.mmd` 并写出独立 SVG，还原 `breaks`/`mayBreak`/`bugPath`/`repeats` 配色。它只画 statechart 后端发出的子集，读不懂的行按行号报错，不会猜测。`chart.mmd` 仍是权威产物，工具返回之后再提 SVG。 |
 | `ketchup-video` | 视频用文字摘要。DSH 没有内置视频渲染器，不要声称已生成视频。 |
 | `control-ui`、`control-cli`、`cursor-team-kit` | 包内 vendored `control-ui` 与 `control-cli` 指令技能。浏览器与 PTY 依赖写在其 `SKILL.md`；需要时启用 `@deepseek-ai/dsh-browser-use` 或实验性持久终端 bundle。不可用的 GUI 或视频证据标记为跳过。 |
 

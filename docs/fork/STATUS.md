@@ -1,7 +1,7 @@
 # Fork status
 
 Updated 2026-11-10. Base: upstream `dsh-pstack 0.3.1` (`2d577b1`). Package: `@paipaipai666/dsh-pstack`
-`0.5.0-beta.3`.
+`0.5.0-beta.4`.
 
 ## A. Fork foundation
 
@@ -53,6 +53,18 @@ rules simply never loaded, and the playbooks that create a routine had nowhere t
 | MIG-02 automation recipes | Done | `docs/automations.md` maps Cursor's automation and routine objects onto `schedule_create`, `@deepseek-ai/dsh-webhook`, `dsh-automations`, and `pstack_remote`, and states the unattended-approval tradeoff |
 | MIG-03 packaging | Done | `package.json#files` lists `docs/automations.md`, so the install carries the page the READMEs and adapters point at |
 
+## Chart rendering (0.5.0-beta.4)
+
+`statechart` already drew colours into the Mermaid text, but DSH had no renderer, so every diagram
+came back as text. The fork renders that one subset itself instead of taking a Mermaid dependency.
+
+| Item | Status | Evidence |
+|---|---|---|
+| CHT-01 parser | Done | `src/chart.ts` reads `stateDiagram-v2`, quoted and plain states, groups with regions, `direction`, descriptions, transitions with labels and guards, and `class`/`classDef`; an unreadable line reports its own line number |
+| CHT-02 layout | Done | Longest-path layering per scope, side-by-side regions, `LR` columns when the chart asks for them, and measured leaf boxes that account for wide characters |
+| CHT-03 palette | Done | `breaks` and `mayBreak` keep the backend's `classDef` colours; `bugPath` and `repeats` get a built-in palette because the backend emits only `class` for them |
+| CHT-04 tool | Done | `pstack_chart` (row `pstack-chart`) takes `chart.mmd` and writes a standalone SVG, defaulting to `<input>.svg`, and refuses any other output extension |
+| CHT-05 tests | Done | `tests/chart.test.ts` covers parsing, grouping, marks, XML escaping, syntax errors, and renders every chart in the statechart corpus |
 ## B. Fixes
 
 | Item | Status | Evidence |
@@ -70,7 +82,7 @@ rules simply never loaded, and the playbooks that create a routine had nowhere t
 ## Quality audit
 
 - Generated tree: 58 skills, 23 playbooks, 24 principles, 2 agent definitions, 11 guide pages.
-- Test suite: 28 files under `tests/` (215 cases) plus 72 runtime cases (4 skipped on Windows); CI runs
+- Test suite: 29 files under `tests/` (230 cases) plus 72 runtime cases (4 skipped on Windows); CI runs
   Linux build/test with a V8 coverage gate, the Windows suite, and a real DSH install smoke.
 - Translation coverage: one test translates every Markdown file in `pstack/` and fails on any
   surviving Cursor tool, field, path, or model name.

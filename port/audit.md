@@ -34,10 +34,10 @@
 | 技能 | 58 |
 | 脚本入口 | 5 |
 | 引用校验 | 234 |
-| 🟢 直接映射 | 39 |
-| 🔵 官方插件 | 2 |
-| 🟠 插件实现 | 17 |
-| 🔴 舍弃 | 10 |
+| 🟢 直接映射 | 40 |
+| 🔵 官方插件 | 3 |
+| 🟠 插件实现 | 19 |
+| 🔴 舍弃 | 6 |
 
 `脚本入口` 只统计随包可执行入口（check-plan、watch-pr、worktree-audit、log、statechart），不含 Java 测试辅助、Cursor Automations 等运行时能力项。
 
@@ -47,18 +47,18 @@
 | [B 子代理字段](#cat-b) | 10 | 🟢 直接映射 6 · 🟠 插件实现 4 |
 | [C 模型与角色](#cat-c) | 7 | 🟢 直接映射 2 · 🟠 插件实现 5 |
 | [D 路径与历史](#cat-d) | 5 | 🟢 直接映射 4 · 🔴 舍弃 1 |
-| [E Cursor 平台](#cat-e) | 14 | 🟢 直接映射 7 · 🔵 官方插件 1 · 🟠 插件实现 2 · 🔴 舍弃 4 |
+| [E Cursor 平台](#cat-e) | 14 | 🟢 直接映射 8 · 🔵 官方插件 2 · 🟠 插件实现 3 · 🔴 舍弃 1 |
 | [F 其他 Cursor 插件](#cat-f) | 6 | 🔵 官方插件 1 · 🟠 插件实现 3 · 🔴 舍弃 2 |
-| [G 运行时与脚本](#cat-g) | 14 | 🟢 直接映射 12 · 🔴 舍弃 2 |
+| [G 运行时与脚本](#cat-g) | 14 | 🟢 直接映射 12 · 🟠 插件实现 1 · 🔴 舍弃 1 |
 
 ## 按推荐分组
 
 | 推荐 | 数量 | 编号 |
 |:--|--:|:--|
-| 🟢 直接映射 | 39 | [CAP-002](#cap-002) [CAP-003](#cap-003) [CAP-005](#cap-005) [CAP-006](#cap-006) [CAP-007](#cap-007) [CAP-008](#cap-008) [CAP-009](#cap-009) [CAP-010](#cap-010) [CAP-014](#cap-014) [CAP-018](#cap-018) [CAP-019](#cap-019) [CAP-020](#cap-020) [CAP-021](#cap-021) [CAP-022](#cap-022) [CAP-026](#cap-026) [CAP-027](#cap-027) [CAP-030](#cap-030) [CAP-031](#cap-031) [CAP-032](#cap-032) [CAP-034](#cap-034) [CAP-037](#cap-037) [CAP-038](#cap-038) [CAP-040](#cap-040) [CAP-042](#cap-042) [CAP-043](#cap-043) [CAP-044](#cap-044) [CAP-045](#cap-045) [CAP-054](#cap-054) [CAP-055](#cap-055) [CAP-056](#cap-056) [CAP-057](#cap-057) [CAP-058](#cap-058) [CAP-059](#cap-059) [CAP-060](#cap-060) [CAP-061](#cap-061) [CAP-062](#cap-062) [CAP-063](#cap-063) [CAP-064](#cap-064) [CAP-067](#cap-067) |
-| 🔵 官方插件 | 2 | [CAP-041](#cap-041) [CAP-050](#cap-050) |
-| 🟠 插件实现 | 17 | [CAP-001](#cap-001) [CAP-004](#cap-004) [CAP-011](#cap-011) [CAP-013](#cap-013) [CAP-015](#cap-015) [CAP-016](#cap-016) [CAP-017](#cap-017) [CAP-023](#cap-023) [CAP-024](#cap-024) [CAP-025](#cap-025) [CAP-028](#cap-028) [CAP-029](#cap-029) [CAP-039](#cap-039) [CAP-048](#cap-048) [CAP-049](#cap-049) [CAP-051](#cap-051) [CAP-068](#cap-068) |
-| 🔴 舍弃 | 10 | [CAP-012](#cap-012) [CAP-033](#cap-033) [CAP-035](#cap-035) [CAP-036](#cap-036) [CAP-046](#cap-046) [CAP-047](#cap-047) [CAP-052](#cap-052) [CAP-053](#cap-053) [CAP-065](#cap-065) [CAP-066](#cap-066) |
+| 🟢 直接映射 | 40 | [CAP-002](#cap-002) [CAP-003](#cap-003) [CAP-005](#cap-005) [CAP-006](#cap-006) [CAP-007](#cap-007) [CAP-008](#cap-008) [CAP-009](#cap-009) [CAP-010](#cap-010) [CAP-014](#cap-014) [CAP-018](#cap-018) [CAP-019](#cap-019) [CAP-020](#cap-020) [CAP-021](#cap-021) [CAP-022](#cap-022) [CAP-026](#cap-026) [CAP-027](#cap-027) [CAP-030](#cap-030) [CAP-031](#cap-031) [CAP-032](#cap-032) [CAP-034](#cap-034) [CAP-037](#cap-037) [CAP-038](#cap-038) [CAP-040](#cap-040) [CAP-042](#cap-042) [CAP-043](#cap-043) [CAP-044](#cap-044) [CAP-045](#cap-045) [CAP-047](#cap-047) [CAP-054](#cap-054) [CAP-055](#cap-055) [CAP-056](#cap-056) [CAP-057](#cap-057) [CAP-058](#cap-058) [CAP-059](#cap-059) [CAP-060](#cap-060) [CAP-061](#cap-061) [CAP-062](#cap-062) [CAP-063](#cap-063) [CAP-064](#cap-064) [CAP-067](#cap-067) |
+| 🔵 官方插件 | 3 | [CAP-041](#cap-041) [CAP-046](#cap-046) [CAP-050](#cap-050) |
+| 🟠 插件实现 | 19 | [CAP-001](#cap-001) [CAP-004](#cap-004) [CAP-011](#cap-011) [CAP-013](#cap-013) [CAP-015](#cap-015) [CAP-016](#cap-016) [CAP-017](#cap-017) [CAP-023](#cap-023) [CAP-024](#cap-024) [CAP-025](#cap-025) [CAP-028](#cap-028) [CAP-029](#cap-029) [CAP-035](#cap-035) [CAP-039](#cap-039) [CAP-048](#cap-048) [CAP-049](#cap-049) [CAP-051](#cap-051) [CAP-065](#cap-065) [CAP-068](#cap-068) |
+| 🔴 舍弃 | 6 | [CAP-012](#cap-012) [CAP-033](#cap-033) [CAP-036](#cap-036) [CAP-052](#cap-052) [CAP-053](#cap-053) [CAP-066](#cap-066) |
 
 `CAP-066` 视频渲染延期（deferred），不计入本轮实现范围。
 
@@ -100,7 +100,7 @@
 | [CAP-009](#cap-009) | 路径搜索 | 🟢 直接映射 | 无 | 直接映射 | |
 | [CAP-010](#cap-010) | 命令执行 | 🟢 直接映射 | `bash` 不保留交互式 TTY 与工作目录状态 | 直接映射 | |
 | [CAP-011](#cap-011) | Cursor 内置技能创作 | 🟠 插件实现 | 没有内置的技能创作流程与描述优化循环 | 插件实现 | |
-| [CAP-012](#cap-012) | 可视化图表命令 | 🔴 舍弃 | 没有开箱即用的图表命令，也没有内置图表渲染器 | 舍弃 | |
+| [CAP-012](#cap-012) | 可视化图表命令 | 🔴 舍弃 | 没有开箱即用的图表命令；社区 `@nagi-ovo/dsh-visualize` 已记录在 `port/dsh.md`，本包不依赖 | 舍弃（社区包已记录） | |
 | [CAP-013](#cap-013) | 子代理类型 | 🟠 插件实现 | 默认 profile 的 `subagent` schema 不含 `agent_preset` | 插件实现 | |
 | [CAP-014](#cap-014) | 通用子代理 | 🟢 直接映射 | 无 | 直接映射 | |
 | [CAP-015](#cap-015) | poteto-agent 预设 | 🟠 插件实现 | DSH 自带预设不包含这个角色，新插件需要提供 `poteto-agent` 预设 | 插件实现 | |
@@ -123,7 +123,7 @@
 | [CAP-032](#cap-032) | Cursor 插件目录 | 🟢 直接映射 | 打包格式不同，需要 DSH 插件包 | 直接映射 | |
 | [CAP-033](#cap-033) | Cursor 项目设置 | 🔴 舍弃 | 项目级设置只服务 automations/benny，随 Automations 一起舍弃 | 舍弃 | |
 | [CAP-034](#cap-034) | 会话记录 | 🟢 直接映射 | 没有直接暴露 JSONL 路径 | 直接映射 | |
-| [CAP-035](#cap-035) | Cursor Automations | 🔴 舍弃 | 上游 `claude-code.md` 第 60 至 64 行明确排除 | 舍弃 | |
+| [CAP-035](#cap-035) | Cursor Automations | 🟠 插件实现 | 定时用 `schedule_create`，事件用官方 webhook，本地生命周期用社区 `dsh-automations`；配方见 `docs/automations.md` | 插件实现 | |
 | [CAP-036](#cap-036) | Routine 调用 | 🔴 舍弃 | 随 Automations 一并舍弃 | 舍弃 | |
 | [CAP-037](#cap-037) | Slack 检索 | 🟢 直接映射 | 只有用户自行配置 Slack MCP 才可用 | 直接映射 | |
 | [CAP-038](#cap-038) | Bugbot 评审 | 🟢 直接映射 | Bugbot 专属步骤舍弃，普通评审线程照常处理 | 直接映射 | |
@@ -134,8 +134,8 @@
 | [CAP-043](#cap-043) | 项目验证技能 | 🟢 直接映射 | 生成路径从 `.cursor/skills` 改为 `.agents/skills` | 直接映射 | |
 | [CAP-044](#cap-044) | 计划模式 | 🟢 直接映射 | 无 | 直接映射 | |
 | [CAP-045](#cap-045) | MCP 连接 | 🟢 直接映射 | 需要用户提供服务器配置与凭证 | 直接映射 | |
-| [CAP-046](#cap-046) | Webhook 接收 | 🔴 舍弃 | 随 Automations 舍弃 | 舍弃 | |
-| [CAP-047](#cap-047) | Tailscale 暴露页面 | 🔴 舍弃 | 需要外部安装与用户授权 | 舍弃 | |
+| [CAP-046](#cap-046) | Webhook 接收 | 🔵 官方插件 | 官方 `@deepseek-ai/dsh-webhook` 加 provider 适配器把已验证投递变成会话；只有 GitHub 适配器 | 官方插件 | |
+| [CAP-047](#cap-047) | Tailscale 暴露页面 | 🟢 直接映射 | 宿主 `--host <tailnet-ip> --public-url` 绑具体接口地址；`0.0.0.0` 在加载时被拒绝 | 直接映射 | |
 | [CAP-048](#cap-048) | cursor-team-kit 插件 | 🟠 插件实现 | 三份技能是 cursor-team-kit 的 MIT 指令文件，仓库默认没有 | 插件实现 | |
 | [CAP-049](#cap-049) | UI 控制技能 | 🟠 插件实现 | 需要外部 `agent-browser` 技能 | 插件实现 | |
 | [CAP-050](#cap-050) | CLI 控制技能 | 🔵 官方插件 | 没有现成的 control-cli 技能，DSH 标准模式也没有 TUI 驱动技能 | 官方插件 | |
@@ -153,7 +153,7 @@
 | [CAP-062](#cap-062) | 决策日志脚本 | 🟢 直接映射 | 无 | 直接映射 | |
 | [CAP-063](#cap-063) | statechart 脚本树 | 🟢 直接映射 | 依赖 Bun 或 Node 的 TypeScript 执行、mise、TLC、Java 与网络 | 直接映射 | |
 | [CAP-064](#cap-064) | 依赖安装器 | 🟢 直接映射 | 离线环境不可用 | 直接映射 | |
-| [CAP-065](#cap-065) | Pele 图表渲染 | 🔴 舍弃 | 不提供内置图表渲染器，图表以 Mermaid 文本返回 | 舍弃 | |
+| [CAP-065](#cap-065) | Pele 图表渲染 | 🟠 插件实现 | `pstack_chart` 把 `chart.mmd` 画成 SVG，不依赖 Mermaid 或浏览器 | 插件实现 | |
 | [CAP-066](#cap-066) | 视频渲染 | 🔴 舍弃 | 延期（deferred），不在本轮范围；需要视频时由用户使用外部工具 | 舍弃 | |
 | [CAP-067](#cap-067) | 性能测量 工具链 | 🟢 直接映射 | 本机缺少 `py-spy` | 直接映射 | |
 | [CAP-068](#cap-068) | Custom Mode 自定义模式 | 🟠 插件实现 | 标准模式没有常驻技能的根 preset | 插件实现 | |
@@ -832,23 +832,23 @@
 
 <a id="cat-e"></a>
 
-## E Cursor 平台　🟢 直接映射 7 · 🔵 官方插件 1 · 🟠 插件实现 1 · 🔴 舍弃 5
+## E Cursor 平台　🟢 直接映射 8 · 🔵 官方插件 2 · 🟠 插件实现 3 · 🔴 舍弃 1
 
 <a id="cap-035"></a>
 
-### CAP-035 Cursor Automations　🔴 舍弃
+### CAP-035 Cursor Automations　🟠 插件实现
 
 | 维度 | 内容 |
 |:--|:--|
 | 📍 使用位置 | `skills/make-bot-ui/SKILL.md:37`、`automations/benny/FOR_AGENTS.md:31`、`docs/harness/claude-code.md:60`、`README.md:287` |
 | 🖱️ Cursor 行为 | Benny 自动化、routine 创建、`api2.cursor.sh/automations` webhook 与 routine 唤醒。 |
-| 🧰 标准模式 | 没有等价物。 |
-| 🧩 官方插件 | 无。 |
-| 🕳️ 剩余缺口 | 上游 `claude-code.md` 第 60 至 64 行明确排除。本仓库同样舍弃。影响 `automations/benny` 与 make-bot-ui。 |
-| ⚔️ 冲突 | DSH 的定时任务工具 `schedule_create` 只按时间触发，没有 routine 与 webhook。把 schedule 当 routine 用会丢掉事件触发语义。 |
-| 🚧 最终遗留 | Benny 自动化与 make-bot-ui 的整条链路不可用。 |
-| 💡 推荐 | 🔴 舍弃。上游 `claude-code.md` 第 60 至 64 行明确排除。 |
-| ✅ 处置 | 舍弃 |
+| 🧰 标准模式 | 定时跟进有 `schedule_create`；已验证的入站事件有官方 `@deepseek-ai/dsh-webhook` 接缝。两者都不是 automation 对象。 |
+| 🧩 官方插件 | `@deepseek-ai/dsh-webhook` 与 `@deepseek-ai/dsh-webhook-github`，见 CAP-046。 |
+| 🕳️ 剩余缺口 | 定时、事件、会话生命周期三半分别由 `schedule_create`、官方 webhook、社区 `dsh-automations` 覆盖，配方见 `docs/automations.md`。automation 对象本身的确认卡、`SendToUser` 密钥请求与云端面板仍不可用，那属于 CAP-036。 |
+| ⚔️ 冲突 | `schedule_create` 只按时间触发；webhook 接缝不去重、不回报完成，`202` 不等于会话已启动；无人值守时 `pstack-script-policy` 与 `pstack-remote` 的 `mode: ask` 会把流程卡住，改成 `allow` 是明确的信任决策。 |
+| 🚧 最终遗留 | routine 对象不实现。事件触发链路可用但需要用户自备 provider 适配器或社区包。 |
+| 💡 推荐 | 🟠 插件实现。文档给出三条配方，不新造 automation 对象。 |
+| ✅ 处置 | 插件实现 |
 
 [返回审核清单](#审核清单)
 
@@ -1035,37 +1035,37 @@
 
 <a id="cap-046"></a>
 
-### CAP-046 Webhook 接收　🔴 舍弃
+### CAP-046 Webhook 接收　🔵 官方插件
 
 | 维度 | 内容 |
 |:--|:--|
 | 📍 使用位置 | `skills/make-bot-ui/SKILL.md:5`、`skills/poteto-help/SKILL.md:100`、`skills/poteto-mode/references/bugbot-triage.md:122`、`docs/guide/04-design.md:86` |
 | 🖱️ Cursor 行为 | make-bot-ui 让本机服务器 POST 到 Cursor routine 的 webhook。 |
-| 🧰 标准模式 | 没有入站 webhook 接收服务。`schedule_create` 只做定时触发。 |
-| 🧩 官方插件 | 无。 |
-| 🕳️ 剩余缺口 | 随 Automations 舍弃。make-bot-ui 整条链路不可用。 |
-| ⚔️ 冲突 | DSH 定时任务只按时间触发，不能接收外部 POST。 |
-| 🚧 最终遗留 | make-bot-ui 与 routine 唤醒不可用。 |
-| 💡 推荐 | 🔴 舍弃。随 Automations 舍弃。 |
-| ✅ 处置 | 舍弃 |
+| 🧰 标准模式 | `ctx.webhookRuntime` 是官方接缝：provider 适配器验证投递，可信插件登记进程内规则，规则返回的请求变成普通 Workspace 会话。 |
+| 🧩 官方插件 | `@deepseek-ai/dsh-webhook` 与 `@deepseek-ai/dsh-webhook-github`。`dsh plugin --profile web add` 两个包，再用 `dsh web --patch .../examples/github-review/cordis.yml` 挂载。 |
+| 🕳️ 剩余缺口 | 只有 GitHub 适配器；其它 provider 需要写一个小规则插件。接缝是进程内 fire-and-forget，不去重、不回报完成，`202` 只代表签名与 JSON 被接受。插件不提供公网入站服务，绑定地址与密钥由用户决定。 |
+| ⚔️ 冲突 | 无人值守时审批策略仍是本地配置；`0.0.0.0` 在加载时被拒绝，对外只能用具体接口地址或反代。 |
+| 🚧 最终遗留 | make-bot-ui 的 routine 对象链路仍缺后半段（见 CAP-036），但入站事件到会话这一段不再是缺口。 |
+| 💡 推荐 | 🔵 官方插件。安装两包并在 overlay 里启动，配方见 `docs/automations.md`。 |
+| ✅ 处置 | 官方插件 |
 
 [返回审核清单](#审核清单)
 
 <a id="cap-047"></a>
 
-### CAP-047 Tailscale 暴露页面　🔴 舍弃
+### CAP-047 Tailscale 暴露页面　🟢 直接映射
 
 | 维度 | 内容 |
 |:--|:--|
 | 📍 使用位置 | `skills/make-bot-ui/SKILL.md:6`、`docs/guide/09-make-it-yours.md:96`、`README.md:142`、`skills/make-bot-ui/SKILL.md:57` |
 | 🖱️ Cursor 行为 | make-bot-ui 要求把本机页面绑到 `0.0.0.0`，用 Tailscale 提供 tailnet URL。 |
-| 🧰 标准模式 | `bash` 可以运行 `tailscale` 命令，但本机未安装，且需要 sudo 登录。 |
+| 🧰 标准模式 | `dsh web` 接受一个具体的 `--host <ipv4-or-ipv6>` 与 `--public-url`；未指定地址在加载时被拒绝。 |
 | 🧩 官方插件 | 无。 |
-| 🕳️ 剩余缺口 | 需要外部安装与用户授权。不是 DSH 能力。 |
-| ⚔️ 冲突 | DSH Web GUI 自己已经有访问地址，Tailscale 只是额外网络层。 |
-| 🚧 最终遗留 | 本机未安装 Tailscale，且需要 sudo 登录，不作为插件能力提供。 |
-| 💡 推荐 | 🔴 舍弃。Tailscale 暴露不实现，页面发布不纳入插件能力。 |
-| ✅ 处置 | 舍弃 |
+| 🕳️ 剩余缺口 | Tailscale 本身仍需用户安装并登录。DSH 侧只需绑 tailnet 地址：`dsh --profile web --host <tailscale-ip> --public-url http://<tailscale-ip>:<port>`，用 `tailscale ip -4` 取值。 |
+| ⚔️ 冲突 | `0.0.0.0` 永远不工作，上游要求绑全接口这一步必须改写。光标会话 token 仍然生效，链接要带完整 URL 交给设备。 |
+| 🚧 最终遗留 | 无。需要用户自己的网络与设备。 |
+| 💡 推荐 | 🟢 直接映射。宿主已有绑具体接口的能力，`port/dsh.md` 记录用法。 |
+| ✅ 处置 | 直接映射 |
 
 [返回审核清单](#审核清单)
 
@@ -1209,7 +1209,7 @@
 
 <a id="cat-g"></a>
 
-## G 运行时与脚本　🟢 直接映射 12 · 🔴 舍弃 2
+## G 运行时与脚本　🟢 直接映射 12 · 🟠 插件实现 1 · 🔴 舍弃 1
 
 <a id="cap-054"></a>
 
@@ -1411,20 +1411,20 @@
 
 <a id="cap-065"></a>
 
-### CAP-065 Pele 图表渲染　🔴 舍弃
+### CAP-065 Pele 图表渲染　🟠 插件实现
 
 | 维度 | 内容 |
 |:--|:--|
 | 📍 使用位置 | `skills/statechart/references/render.md:3`、`skills/statechart/references/render.md:7`、`skills/statechart/references/render.md:9`、`skills/statechart/SKILL.md:76` |
 | 🖱️ Cursor 行为 | statechart 用 npm 包 `pele@1.9.0` 把 `.mmd` 渲染成 SVG，API 在 `https://pele.run/api`。 |
-| 🧰 标准模式 | DSH 标准模式没有图表渲染器。本插件也不提供；用户可自行安装 `pele` 并在插件之外调用。 |
-| 🧩 官方插件 | 无。 |
-| 🕳️ 剩余缺口 | 本插件不提供内置图表渲染器。 |
-| 🛠️ 插件要求与验收 | 无。插件不实现渲染步骤。 |
-| ⚔️ 冲突 | Mermaid 文本与外部渲染器是两条路径。插件只输出 Mermaid 文本，需要图片时由用户自行渲染。 |
-| 🚧 最终遗留 | 没有内置 SVG 输出，图片需用户在插件之外生成。 |
-| 💡 推荐 | 🔴 舍弃。不提供图表渲染；statechart 只输出 Mermaid 文本，用户需要图片时自行渲染。 |
-| ✅ 处置 | 舍弃 |
+| 🧰 标准模式 | DSH 标准模式没有图表渲染器。`statechart` 把颜色写进 `chart.mmd` 的 `classDef`/`class` 行，缺的只是一个画笔。 |
+| 🧩 官方插件 | 无。社区 `dsh-plugin-mermaid-gb-svg` 按固定约定转 SVG，不认 statechart 的标注配色。 |
+| 🕳️ 剩余缺口 | 本包新增 `pstack_chart`：解析 statechart 发出的 Mermaid 子集，画成独立 SVG，内置 `breaks`/`mayBreak`/`bugPath`/`repeats` 调色板（后两类上游只写 `class` 不写 `classDef`），不依赖 Mermaid、浏览器或外部二进制。 |
+| 🛠️ 插件要求与验收 | 工具 `pstack_chart`（`input` 指向 `chart.mmd`，默认写 `<input>.svg`）；`tests/chart.test.ts` 覆盖解析、配色、转义、行号报错与整份语料渲染；`pstack\skills\statechart\scripts\test\corpus` 33 份图全部可渲染。验收：`vp test run tests/chart.test.ts` 通过，且不新增运行时依赖。 |
+| ⚔️ 冲突 | 布局是确定的近似值，不是 Mermaid 的排版。`chart.mmd` 仍是权威产物；无法解析的行按行号报错，不猜测。 |
+| 🚧 最终遗留 | 交叉边与自环只画一条近似曲线；复杂图的可读性不如 Pele 的在线渲染。 |
+| 💡 推荐 | 🟠 插件实现。 |
+| ✅ 处置 | 插件实现 |
 
 [返回审核清单](#审核清单)
 

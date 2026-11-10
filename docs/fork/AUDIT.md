@@ -14,10 +14,10 @@
 | Agent 定义 | 2（`poteto-agent`、`comment-sicko`） | 2 | 一致 |
 | Guide 文档 | 11 | 11 | 一致 |
 | 技能 reference | 29 | 62（含上游 copy 与本地/生成引用） | 多于上游，属于打包差异 |
-| 原生工具 | Cursor 的 Task/AskQuestion 等 | 6 个：`pstack_skill`、`pstack_models`、`pstack_roles`、`pstack_doctor`、`pstack_subagent`、`pstack_script` | 已替换为 DSH 原生接口 |
+| 原生工具 | Cursor 的 Task/AskQuestion 等 | 8 个：`pstack_skill`、`pstack_models`、`pstack_roles`、`pstack_doctor`、`pstack_subagent`、`pstack_script`、`pstack_remote`、`pstack_chart` | 已替换为 DSH 原生接口 |
 | Agent preset | Cursor custom modes | 3 个：`pstack`（常驻）、`poteto-agent`、`comment-sicko` | 覆盖常驻模式与委派 |
 | 脚本入口 | 5 个 | 5 个：`check-plan`、`watch-pr`、`worktree-audit`、`log`、`statechart` | 一致，均 Node 重写 |
-| 测试文件 | 上游无 DSH 测试 | `tests/` 28 个文件 215 个用例，另有 `runtime/` 72 个脚本用例（Windows 跳过 4 个） | 已建立 QA 基线 |
+| 测试文件 | 上游无 DSH 测试 | `tests/` 29 个文件 230 个用例，另有 `runtime/` 72 个脚本用例（Windows 跳过 4 个） | 已建立 QA 基线 |
 
 ## 2. 与上游的功能差异
 
@@ -66,7 +66,9 @@
 - `tests/subagent.test.ts`：可选参数默认 null
 - `tests/script.test.ts`：`pstack_script` 的窗口/超时/后台行为
 - `tests/script-policy.test.ts`：`ask`/`allow`/`deny` 三种 pre-execute 策略与非法配置
-- `tests/doctor.test.ts`：命令/脚本/角色文件/可选插件状态预检
+- `tests/doctor.test.ts`：命令/脚本/角色文件/可选插件状态与工作区 `.mdc` 预检
+- `tests/remote.test.ts`：远端目标注册表、`pstack_remote` 五种动作、作业记录、超时与取消
+- `tests/chart.test.ts`：`statechart` 的 `chart.mmd` 解析、布局、四类标记配色与零依赖 SVG 输出
 - `tests/skill.test.ts`：`pstack_skill` 返回的正文与资源都经过 `toDshText`
 
 ### CI 质量门

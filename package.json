@@ -1,6 +1,6 @@
 {
   "name": "@paipaipai666/dsh-pstack",
-  "version": "0.5.0-beta.3",
+  "version": "0.5.0-beta.4",
   "description": "pstack for DeepSeek Harness: rigorous agent workflows ported from cursor/plugins.",
   "keywords": [
     "agent-skills",
@@ -40,6 +40,7 @@
     ".": "./dist/index.mjs",
     "./budget": "./dist/budget.mjs",
     "./catalogue": "./dist/catalogue.mjs",
+    "./chart": "./dist/chart.mjs",
     "./doctor": "./dist/doctor.mjs",
     "./host-contract": "./dist/host-contract.mjs",
     "./models": "./dist/models.mjs",

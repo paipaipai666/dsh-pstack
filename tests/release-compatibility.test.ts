@@ -156,13 +156,14 @@ describe("release compatibility metadata", () => {
     ]);
   });
 
-  it("renders the same README twice so the check gate can pass after a write", () => {
+  it("leaves an up-to-date README untouched and renders the same text twice", () => {
     prepare();
     const read = (path: string) => JSON.parse(readFileSync(join(ROOT, path), "utf8"));
+    const before = readFileSync(join(ROOT, "README.md"), "utf8");
     syncCompatibility(releaseMetadata(read), true, ROOT);
     const once = readFileSync(join(ROOT, "README.md"), "utf8");
+    expect(once).toBe(before);
     syncCompatibility(releaseMetadata(read), true, ROOT);
     expect(readFileSync(join(ROOT, "README.md"), "utf8")).toBe(once);
-    expect(once).not.toMatch(/\n{4,}/);
   });
 });

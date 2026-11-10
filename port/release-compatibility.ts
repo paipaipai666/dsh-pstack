@@ -201,7 +201,9 @@ function updateReadme(path: string, heading: string, metadata: ReleaseMetadata, 
     ...updated.rows.map(serializeRow),
   ];
   const before = lines.slice(0, headerIndex - 1).join("\n");
-  const after = "\n\n" + lines.slice(dataEnd).join("\n").replace(/^\n+/, "");
+  // Keep the tail exactly as written: the check compares the whole file byte for byte, so
+  // normalising the blank run here would make every write fail its own read-only check.
+  const after = "\n" + lines.slice(dataEnd).join("\n");
   return {
     text: `${text.slice(0, start)}${before}\n${replacement.join("\n")}${after}${text.slice(end)}`,
     appendedRow: updated.appendedRow,

@@ -1,20 +1,27 @@
 {
   "version": 1,
   "skills": {
+    "agent-browser": {
+      "source": "agent-browser",
+      "sourceType": "node_modules",
+      "skillPath": "skills/agent-browser/SKILL.md",
+      "version": "0.41.0",
+      "computedHash": "dd491d53824ad9286ec950aee667098446332429a6d41fe28b4ba11f1959264c"
+    },
     "decision-audit": {
-      "source": "./skills/authored/decision-audit",
+      "source": "./skills/authored",
       "sourceType": "local",
-      "computedHash": "f7fc54235d3cdfae7526d8e9efba9d09b89c25a5bdf0ef5346453e4b97d9072c"
+      "computedHash": "ada5f3cea5a02eb3d4b2a309e7827cd02e7bc4575767d85e1b384137b7f99695"
     },
     "decision-write": {
-      "source": "./skills/authored/decision-write",
+      "source": "./skills/authored",
       "sourceType": "local",
-      "computedHash": "b9bb4f5e52e2241116ef23047f23e114db32c14960d56e89a22fb98cc767180c"
+      "computedHash": "2064b5dc61fbc0a7c9ffc80bcde3552d601137adca751f47b0b1c2eef397b6dd"
     },
     "docs-drift": {
-      "source": "./skills/authored/docs-drift",
+      "source": "./skills/authored",
       "sourceType": "local",
-      "computedHash": "3b66aba96c62161706f0029514673337ecb548a6f93b8c0458c0458db39f0835"
+      "computedHash": "86208533b3c8c281642788330bd5e4c456e8432ed531088bbc14a56bdafb0c31"
     },
     "retro": {
       "source": "mattpocock/skills",
@@ -25,9 +32,9 @@
       "via": "."
     },
     "setup-project-docs": {
-      "source": "./skills/authored/setup-project-docs",
+      "source": "./skills/authored",
       "sourceType": "local",
-      "computedHash": "583d7d1660661e6427febdc23562fc56bd5bf3f380f75c152e5064eb91e09370"
+      "computedHash": "40d64b5bf9e26f3f02ef74117d14de80aa6e2cec3a2061c186e1e709396500dc"
     },
     "writing-for-agents": {
       "source": "mattpocock/skills",

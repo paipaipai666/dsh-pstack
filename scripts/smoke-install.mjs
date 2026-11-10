@@ -10,13 +10,15 @@
  */
 
 import { closeSync, mkdirSync, mkdtempSync, openSync, readFileSync, rmSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 mkdirSync(join(ROOT, ".tmp"), { recursive: true });
-const tarball = process.argv[2];
+// `dsh plugin add` resolves a relative path against the profile directory, so hand it
+// an absolute one no matter how the caller spelled it.
+const tarball = process.argv[2] ? resolve(process.argv[2]) : undefined;
 if (!tarball) {
   console.error("usage: node scripts/smoke-install.mjs <dsh-pstack.tgz>");
   process.exit(2);
@@ -56,18 +58,26 @@ try {
   const config = run(["--profile", "web", "--dump-config"], { capture: true });
   const required = [
     "- id: pstack",
+    "- id: pstack-skills",
+    "- id: pstack-vendored-skills",
+    "- id: pstack-authored-skills",
     "- id: pstack-models",
     "- id: pstack-roles",
     "- id: pstack-role-catalog",
-    "- id: pstack-doctor",
     "- id: pstack-subagent",
+    "- id: pstack-doctor",
+    "- id: pstack-script-policy",
     "- id: pstack-script",
-    "- id: preset-pstack",
+    "- id: preset-poteto-mode",
+    "- id: preset-poteto-mode-creator",
+    "- id: preset-poteto-agent",
+    "- id: preset-comment-sicko",
+    "- id: preset-readonly",
   ];
   for (const line of required) {
     if (!config.includes(line)) throw new Error(`missing bundle row: ${line}`);
   }
-  if (!/maxDepth:\s*3/.test(config)) throw new Error("pstack-subagent maxDepth is not 3");
+  if (!/maxDepth:\s*2/.test(config)) throw new Error("pstack-subagent maxDepth is not 2");
   console.log(`smoke-install OK: ${tarball}`);
   console.log(readFileSync(join(home, "profiles", "web", "package.json"), "utf8"));
 } finally {

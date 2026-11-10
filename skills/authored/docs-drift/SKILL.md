@@ -25,7 +25,7 @@ Apply explicit paths, globs, narrowing, and exclusions to the candidate set. A w
 
 Classify every candidate using project pointers, governing instructions, and ownership and update conventions:
 
-- **Maintained:** owned by this project and updated as its implementation or workflows evolve. Apply all five checks.
+- **Maintained:** owned by this project and updated as its implementation or workflows evolve. Apply every check below.
 - **Reference-only:** documentation of a dependency, host product, library, or other external system, even when stored inside the repository. Use it as evidence without auditing its own drift.
 - **Excluded:** outside the requested scope or otherwise excluded by an explicit rule.
 - **Unresolved:** maintenance ownership is unclear. Ask before including it and continue classifying unrelated candidates.
@@ -44,7 +44,7 @@ Distinguish current facts, intended requirements, and historical statements. Cur
 
 Complete this step when every checkable claim in every maintained document has a source-backed disposition or an explicit evidence limitation.
 
-## 3. Apply all five checks
+## 3. Apply every check
 
 **Implementation drift.** Find stale statements or statements contradicted by current evidence about architecture, behavior, paths, commands, interfaces, configuration, dependencies, counts, and status.
 
@@ -54,11 +54,11 @@ Complete this step when every checkable claim in every maintained document has a
 
 **Links and pointers.** Resolve repository-relative links, referenced paths, and anchors from their containing document. Check external links when feasible; classify network or access failures as unverified rather than dead.
 
-**Redundancy and unsupported elaboration.** Find semantic duplication, scattered rules, obsolete passages, and unsupported facts, assumptions, or invented elaboration accumulated during iteration. Examples include fabricated module responsibilities, command behavior, configuration defaults, design rationale, compatibility, performance conclusions, test coverage, and acceptance status. Shrink disproven or unsupported elaboration to the smallest evidence-backed statement. Insufficient evidence alone makes a claim unverified, not a deletion candidate. Preserve the context of historical statements and explicit future plans.
+**Redundancy and unsupported elaboration.** Find semantic duplication, scattered rules, obsolete passages, and incidental guidance mirroring another document's current headings, inventory, or wording when its responsibility alone would suffice. Before flagging such coupling, establish whether a skill intentionally owns and maintains that structure as a discovery, parsing, generation, or record-format contract; check these contracts for consistency rather than proposing to generalize or remove them. A skill's own template or fixed pointer location is likewise intentional when its consumers rely on it; validate it against those consumers rather than presenting it as a removable-duplication example. Find unsupported facts, assumptions, or invented elaboration accumulated during iteration. Examples include fabricated module responsibilities, command behavior, configuration defaults, design rationale, compatibility, performance conclusions, test coverage, and acceptance status. Shrink disproven or unsupported elaboration to the smallest evidence-backed statement. Insufficient evidence alone makes a claim unverified, not a deletion candidate. Preserve the context of historical statements and explicit future plans.
 
 Before proposing consolidation, identify an authoritative location. Preserve intentional summaries, audience-specific views, language variants, and unique qualifications.
 
-Report style, formatting, or completeness preferences only when they substantiate one of these findings. Complete this step when every class has been applied to every maintained document and every potential finding has a location, observed statement, supporting evidence or evidence boundary, and proposed action.
+Report style, formatting, or completeness preferences only when they substantiate one of these findings. Complete this step when every check has been applied to every maintained document and every potential finding has a location, observed statement, supporting evidence or evidence boundary, and proposed action.
 
 ## 4. Resolve authority and classify findings
 

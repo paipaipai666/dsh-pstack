@@ -1,60 +1,98 @@
-# 架构
+# 项目架构
 
-本文件只描述系统现在的样子；为什么演变成这样，见 `docs/decisions/`。
+本文描述 `dsh-pstack` 当前的模块边界、依赖方向和扩展入口。用户使用方式见根 README；移植、上游升级、生成树及其构建边界按 `port/AGENTS.md` 执行。
 
-## 模块
+## 系统边界
 
-| 模块 | 目录与入口 | 职责 |
+本仓提供一个 DSH Cordis bundle：
+
+- Host 端注册技能、模型目录、角色目录和子代理工具，并提供角色配置 Remote 服务与 Agent preset。
+- Client 端在插件详情页注入配置入口，通过 Remote 服务管理角色配置，并通过可选的插件管理接口管理关联插件。
+- 上游 pstack 内容经生成器进入 `pstack/`，构建时复制到 `dist/pstack/`；vendored 和 authored 技能分别复制到 `dist/skills/` 下。
+- 角色配置保存在 `$DSH_HOME/pstack-models.mdc`。该文件由本插件读取和编辑，不是 DSH 自动加载的规则文件。
+
+## 模块与入口
+
+| 模块 | 真实路径与入口 | 当前职责 |
 |---|---|---|
-| 根打包与发布 | 根 `vite.config.ts`（两个 `pack` 配置与 `run.tasks`）、根 `package.json`（包名 `@paipaipai666/dsh-pstack`） | 用 vite-plus 打包 `src/*.ts` 与 `src/client/`；把 `pstack/dist/pstack`、`skills/authored`、`skills/.agents/skills`（复制为 `vendored`）写入 `dist/`；`pack.exports` / `customExports` 生成发布入口；两个 pack 的 `deps.neverBundle` 用 `/^@deepseek-ai\//` 通配整个 DSH 命名空间，宿主与客户端产物都不内联宿主模块；`@deepseek-ai/cordis` 声明为 peer + devDependencies，其余 `@deepseek-ai/dsh-*` 只在 devDependencies，`dependencies` 只留随包脚本运行需要的 `commander`；npm 发布 `dist/`、`assets/`、`cordis.patch.yml`、`locale/` 与双语 README |
-| Host 插件入口 | 根 `src/*.ts`（`index.ts`、`models.ts`、`role-catalog.ts`、`roles.ts`、`remote.ts`、`script.ts`、`script-policy.ts`、`skill.ts`、`subagent.ts`）、`cordis.patch.yml` | `cordis.patch.yml` 注册 8 条行：`pstack`（bundle 技能 provider + `pstack_skill`）、`pstack-models`（只读模型目录）、`pstack-roles`（Typert Remote 服务 `pstackRoles`）、`pstack-role-catalog`（只读角色能力查询 `pstack_roles`）、`pstack-doctor`（命令、脚本、角色文件和可选插件状态预检 `pstack_doctor`）、`pstack-script-policy`（`pstack_script` 的 `tools/pre-execute` 审批策略）、`pstack-subagent`（`maxDepth: 3`）、`pstack-script`；另声明 `pstack`（持久根模式）、`poteto-agent`、`comment-sicko` 三个 `@deepseek-ai/dsh-agent-preset`。六个模型可见工具是 `pstack_skill`、`pstack_models`、`pstack_roles`、`pstack_doctor`、`pstack_subagent`、`pstack_script` |
-| Host 内部模块 | 根 `src/internal/*.ts` | 宿主契约与技能/角色基础设施：`host-contract.ts` 用 `import type` 绑定 `@deepseek-ai/*`；`skill-provider.ts` 建 bundle 技能索引；`paths.ts` 定资源根；`frontmatter.ts` 解析上游 frontmatter；`audit-context.ts` 注入 `.audit` 约定；角色链 `role-grammar.ts`（读写共用的行语法与按值替换）、`role-config.ts`、`role-manifest.ts`、`role-editor.ts`、`role-wire.ts`；`effort.ts` 校验 effort；`script-registry.ts` 列随包脚本；`optional-plugins.ts` 是 `OPT-02`–`OPT-09` 目录的唯一来源 |
-| Client 半 | 根 `src/client/`、`src/remote.ts`、`package.json` 的 `dsh.client` | `remote.ts` 手写 Typert `TypertRemoteInfo`（无生成链）；`client/index.ts` 用 `ctx.remote.$mount` 挂载贡献并注册 `plugins.detail.actions` 与 `plugins.bundle.activation`；`PstackBundleConfigDialog.tsx` 提供「配置」按钮与仿 Settings 的模态框；`RoleSettingsPage.tsx` 渲染 17 个角色表单；`OptionalPluginsPage.tsx` 渲染推荐插件区与一次性引导；`optional-plugins-state.ts` 提供状态映射与一键启用序列；`state.ts` 提供角色草稿的纯状态与比较函数；`i18n.ts` 定支持语言与词典类型，`locales.ts` / `optional-plugins-locales.ts` 分别是 `pstackRoles` / `pstackPlugins` 命名空间词典（`pstackRoles` 也承载 17 个角色的本地化名称与用途说明）；构建产出 `dist/client.mjs`（`__ModuleLoader__.load` CJS 包装） |
-| 插件验证 | 根 `tests/**/*.test.ts`、`tests/**/*.test.tsx`（`vite.config.ts` 的 `test.include`）、根 `typecheck` / `test` tasks、`package.json` 的 `prerelease` | 驱动插件公共行为：隐藏技能加载、技能 frontmatter 与重名拒绝、模型目录、角色文件解析与写回、Typert Remote 贡献、Client 页面接线、bundle 配置按钮与分区渲染、preset 选择、推荐插件目录与 README/dsh.md 对账、推荐区渲染与一键启用顺序、locale 命名空间、词典与发布元数据完整性；`vp run typecheck` 显式检查所有手写 TS，`vp run test` 跑根 Vitest 且要求先有构建产物（脚本执行用例缺产物时明确报错），Linux CI 用 V8 coverage 门槛，发布门禁 `prerelease` 依次运行 `build`、`check`、`typecheck` 与各工作区 `test` |
-| 真实插件测试场 | `playground/`（`profile/`、`start.mjs`、`browser.mjs`、`cases-run.mjs`、`run-cases.mjs`、`cases/*.case.mjs`、`config.example.json`）、根 `vite.config.ts` 的 `playground`/`cases` task | 开发期唯一的真实运行环境：`@internal/playground` 是 vite-plus 子包，`profile/` 是从随附 `web` 模板复制后加入 `dsh-pstack` 的可移植 profile，运行期 home 为 `playground/.dsh`（gitignore），端口固定 `17353`；`start.mjs` 每次启动前同步 profile、宿主凭据与模型配置并安装本仓插件；`vp run playground` 启动；验证在终端直接对 `playground/.dsh` 跑 `dsh` 命令；另有能力自动化 runner（`cases-run.mjs` 经 Vite `runnerImport` 加载 `run-cases.mjs`，用例 `cases/*.case.mjs` 由 `import.meta.glob` 注册；读 `playground/config.json` 的 provider apiKey 与“模型→思考等级”，`vp run cases` 用 `dsh headless --json` 跑能力用例并出报告，只断言能力级可观察事实，不写死插件文案/UI） |
-| pstack 工作区（`@internal/pstack`） | `pstack/package.json`、`pstack/vite.config.ts` | 编译运行时脚本、生成移植树、组装 `pstack/dist/`；运行时 pack 仅清理 `dist/runtime`，不会清除已组装的 `dist/pstack`；`run.tasks` 定义 `generate`、`copy:pstack`、`replace:scripts`、`build`、`check:harness-doc`、`check`、`test` |
-| 生成器 | `pstack/scripts/*.mjs` | `generate-pstack-harness-tree.mjs`（上游原文加本地适配树渲染生成树，`--check` 比对漂移）、`copy-pstack.mjs`（整棵覆盖拷贝）、`replace-scripts.mjs`（用编译产物替换上游附带脚本，双向核对替换目录并检查注册的脚本文件存在）、`check-harness-doc.mjs`（对账）、`port-fixes.mjs`（移植问题台账维护） |
-| 生成树 | `pstack/pstack/` | 由 `upstream/cursor-plugins/pstack` 加 `pstack/harness/` 渲染；每次构建整棵重建，生成结果提交进 git |
-| 本地适配树 | `pstack/harness/docs/harness/dsh.md` | DSH 宿主适配文档，按生成树相对路径镜像；主适配器替换上游 `claude-code.md`，其他上游 harness 附件保持上游相对路径与文件名；不改写上游页面、技能、playbook、reference |
-| 适配文档对账 | `pstack/scripts/check-harness-doc.mjs`、`docs/harness-doc.yaml` | 按清单核对 `dsh.md` 与 README、上游 `claude-code.md`、`src/`：覆盖行、模板漂移、`OPT-*` 集合、`AUT-*`/`EXCL-*`、章节、引用与过时名字；只读对账，从不改写文档；是 `doc` 与 `review port` 的门禁，入口 `vp run @internal/pstack#check:harness-doc` |
-| 运行时 | `pstack/runtime/skills/<技能>/scripts/**` | 可执行脚本的 TS 源码，编译成 mjs 后经 `replace:scripts` 替换随包树里上游附带的脚本；`pstack_script` 的 `id` 枚举对应 `src/internal/script-registry.ts` 的 `SCRIPT_ENTRIES` |
-| 技能工作区（`@internal/skills`） | `skills/package.json`、`skills/authored/`、`skills/.agents/skills/`（`skills experimental_sync` 落盘目录）、`skills/skills-lock.json` | 随包发布的非上游技能；`authored/` 手写、`.agents/skills/` 是 vendored 技能（构建时以 `vendored/` 落进 `dist/skills`），带哈希与提交号 |
-| 仓库维护技能 | 根 `.agents/skills/<名>/`（`SKILL.md`、`README.md`、`references/`） | 维护本仓的技能的入口、使用说明与按分支加载的指令；不进入 `dist/` 或随包技能工作区 |
-| 本地扩展登记 | `docs/extensions.md` | 登记 DSH 版独立功能的 `EXT-*` 需求、DSH 依赖与验收；基线重建保留这些范围 |
-| 上游反馈记录 | `docs/upstream-discussions.md` | 记录已提交到上游 DSH 的 Discussion 标题、URL、主题与更新时间 |
-| 上游子模块 | `upstream/cursor-plugins`、`upstream/deepseek-harness` | 生成树来源与 DSH 宿主参考实现（git 子模块） |
-| 发布产物 | `dist/`（gitignore） | npm 实际发布内容：`index.mjs` 与各插件入口 `.mjs`、类型声明、`pstack/`、`skills/` |
+| Bundle 装配 | `cordis.patch.yml` | 注册技能目录、Host 工具和角色服务；组合两个根 preset 与三个子代理 preset。 |
+| Host 主入口 | `src/index.ts` | 注册可信的隐藏技能加载器；其余 Host 能力各自通过独立子路径（如 `dsh-pstack/models`）由 bundle 按行加载。 |
+| 技能加载 | `src/skill.ts`、`src/paths.ts` | 实现 `pstack_skill`，按名称加载技能及目录内资源；集中定义发布包内资源路径。 |
+| 模型目录 | `src/models.ts`、`src/catalogue.ts` | 实现 `pstack_models`，读取实时 LLM adapter 目录，保留单 provider 或 model 的发现错误；共享 catalogue 类型、schema 与 wire 解析。 |
+| 角色清单 | `src/role-manifest.ts`、`src/role-catalog.ts` | 定义角色 key、shape 和自动面板属性；实现只读的 `pstack_roles`。 |
+| 子代理委派 | `src/subagent.ts` | 实现 `pstack_subagent`；解析角色路由，完成参数、能力和模型预检，再调用 `ctx.subagents.startActivation`。 |
+| 角色文件 | `src/role-config.ts`、`src/role-file.ts`、`src/route.ts`、`src/budget.ts`、`src/role-editor.ts` | 解析 `$DSH_HOME/pstack-models.mdc`，以共享 Route 语法和 RoleFileDocument 选择路由；按预算把目标推理档位映射到具体模型并原子保存。 |
+| 角色 Remote 边界 | `src/role-wire.ts`、`src/role-remote.ts`、`src/role-service.ts` | 定义并严格校验传输结构；共享 Typert 描述符；在 Host 暴露状态、目录、保存和预算应用方法。 |
+| 根与子代理 preset | `src/preset.ts`、`src/preset-copy.ts`、`src/poteto-mode.ts`、`src/readonly.ts` | 注册本地化 preset，向根会话注入常驻 `poteto-mode` 内容，并为只读子代理设置沙箱策略。 |
+| Client 入口与对话框 | `src/client/index.ts`、`src/client/PstackConfigDialog.tsx` | 挂载 Remote 描述符、注册 locale 和插件详情动作；管理配置对话框、页签和未保存草稿。 |
+| 角色与插件页面 | `src/client/RoleSettingsPage.tsx`、`src/client/RoleCard.tsx`、`src/client/BudgetDialog.tsx`、`src/client/RecommendedPluginsPage.tsx` | 编辑角色草稿并展示保存结果；按预算批量预览并应用推理档位；展示关联插件及其变更结果。 |
+| Client 支撑 | `src/client/ui.tsx`、`src/client/icons.tsx`、`src/client/styles.ts`、`src/client/toast.tsx`、`src/client/message.ts`、`src/client/focus-trap.ts`、`src/client/locales/`、`src/client/role-copy.ts`、`src/client/role-draft.ts`、`src/client/role-selectors.ts` | 提供本插件的 UI 组件、样式、共享提示、焦点陷阱、翻译、角色草稿和选择器文案。 |
+| 移植与生成 | `port/generate.mjs`、`port/scan.mjs`、`port/dsh.md`、`port/dsh.zh.md`、`port/audit.md`、`port/audit.lock.json` | 从固定上游生成 `pstack/`；扫描能力、校验审核引用和当前基线处置。 |
+| 发布元数据 | `port/release-compatibility.ts`、`bump.config.ts` | 按显式兼容键同步双语 README 的版本表；每个 `x.y` 保留最新 `z`，新兼容键新增行，并把双语 README 加入发布提交。 |
+| Fork 增量：脚本与审计 | `src/script.ts`、`src/script-policy.ts`、`src/doctor.ts`、`runtime/`、`scripts/replace-runtime-scripts.mjs` | 以宿主自带的 Node 运行随包脚本，入口固定为五个 id；审批交给 `tools/pre-execute` 行 `pstack-script-policy`；报告脚本依赖的宿主前置条件；编译后的 `.mjs` 覆盖生成树里的脚本源文件。 |
+| Fork 增量：运行时翻译 | `src/native-text.ts`、`src/skill.ts`、`src/poteto-mode.ts` | 在读取技能正文与资源时把 Cursor 词汇（`Task`、`subagent_type`、`~/.cursor/...`、模型 slug）换成 DSH 名称；生成树保留上游原文，便于 `port/generate.mjs --check` 证明改动了什么。 |
+| 构建与打包 | `vite.config.ts`、`package.json` | 分别构建 Host、浏览器 Client 与 `runtime/` 三个 pack；导出 Host 模块，复制生成树和技能资源，并把编译后的脚本替换进生成树。 |
+| 自动化验证 | `tests/`、`playground/start.mjs`、`playground/cases-run.mjs`、`playground/run-cases.mjs`、`playground/browser.mjs` | 运行单元和 DOM 交互测试；在真实 DSH playground 中验证插件和模型驱动用例，并用浏览器脚本做不涉及模型选择的交互。 |
 
 ## 依赖方向
 
-```
-upstream/cursor-plugins/pstack + pstack/harness
-        │ generate
-        ▼
-   pstack/pstack ──copy:pstack──▶ pstack/dist/pstack
-                                      ▲
-pstack/runtime ──vp pack──▶ pstack/dist/runtime ──replace:scripts──┘
+### 运行时装配
 
-pstack/dist/pstack ──根 vp pack（copy）──▶ dist/pstack
-skills/authored + skills/.agents/skills ──根 vp pack──▶ dist/skills
-  （后者在 dist 里落名为 vendored/）
-根 src/*.ts ──根 vp pack──▶ dist/{index,models,remote,roles,script,skill,subagent}.mjs
-src/client/ ──根 vp pack（第二个 pack 配置）──▶ dist/client.mjs
+`cordis.patch.yml` 选择公开模块并注入 DSH 服务。各模块通过 Cordis `inject` 获取 Host 能力；工具实现依赖 DSH 的工具、技能、LLM 和子代理接口，不建立独立的运行时。
+
+### 官方类型与本地投影
+
+官方 Remote、wire 和服务契约直接从对应 `@deepseek-ai/*` 包 `import type`，优先使用官方完整类型，不再为非必要收窄定义 `Pick` 或类型别名。跨包 Remote 类型统一从 `@deepseek-ai/dsh-api-remotes/client` 获取；不从某个功能包的 `typert.remote-client` 借用其他包的 namespace。角色文件、委派结果、页面草稿等本仓自有结构保留在本地；仅在官方声明缺失时保留局部服务切片。静态类型已保证的字段无需重复运行时校验。
+
+依赖声明沿用官方插件的分类方式（见 `docs/decisions/2026-11-08-dsh-dependency-declarations.md`）：平台在运行时提供的 `@deepseek-ai/dsh-*` 服务包（如 `dsh-typert-protocol`、`dsh-sandbox-policy`、`cordis-plugin-loader`）进入 `peerDependencies`；随插件打包的独立运行时工具库（`@deepseek-ai/schemastery`）进入 `dependencies`；仅类型使用的官方包留在 `devDependencies` 与 workspace 的 `types` catalog，这些运行时包的版本统一取自 `runtime` catalog。React 由宿主模块加载器提供，只保留在 `devDependencies`。`dsh.client.inject` 只列出需要运行时模块装载的 assembly，不因类型导入而添加条目。Host 与 Client 构建都把 `@deepseek-ai/*` 与 React 保持为外部依赖，不把官方运行时实现打进 `dist`。
+
+### 角色配置
+
+```text
+Client 页面
+  → src/client/index.ts 的页面 API 适配
+  → src/role-remote.ts 的 Typert 描述符
+  → src/role-service.ts
+  → src/role-editor.ts
+  → src/role-config.ts
+  → $DSH_HOME/pstack-models.mdc
 ```
 
-上游只向下游流动：生成树与 `dist/` 不反向修改上游；`pstack/pstack/` 是渲染结果，手写内容一律进 `pstack/harness/`（仅适配文档）与 `pstack/runtime/`（脚本）。
+`role-wire.ts` 是 Host 与 Client 共享的传输契约；`role-remote.ts` 同时供 Host 注册和 Client 挂载。Client 使用共享类型、清单和描述符，不直接访问文件系统或 Host 的 LLM 服务。
+
+委派链路独立读取同一份角色文件：
+
+```text
+src/subagent.ts
+  → src/role-config.ts + src/role-manifest.ts
+  → DSH LLM 预检
+  → ctx.subagents.startActivation
+```
+
+委派前重新读取文件。未配置的角色继承父级路由；配置读取或校验失败会阻止相应委派，而不是静默改用其他路由。
+
+### 生成与发布
+
+```text
+upstream/cursor-plugins/pstack + port/dsh.md
+  → port/generate.mjs
+  → 根 pstack/
+  → vite.config.ts
+  → dist/pstack/
+```
+
+`skills/.agents/skills/` 与 `skills/authored/` 由构建配置分别复制到 `dist/skills/vendored/` 和 `dist/skills/authored/`；vendored 与 authored 技能目录由 `cordis.patch.yml` 的 `bundledSkillDir` 值在 `dist/skills/...` 下定位。`src/paths.ts` 在发布后的 `dist/pstack/` 下定位 pstack 资源。
 
 ## 扩展点
 
-- **新加脚本命令**：已有 `package.json` 脚本保持原样；新加的非必要命令优先在根 `vite.config.ts` 的 `run.tasks` 定义（`vp run <name>`）；npm 生命周期或被外部工具强制要求才写 `package.json`，且新增前须先向用户申请确认（见 [决策](decisions/2026-10-30-script-commands-in-vite-config.md)）。
-- **DSH 文本差异**：只写 `pstack/harness/<生成树相对路径>`；主适配器是 `docs/harness/dsh.md`（替换上游 `claude-code.md`），其他上游 harness 附件按上游相对路径与文件名建同名文件；不要直接改 `pstack/pstack/`。`dsh.md` 在上游模板章节外只保留 `## Local replacements` 与 `## Optional plugins` 两个固定追加小节，与 README 的一致性由 `check:harness-doc` 按 `docs/harness-doc.yaml` 核对。
-- **新增技能**：随包手写技能放 `skills/authored/<名>/SKILL.md`，仅供维护本仓的技能放根 `.agents/skills/<名>/SKILL.md`；第三方随包技能把 `source` 与技能名加进 `skills/package.json` 的 `skills` 数组，跑 `skills experimental_sync`，哈希与提交号自动记入 `skills/skills-lock.json`。构建直接从 `.agents/skills` 拷贝并 `rename` 成 `vendored`（不用符号链接，避免 `vp pack` 清理误删源文件）。
-- **新增或修改脚本**：改 `pstack/runtime/skills/<技能>/scripts/`，并把技能名加入 `pstack/scripts/replace-scripts.mjs` 的 `REPLACED` 列表；新增脚本必须同步 `src/internal/script-registry.ts` 的 `SCRIPT_ENTRIES`；模型通过 `pstack_script` 的 `id` 调用，不直接拼路径。
-- **新增或修改插件工具**：改 `src/*.ts`，在 `cordis.patch.yml` 增加对应 `@paipaipai666/dsh-pstack/<入口>` 行；`package.json` 的 `exports` 由 `vite.config.ts` 的 `pack.exports` 生成，新增入口要同时改这两处，非入口资源用 `customExports` 声明，不要手写进 `package.json`；普通插件入口只从 `@deepseek-ai/*` 导入类型，运行时保持自包含。
-- **新增或修改 Client 配置页**：Client 半放 `src/client/`，由 `package.json` 的 `dsh.client`（`platform: 'web'`）声明，`./client` 出口指向 `dist/client.mjs`；`vite.config.ts` 的第二个 `pack` 项按 `dsh-client-modules` 协议把入口包成 `window.__ModuleLoader__.load(...)` 的 CJS 包装，React 与平台模块保持 external。每个配置能力使用独立 locale 命名空间与按语言组织的完整词典（`pstackRoles` / `pstackPlugins`）；新增语言由 `src/client/i18n.ts` 的类型与测试强制补齐。Host 侧需要 Remote 时，在 `src/remote.ts` 手写 `TypertRemoteInfo` 并用 `ctx.typert.register()` 注册 strict 描述符。
+- **技能内容**：生成树只由生成器维护。手工适配文案进入 `port/dsh.md`，本仓技能进入 `skills/authored/`，外部随包技能保留在 vendored 工作区。
+- **Host 工具或服务**：在 `src/` 实现 Cordis 入口，由 `cordis.patch.yml` 选择并配置；声明实际需要的 DSH 服务依赖。
+- **角色能力**：`src/role-manifest.ts` 同时驱动角色目录、文件解析、设置视图和委派选择。修改角色时同步其上游来源和对应测试。
+- **Agent preset**：在 `cordis.patch.yml` 组合插件行，由 `src/preset.ts` 注册；展示文案集中在 `src/client/locales/` 或 `src/preset-copy.ts`。
+- **Client 配置能力**：通过 `plugins.detail.actions` 进入现有对话框；Host 数据通过显式 Remote 描述符和页面 API 适配层传递。
+- **上游移植**：先扫描并审核能力，再调整生成器或手写适配来源，最后重新生成并检查漂移。
+- **验证**：纯逻辑和 DOM 行为放入 `tests/`；需要真实 Cordis、profile 或模型的验证放入 `playground/`。
 
-## 已知缺口
+## 验证分层
 
-- vendored 技能来源记在 `skills/skills-lock.json`，不存在单独的 `skills/sources.yml`。
-
-本节记录当前事实；缺口修复或消失后同步更新。
+`vp check` 与 `vp test` 覆盖静态检查和自动化测试；`vp run generate:check` 检查生成树漂移。移植审核另有 lock 与引用检查。真实运行验证统一使用 `playground/`，其模型选择规则见该目录文档。

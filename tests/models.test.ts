@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vite-plus/test";
 
+import type { LlmRuntime } from "@deepseek-ai/dsh-llm";
+
 import { collectCatalogue, renderCatalogue } from "../src/models.ts";
-import type { LlmHost } from "../src/internal/host-contract.ts";
 
 const signal = new AbortController().signal;
 
-/** The read-only directory reports exactly what the live adapters advertise. */
 const llm = {
   listProviders: () => [
     { id: "cpa", name: "CPA" },
@@ -14,8 +14,8 @@ const llm = {
   listModels: async (provider: string) => {
     if (provider === "broken") throw new Error("adapter went away");
     return [
-      { provider: "cpa", id: "workbuddy/deepseek-v4.1-flash", name: "DeepSeek V4" },
-      { provider: "cpa", id: "workbuddy/minimax-m3.1-flash", name: "MiniMax" },
+      { provider: "cpa", id: "vendor/model-a", name: "Model A" },
+      { provider: "cpa", id: "vendor/model-b", name: "Model B" },
     ];
   },
   resolveModelInfo: async (provider: string, model: string) => ({
@@ -23,31 +23,38 @@ const llm = {
     id: model,
     name: model,
     reasoning: {
-      efforts: [{ id: "off" }, { id: "low" }, { id: "high" }, { id: "max" }],
+      efforts: [{ id: "off" }, { id: "low" }, { id: "high" }],
       defaultEffort: "high",
     },
   }),
-} as unknown as LlmHost;
+} as unknown as LlmRuntime;
 
 describe("pstack_models", () => {
-  it("lists providers, routes, and advertised efforts", async () => {
+  it("lists live providers, routes, and efforts", async () => {
     const result = await collectCatalogue(llm, undefined, signal);
-    expect(result.truncated).toBe(false);
     expect(result.providers.map((provider) => provider.provider)).toEqual(["cpa", "broken"]);
-    const cpa = result.providers[0]!;
-    expect(cpa.models.map((model) => model.route)).toEqual([
-      "cpa/workbuddy/deepseek-v4.1-flash",
-      "cpa/workbuddy/minimax-m3.1-flash",
-    ]);
-    expect(cpa.models[0]!.efforts).toEqual(["off", "low", "high", "max"]);
-    expect(result.providers[1]!.error).toMatch(/adapter went away/);
-    expect(renderCatalogue(result)).toContain(
-      "cpa/workbuddy/deepseek-v4.1-flash — efforts: off, low, high, max",
-    );
+    expect(result.providers[0]?.models[0]?.route).toBe("cpa/vendor/model-a");
+    expect(result.providers[0]?.models[0]?.efforts).toEqual(["off", "low", "high"]);
+    expect(result.providers[1]?.error).toMatch(/adapter went away/);
+    expect(renderCatalogue(result)).toContain("cpa/vendor/model-a — efforts: off, low, high");
   });
 
-  it("filters to one provider by id or display name", async () => {
+  it("filters by provider id or display name", async () => {
     expect((await collectCatalogue(llm, "CPA", signal)).providers).toHaveLength(1);
-    expect((await collectCatalogue(llm, "nope", signal)).providers).toHaveLength(0);
+    expect((await collectCatalogue(llm, "missing", signal)).providers).toHaveLength(0);
+  });
+
+  it("propagates cancellation instead of reporting it as a provider error", async () => {
+    const controller = new AbortController();
+    const cancelled = {
+      listProviders: () => [{ id: "cpa", name: "CPA" }],
+      listModels: async () => {
+        controller.abort();
+        throw new Error("cancelled");
+      },
+    } as unknown as LlmRuntime;
+    await expect(collectCatalogue(cancelled, undefined, controller.signal)).rejects.toThrow(
+      "cancelled",
+    );
   });
 });

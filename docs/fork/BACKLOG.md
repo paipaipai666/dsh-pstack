@@ -1,9 +1,20 @@
 # dsh-pstack fork backlog
 
-> 基于 `l246804/dsh-pstack` v0.3.0-beta.1（pstack 0.15.36）  
-> 目标 DSH：0.2.2-rc.1（本机安装版）  
-> 状态：A 全部完成；B 的 FIX-01 至 FIX-08 已完成，FIX-09 只剩 npm 发布和包名迁移；ADD-01 已提前落地  
+> 基于 `l246804/dsh-pstack` v0.3.1（pstack 0.15.36），fork 版本 `0.4.0-beta.1`
+> 目标 DSH：0.2.2-rc.1（本机安装版）
+> 状态：A 全部完成；B 的 FIX-01 至 FIX-08 已完成，FIX-09 只剩 npm 发布；ADD-01 已提前落地
 > 维护原则：保留 MIT 许可证与原作者署名；优先把通用修复回馈上游，长期分叉只保留 DSH 版本适配和团队特有功能。
+
+## 进度（2026-11-10，rebase 到上游 0.3.1）
+
+| 项 | 状态 | 说明 |
+|---|---|---|
+| RB-01 生成树迁移 | 已完成 | 生成树从 `pstack/pstack/` 移到 `pstack/`，由 `port/generate.mjs` 整体重写，`--check` 进 CI |
+| RB-02 `src/` 拍平 | 已完成 | fork 的五个模块迁到 `src/`，`src/internal/` 不再存在 |
+| RB-03 bundle 行 | 已完成 | 采用上游三行技能与五个 preset，再追加 `pstack-doctor`、`pstack-script-policy`、`pstack-script` |
+| RB-04 客户端 | 已完成 | 采用上游客户端与角色 Remote，删除 fork 旧对话框、可选插件页与 `src/remote.ts` |
+| RB-05 runtime 构建 | 已完成 | 第三个 pack 构建 `runtime/`，`scripts/replace-runtime-scripts.mjs` 替换生成树里的脚本并丢弃编译后的测试 |
+| RB-06 审核门 | 已完成 | `port/scan.mjs --check-lock` 与 `--check port/audit.md` 取代 fork 自建的 parity/drift 测试 |
 
 ## 建议的第一批（MVP）
 

@@ -1,6 +1,6 @@
 {
   "name": "@paipaipai666/dsh-pstack",
-  "version": "0.3.0-beta.1",
+  "version": "0.4.0-beta.1",
   "description": "pstack for DeepSeek Harness: rigorous agent workflows ported from cursor/plugins.",
   "keywords": [
     "agent-skills",
@@ -36,55 +36,85 @@
   "types": "./dist/index.d.mts",
   "exports": {
     ".": "./dist/index.mjs",
-    "./models": "./dist/models.mjs",
-    "./remote": "./dist/remote.mjs",
-    "./role-catalog": "./dist/role-catalog.mjs",
+    "./budget": "./dist/budget.mjs",
+    "./catalogue": "./dist/catalogue.mjs",
     "./doctor": "./dist/doctor.mjs",
-    "./script-policy": "./dist/script-policy.mjs",
-    "./roles": "./dist/roles.mjs",
+    "./host-contract": "./dist/host-contract.mjs",
+    "./models": "./dist/models.mjs",
+    "./native-text": "./dist/native-text.mjs",
+    "./optional-plugins": "./dist/optional-plugins.mjs",
+    "./paths": "./dist/paths.mjs",
+    "./poteto-mode": "./dist/poteto-mode.mjs",
+    "./preset": "./dist/preset.mjs",
+    "./preset-copy": "./dist/preset-copy.mjs",
+    "./readonly": "./dist/readonly.mjs",
+    "./role-catalog": "./dist/role-catalog.mjs",
+    "./role-config": "./dist/role-config.mjs",
+    "./role-editor": "./dist/role-editor.mjs",
+    "./role-file": "./dist/role-file.mjs",
+    "./role-manifest": "./dist/role-manifest.mjs",
+    "./role-remote": "./dist/role-remote.mjs",
+    "./role-service": "./dist/role-service.mjs",
+    "./role-wire": "./dist/role-wire.mjs",
+    "./route": "./dist/route.mjs",
     "./script": "./dist/script.mjs",
+    "./script-policy": "./dist/script-policy.mjs",
+    "./script-registry": "./dist/script-registry.mjs",
     "./skill": "./dist/skill.mjs",
     "./subagent": "./dist/subagent.mjs",
+    "./wire-error": "./dist/wire-error.mjs",
     "./package.json": "./package.json",
-    "./client": "./dist/client.mjs",
-    "./locale/*.json": "./locale/*.json"
+    "./locale/*.json": "./locale/*.json",
+    "./client": "./dist/client.js"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "fork:check": "node scripts/fork-check.mjs",
     "fork:bootstrap": "git submodule update --init --recursive && pnpm install --frozen-lockfile",
     "smoke:install": "node scripts/smoke-install.mjs",
-    "prepare": "vp config && skills experimental_sync -y -a universal",
-    "prerelease": "vp run build && vp run -r check && vp run typecheck && vp run -r test",
+    "prepare": "vp config && skills experimental_sync -y -a universal --copy && skills add ./skills/authored -y -a universal",
+    "ci": "vp check && vp run typecheck && vp test && vp run generate:check && vpx port/scan.mjs --check-lock && vpx port/scan.mjs --check port/audit.md && vp run compatibility:check && vp run build",
+    "prerelease": "vp run ci",
     "release": "bumpp",
-    "prepublishOnly": "vp run build"
+    "prepublishOnly": "vp run ci"
   },
   "dependencies": {
+    "@deepseek-ai/schemastery": "catalog:runtime",
     "commander": "catalog:inlined"
   },
   "devDependencies": {
-    "@deepseek-ai/cordis": "catalog:types",
+    "@deepseek-ai/cordis": "catalog:runtime",
+    "@deepseek-ai/cordis-plugin-loader": "catalog:runtime",
     "@deepseek-ai/dsh-agent": "catalog:types",
+    "@deepseek-ai/dsh-agent-preset-registry": "catalog:types",
     "@deepseek-ai/dsh-api-gateway": "catalog:types",
+    "@deepseek-ai/dsh-api-remotes": "catalog:types",
     "@deepseek-ai/dsh-client-locale": "catalog:types",
     "@deepseek-ai/dsh-client-ui-plugin-manager": "catalog:types",
     "@deepseek-ai/dsh-client-ui-renderer": "catalog:types",
+    "@deepseek-ai/dsh-client-ui-settings": "catalog:types",
     "@deepseek-ai/dsh-client-ui-slots": "catalog:types",
     "@deepseek-ai/dsh-jobs": "catalog:types",
     "@deepseek-ai/dsh-llm": "catalog:types",
+    "@deepseek-ai/dsh-plugin-manager": "catalog:types",
+    "@deepseek-ai/dsh-sandbox-policy": "catalog:runtime",
     "@deepseek-ai/dsh-session": "catalog:types",
+    "@deepseek-ai/dsh-settings": "catalog:types",
     "@deepseek-ai/dsh-skill": "catalog:types",
     "@deepseek-ai/dsh-subagent": "catalog:types",
-    "@deepseek-ai/dsh-system-prompt": "catalog:types",
     "@deepseek-ai/dsh-tools": "catalog:types",
-    "@deepseek-ai/dsh-typert-protocol": "catalog:types",
+    "@deepseek-ai/dsh-typert-protocol": "catalog:runtime",
     "@deepseek-ai/dsh-typert-registry": "catalog:types",
     "@deepseek-ai/dsh-working-directory": "catalog:types",
     "@types/node": "catalog:types",
     "@types/react": "catalog:ui",
     "@types/react-dom": "catalog:ui",
+    "@vitest/coverage-v8": "catalog:testing",
     "agent-browser": "catalog:browser",
     "bumpp": "catalog:cli",
-    "@vitest/coverage-v8": "catalog:testing",
+    "happy-dom": "catalog:testing",
     "js-yaml": "catalog:testing",
     "react": "catalog:ui",
     "react-dom": "catalog:ui",
@@ -93,7 +123,10 @@
     "vite-plus": "catalog:cli"
   },
   "peerDependencies": {
-    "@deepseek-ai/cordis": "catalog:types"
+    "@deepseek-ai/cordis": "catalog:runtime",
+    "@deepseek-ai/cordis-plugin-loader": "catalog:runtime",
+    "@deepseek-ai/dsh-sandbox-policy": "catalog:runtime",
+    "@deepseek-ai/dsh-typert-protocol": "catalog:runtime"
   },
   "icon": "./assets/logo.png",
   "devEngines": {
@@ -109,11 +142,8 @@
     }
   },
   "engines": {
-    "dsh": ">=0.2.2-alpha.3",
+    "dsh": ">=0.2.2-rc.1",
     "node": ">=24.21.0"
-  },
-  "publishConfig": {
-    "access": "public"
   },
   "dsh": {
     "manifestVersion": 1,
@@ -122,12 +152,7 @@
     },
     "client": {
       "platform": "web",
-      "inject": [
-        "@deepseek-ai/dsh-api-gateway",
-        "@deepseek-ai/dsh-api-remotes",
-        "@deepseek-ai/dsh-client-locale",
-        "@deepseek-ai/dsh-client-ui-plugin-manager"
-      ]
+      "inject": []
     }
   },
   "skills": [
@@ -138,6 +163,12 @@
         "retro"
       ],
       "ref": "59db609eb1e18aaf59b63284d0e52255aff0c63c"
+    },
+    {
+      "source": "npm:agent-browser",
+      "skills": [
+        "agent-browser"
+      ]
     }
   ]
 }

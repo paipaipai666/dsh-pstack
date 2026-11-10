@@ -17,7 +17,7 @@
 | 原生工具 | Cursor 的 Task/AskQuestion 等 | 6 个：`pstack_skill`、`pstack_models`、`pstack_roles`、`pstack_doctor`、`pstack_subagent`、`pstack_script` | 已替换为 DSH 原生接口 |
 | Agent preset | Cursor custom modes | 3 个：`pstack`（常驻）、`poteto-agent`、`comment-sicko` | 覆盖常驻模式与委派 |
 | 脚本入口 | 5 个 | 5 个：`check-plan`、`watch-pr`、`worktree-audit`、`log`、`statechart` | 一致，均 Node 重写 |
-| 测试文件 | 上游无 DSH 测试 | 22 个测试文件、约 138 个用例 | 已建立 QA 基线 |
+| 测试文件 | 上游无 DSH 测试 | `tests/` 26 个文件 186 个用例，另有 `runtime/` 72 个脚本用例（Windows 跳过 4 个） | 已建立 QA 基线 |
 
 ## 2. 与上游的功能差异
 
@@ -57,17 +57,17 @@
 
 ### 新增的守卫
 
-- `tests/upstream-parity.test.ts`：技能/playbook/principle/agent 数量与名称一致性
-- `tests/upstream-drift.test.ts`：上游 pstack 的 commit 与 tree hash 漂移检测
-- `tests/cordis-config.test.ts`：bundle 行、preset、`maxDepth: 3`、package exports
-- `tests/native-text.test.ts`：Cursor 名称运行时转译，扫描 `pstack/pstack` 下全部 158 个 Markdown（不只是 58 个技能正文）
-- `tests/skill-provider.test.ts`：skill provider 返回内容确实经过转译
+- `port/scan.mjs --check-lock`：能力扫描结果与 `port/audit.lock.json` 的一致性（取代 fork 自己的 parity/drift 测试）
+- `port/scan.mjs --check port/audit.md`：审核记录里引用的行号仍然成立
+- `tests/cordis-config.test.ts`：bundle 行、preset、`maxDepth: 2`、package exports
+- `tests/native-text.test.ts`：Cursor 名称运行时转译，扫描生成的 `pstack/` 下全部 Markdown（不只是 58 个技能正文）
+- `tests/poteto-mode.test.ts`、`tests/preset-copy.test.ts`、`tests/preset-parity.test.ts`：根 preset 的工具集与 `cordis.patch.yml` 一致（用 `tests/patch-name.ts` 抹平作用域包名带来的引号差异）
 - `tests/skill-sources.test.ts`：`package.json` 声明的技能、`skills/.agents/skills` 目录、两份锁文件三方一致
 - `tests/subagent.test.ts`：可选参数默认 null
 - `tests/script.test.ts`：`pstack_script` 的窗口/超时/后台行为
 - `tests/script-policy.test.ts`：`ask`/`allow`/`deny` 三种 pre-execute 策略与非法配置
 - `tests/doctor.test.ts`：命令/脚本/角色文件/可选插件状态预检
-- `tests/skill.test.ts`：`pstack_skill` 附加 DSH 适配规则
+- `tests/skill.test.ts`：`pstack_skill` 返回的正文与资源都经过 `toDshText`
 
 ### CI 质量门
 
@@ -81,7 +81,7 @@
 | 缺口 | 影响 | 建议 |
 |---|---|---|
 | 没有真实模型会话的端到端测试 | 无法证明 `/poteto-mode` 的完整推理链路 | 增加一个带 `DEEPSEEK_API_KEY` 的可选 e2e job，或在 Desktop 手工验收 |
-| `pstack/pstack` 生成树仍保留上游 Cursor 原文 | 审计时需要知道文本与运行时的差异 | 已由 `native-text.ts` 运行时转译；生成树保持上游可追溯 |
+| `pstack/` 生成树仍保留上游 Cursor 原文 | 审计时需要知道文本与运行时的差异 | 已由 `native-text.ts` 运行时转译；生成树保持上游可追溯 |
 | 没有性能/包体预算 | 生成树与 58 技能会持续增大 | 可加 `npm pack` 大小和启动时间基线 |
 | 上游 135 项能力表未逐项映射到测试 | 能力回归靠人工审查 | 可把 `pstack/README.md` 的能力编号做成清单，逐步覆盖高风险项 |
 | `run_in_background: true` 不做字面替换 | 三处句子替换后会破坏语法 | 由 `<dsh_adapter>` 与 `dsh.md` 说明“省略该字段”；见 BACKLOG BL-01 |

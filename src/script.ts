@@ -22,9 +22,9 @@ import type {
   ToolRunContext,
   ToolsHost,
   WorkingDirectoryHost,
-} from "./internal/host-contract.ts";
-import { PORT_ROOT } from "./internal/paths.ts";
-import { SCRIPT_ENTRIES } from "./internal/script-registry.ts";
+} from "./host-contract.ts";
+import { PORT_ROOT } from "./paths.ts";
+import { SCRIPT_ENTRIES } from "./script-registry.ts";
 
 /** Model-facing tool name. */
 export const TOOL_NAME = "pstack_script";

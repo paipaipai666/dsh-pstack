@@ -40,7 +40,7 @@ jobs:
           cache: pnpm
 
       - name: Install
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Typecheck
         run: pnpm exec vp run typecheck
@@ -51,8 +51,19 @@ jobs:
       - name: Test and coverage
         run: pnpm exec vp test run --coverage
 
+      - name: Test compiled bundled scripts
+        run: pnpm exec vp run test:runtime
+
       - name: Generated tree is current
-        run: node pstack/scripts/generate-pstack-harness-tree.mjs --check
+        run: pnpm exec vp run generate:check
+
+      - name: Port audit lock and references
+        run: |
+          pnpm exec vpx port/scan.mjs --check-lock
+          pnpm exec vpx port/scan.mjs --check port/audit.md
+
+      - name: Compatibility tables are current
+        run: pnpm exec vp run compatibility:check
 
       - name: Package tarball
         run: |
@@ -95,7 +106,7 @@ jobs:
       - name: Install fork into isolated DSH_HOME
         env:
           DSH_CLI: dsh
-        run: node scripts/smoke-install.mjs ./*dsh-pstack-0.3.0-beta.1.tgz
+        run: node scripts/smoke-install.mjs ./*dsh-pstack-0.4.0-beta.1.tgz
 
   windows-smoke:
     name: Check (Windows smoke)
@@ -122,7 +133,7 @@ jobs:
           cache: pnpm
 
       - name: Install
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Typecheck
         run: pnpm exec vp run typecheck
@@ -132,3 +143,9 @@ jobs:
 
       - name: Test
         run: pnpm exec vp test
+
+      - name: Test compiled bundled scripts
+        run: pnpm exec vp run test:runtime
+
+      - name: Generated tree is current
+        run: pnpm exec vp run generate:check

@@ -123,9 +123,7 @@ function syncHomePatch() {
 }
 
 function ensureInstall() {
-  const installed = existsSync(
-    join(PROFILE_DEST, "node_modules", "@paipaipai666", "dsh-pstack"),
-  );
+  const installed = existsSync(join(PROFILE_DEST, "node_modules", "@paipaipai666", "dsh-pstack"));
   if (installed && !reinstall && !reset) {
     log("dsh-pstack already installed, skipped (use --reinstall to force)");
     return;

@@ -2,10 +2,10 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { describe, expect, it } from "vite-plus/test";
 
-import { toDshText } from "../src/internal/native-text.ts";
+import { toDshText } from "../src/native-text.ts";
 
-const TREE_ROOT = resolve(import.meta.dirname, "../pstack/pstack");
-const ADAPTER = resolve(import.meta.dirname, "../pstack/harness/docs/harness/dsh.md");
+const TREE_ROOT = resolve(import.meta.dirname, "../pstack");
+const ADAPTER = resolve(import.meta.dirname, "../port/dsh.md");
 
 const CURSOR_SLUG =
   /\b(?:claude-opus-5-5-(?:xhigh|medium|max)|grok-4\.7-(?:xhigh|medium)-fast|gpt-5\.6-sol-max|cursor-grok-\*|composer-\*|claude-\*|grok-\*)\b/;

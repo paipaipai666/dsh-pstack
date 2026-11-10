@@ -23,8 +23,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Keeps the upstream/* submodules the build reads from; the original
-      # sxzz/workflows setup did this in the caller's build input.
+      # Keep the pinned pstack source available to the build.
       - name: Sync upstream submodules
         run: git submodule update --init --recursive
 
@@ -41,6 +40,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Run CI
+        run: pnpm run ci
 
       - name: Resolve npm dist-tag
         id: dist-tag

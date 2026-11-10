@@ -34,16 +34,15 @@ release. Add a tool name to select part of the graph. For example, run
 
 ## Project docs
 
-- 改动某个模块前读 `docs/architecture.md`；模块边界或入口点变化时同步更新它。
-- 命名概念前读 `docs/glossary.md`；引入新概念时补充术语。
-- 开始任何仓库任务前读 `docs/decisions/AGENTS.md`，按其检索规则读取与任务相关的决策记录。
+- 修改模块前阅读 `docs/architecture.md`；模块边界或入口变化时同步更新。
+- 为概念命名时阅读 `docs/glossary.md`；引入新概念时补充术语。
+- 开始任何仓库任务前，阅读 `docs/decisions/AGENTS.md`，按其中的查找规则阅读与任务相关的记录。
 
 ## Commits
 
-- 破坏性变更提交使用 Conventional Commits 的 `type!:` 形式，例如 `feat!: ...`；不要使用 `!feat:`，`changelogithub` 只识别冒号前的 `!`。详见 `docs/decisions/2026-11-04-breaking-change-commit-format.md`。
+- 破坏性变更提交使用 Conventional Commits 的 `type!:` 形式，例如 `feat!: ...`；不要使用 `!feat:`。
 
 ## Local scratch
 
-- 本地验证的临时文件一律写仓库 `.tmp/`（已 gitignore，`vp check` 不扫描）；Bash 每次调用是独立沙箱，`/tmp` 不跨调用保留，不要用它承载后续步骤要读的文件。
-- 真实插件运行测试统一走 `playground/`（见 `docs/decisions/2026-10-30-playground-real-plugin-testing.md`）：不要在 `~/.dsh` 或 `.tmp` 下另建测试用 home/profile；能用 `dsh` 命令判定的检查也在 playground 内跑。启动用 `vp run playground`（task 在根 `vite.config.ts`）。
-- playground 验证：截图/视觉与不涉及模型的 UI 交互由 agent 用 `playground/browser.mjs` / agent-browser 自动完成；真实会话涉及用户所选模型，由用户操作并确认，agent 用 `zstdcat playground/.dsh/sessions/**/session.v4.jsonl.zstd` 佐证。
+- 本地验证的临时文件写入仓库 `.tmp/`；后续步骤要读取的文件放在可持续访问的工作区。
+- 真实插件运行测试统一走 `playground/`，遵循目录指引。真实会话的模型选择由用户确认，agent 用会话日志佐证。

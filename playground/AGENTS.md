@@ -1,9 +1,10 @@
-# playground agent 须知
+# Playground agent 须知
 
-- 启动端口固定 `17353`（硬性规定），禁止自行改端口或改用随机端口。
-- 启动前先探测 17353：若已有 `vp run playground` 实例（profile 刚被 `start.mjs` 同步、`dsh web` 有响应，通常是用户手动启动）则沿用、不要抢占；否则遇占用必须先问用户「中止任务还是换端口」，确认前不得继续（只有用户确认后才可用 `PLAYGROUND_PORT`）。
-- 启动用 `vp run playground`（task 在根 `vite.config.ts`）；改了插件源码先 `vp run build` 再重启。
-- 运行期 DSH home 是 `playground/.dsh`（已 gitignore）；不要另建测试用 home/profile。
-- 端口冲突时 `start.mjs` / `dsh` 会直接失败、不会悄悄换端口；这是有意的。
-- 验证：截图/视觉与不涉及模型的 UI 交互由 agent 用 `playground/browser.mjs` / agent-browser 自动完成（含回读 `pstack-models.mdc`/profile/日志）；真实会话涉及用户所选模型，由用户操作并确认，agent 只读 `playground/.dsh/sessions/**/session.v4.jsonl.zstd` 佐证。
-- 能力自动化 runner：把 provider 的 apiKey 与“模型→思考等级”填进 `playground/config.json`（模板 `config.example.json`，已 gitignore）后，agent 用 `vp run cases:check` / `vp run cases` 自动跑 `playground/cases/` 能力用例；报告在 `playground/.dsh/cases-report/`。runner 临时改写 `pstack-models.mdc` 并恢复，勿与手动会话并发。
+- 启动用 `vp run playground`。改了插件源码先 `vp run build` 再重启。
+- 启动端口固定 `17353`。已有 playground 时沿用，其他占用必须先获得用户指示。
+- 运行期 DSH home 是 `playground/.dsh`。不要另建测试用 home 或 profile。
+- 浏览器截图和不涉及模型选择的 UI 交互用 `playground/browser.mjs` 或 agent-browser 完成。
+- 无头用例从 `playground/config.json` 读取用户允许的模型。用 `vp run cases:check` 先校验，再用 `vp run cases` 执行。
+- 无头用例必须使用自然的用户提示词，不得直接点名工具或展开调用参数；每个目标必须在一次会话中首次调用成功，出现失败后重试、重复加载或先错后对的用例判为失败。
+- 不要用例并发运行，也不要与手动会话共享同一份运行期配置进行写入。
+- 真实会话的模型选择由用户确认。agent 可以用会话日志核对调用和返回。

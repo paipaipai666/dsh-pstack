@@ -10,11 +10,11 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import type { JsonSchemaNode, ToolDefinition, ToolsHost } from "./internal/host-contract.ts";
-import { OPTIONAL_PLUGINS, type OptionalPluginId } from "./internal/optional-plugins.ts";
-import { PORT_ROOT } from "./internal/paths.ts";
-import { modelsFilePath, resolveDshHome } from "./internal/role-config.ts";
-import { SCRIPT_ENTRIES } from "./internal/script-registry.ts";
+import type { JsonSchemaNode, ToolDefinition, ToolsHost } from "./host-contract.ts";
+import { OPTIONAL_PLUGINS, type OptionalPluginId } from "./optional-plugins.ts";
+import { PORT_ROOT } from "./paths.ts";
+import { modelsFilePath, resolveDshHome } from "./role-config.ts";
+import { SCRIPT_ENTRIES } from "./script-registry.ts";
 
 /** Cordis row name, used by Loader diagnostics. */
 export const name = "pstack-doctor";
@@ -138,9 +138,15 @@ export function collectOptionalPluginChecks(
           ? "installed"
           : "missing";
     } else {
-      const installed = plugin.packages.filter((packageName) => dependencies.has(packageName)).length;
+      const installed = plugin.packages.filter((packageName) =>
+        dependencies.has(packageName),
+      ).length;
       status =
-        installed === 0 ? "missing" : installed === plugin.packages.length ? "installed" : "partial";
+        installed === 0
+          ? "missing"
+          : installed === plugin.packages.length
+            ? "installed"
+            : "partial";
     }
     return {
       id: plugin.id,
@@ -188,7 +194,7 @@ export function collectDoctorReport(host: DoctorHost): DoctorReport {
 
 function renderReport(report: DoctorReport): string {
   const commandLines = report.commands.map(
-    (command) => `- ${command.name}: ${command.ok ? command.version ?? "available" : "MISSING"}`,
+    (command) => `- ${command.name}: ${command.ok ? (command.version ?? "available") : "MISSING"}`,
   );
   const scriptLines = report.scripts.map(
     (script) => `- ${script.id}: ${script.ok ? "present" : `MISSING (${script.path})`}`,
@@ -258,7 +264,10 @@ const OUTPUT_SCHEMA: JsonSchemaNode = {
           id: { type: "string" },
           bundle: { type: "string" },
           packages: { type: "array", items: { type: "string" } },
-          status: { type: "string", enum: ["enabled", "installed", "partial", "missing", "unknown"] },
+          status: {
+            type: "string",
+            enum: ["enabled", "installed", "partial", "missing", "unknown"],
+          },
         },
         required: ["id", "packages", "status"],
       },

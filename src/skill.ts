@@ -1,56 +1,27 @@
 /**
- * `pstack_skill`: the trusted skill loader for pstack's own instructions.
+ * `pstack_skill`: trusted loading of pstack skills by name.
  *
- * pstack hides most of its skills from the model catalog: `how`, `why`, `architect`,
- * `arena`, and the principle skills all declare `disable-model-invocation: true`, so
- * `poteto-mode` cannot route to them through DSH's `skill` tool. The registry's
- * `get()` is deliberately usable by trusted callers without that policy, which is the
- * public seam this tool consumes. It accepts a skill name, not a path, so a call can
- * only load a skill the package itself registered.
- *
- * The optional `resource` argument reads one file below the skill's directory. It is a
- * convenience for the references and playbooks that live beside `SKILL.md`; the path is
- * resolved and checked against the skill directory before reading, so `../` cannot
- * escape it.
+ * `dsh-tool-skill` applies the model-invocation policy at the catalog boundary.
+ * `ctx.skills.get()` is invocation-neutral, which is the seam this tool uses to
+ * load a skill that `disable-model-invocation: true` hides from the model.
  */
 
 import { readFile } from "node:fs/promises";
 import { resolve, sep } from "node:path";
 
-import type {
-  Agent,
-  JsonSchemaNode,
-  SkillDefinition,
-  SkillResourceBase,
-  ToolDefinition,
-  ToolRunContext,
-  ToolsHost,
-} from "./internal/host-contract.ts";
-import { toDshText } from "./internal/native-text.ts";
+import type { Context } from "@deepseek-ai/cordis";
+import type { SkillDefinition, SkillRegistry, SkillResourceBase } from "@deepseek-ai/dsh-skill";
+import type { JsonSchemaNode, ToolDefinition, ToolRunContext } from "@deepseek-ai/dsh-tools";
 
-/** Model-facing tool name. */
-export const TOOL_NAME = "pstack_skill";
+import { toDshText } from "./native-text.ts";
 
-/** Cordis row name, used by Loader diagnostics. */
 export const name = "pstack-skill";
 
-/** The tool registry and the skill registry. */
 export const inject = ["skills", "tools"];
 
+export const TOOL_NAME = "pstack_skill";
+
 const SKILL_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-
-/** The slice of `ctx.skills` this tool reads. */
-export interface SkillsHost {
-  get(
-    name: string,
-    options?: { readonly cwd?: string; readonly signal?: AbortSignal; readonly scope?: Agent },
-  ): Promise<SkillDefinition | undefined>;
-}
-
-export interface PstackSkillHost {
-  readonly skills: SkillsHost;
-  readonly tools: ToolsHost;
-}
 
 export interface SkillResourceResult {
   readonly path: string;
@@ -65,19 +36,9 @@ export interface LoadSkillResult {
   readonly resource?: SkillResourceResult;
 }
 
-/** Compact translation rules for upstream pstack text that still names Cursor concepts. */
-export const DSH_ADAPTER_RULES = [
-  "A pstack skill body may use Cursor names. Translate them before acting:",
-  "- `Task` / `subagent_type` -> `pstack_subagent`, passing `agent` and optional `role`; do not send `model`, `reasoning_effort`, or `thinking` on the spawn call.",
-  "- `~/.cursor/rules/pstack-models.mdc` -> `$DSH_HOME/pstack-models.mdc`.",
-  "- `.cursor/skills/` -> `.dsh/skills/`; `.cursor/plugins/` -> the installed `dsh-pstack` package resources.",
-  "- `AskQuestion` -> `ask_user_question`; `TodoWrite` -> `todo_write`.",
-  "- Cursor model slugs in a skill body are defaults only; use `pstack_roles` and `pstack_models` for live routes.",
-].join("\n");
-
-/** Render one loaded skill in the canonical `<skill_content>` shape. */
+/** Render one loaded skill in the shape DSH skill tools use. */
 export function renderLoadedSkill(result: LoadSkillResult): string {
-  const lines = [`<skill_content name="${escapeAttr(result.name)}">`, "<skill_resources>"];
+  const lines = [`<skill_content name="${escapeAttribute(result.name)}">`, "<skill_resources>"];
   if (result.resourceBase === undefined) {
     lines.push(
       `Resources for this skill are managed by provider "${escapeText(result.provider)}".`,
@@ -105,15 +66,11 @@ export function renderLoadedSkill(result: LoadSkillResult): string {
     "<skill_instructions>",
     result.content,
     "</skill_instructions>",
-    "",
-    "<dsh_adapter>",
-    DSH_ADAPTER_RULES,
-    "</dsh_adapter>",
   );
   if (result.resource !== undefined) {
     lines.push(
       "",
-      `<skill_resource path="${escapeAttr(result.resource.path)}">`,
+      `<skill_resource path="${escapeAttribute(result.resource.path)}">`,
       result.resource.content,
       "</skill_resource>",
     );
@@ -122,15 +79,7 @@ export function renderLoadedSkill(result: LoadSkillResult): string {
   return lines.join("\n");
 }
 
-function escapeAttr(value: string): string {
-  return value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
-}
-
-function escapeText(value: string): string {
-  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-}
-
-/** Read one resource below a directory skill, refusing traversal and absolute paths. */
+/** Read one resource relative to a directory-backed skill. */
 export async function readSkillResource(
   definition: SkillDefinition,
   resource: string,
@@ -215,13 +164,13 @@ const OUTPUT_SCHEMA: JsonSchemaNode = {
 const TOOL_DESCRIPTION = [
   "Load the full instructions of any pstack skill by name, including skills hidden from the model catalog.",
   "",
-  "Use this when a pstack skill tells you to route through another pstack skill (for example how, why, or architect) and the `skill` tool reports that it is unavailable because the skill disables model invocation.",
+  "Use this when a pstack skill tells you to route through another pstack skill and the `skill` tool cannot see it because the skill disables model invocation.",
   "",
-  "Pass `resource` with a path relative to the skill directory to read one reference or playbook beside its SKILL.md. The path cannot leave the skill directory.",
+  "Pass `resource` with a path relative to the skill directory to read one reference or playbook beside its `SKILL.md`. The path cannot leave the skill directory.",
 ].join("\n");
 
-/** Build the tool definition. Exported so tests can drive `execute` directly. */
-export function createPstackSkillTool(skills: SkillsHost): ToolDefinition {
+/** Build the tool for one skills registry. */
+export function createPstackSkillTool(skills: SkillRegistry): ToolDefinition {
   return {
     name: TOOL_NAME,
     description: TOOL_DESCRIPTION,
@@ -235,8 +184,7 @@ export function createPstackSkillTool(skills: SkillsHost): ToolDefinition {
         },
         resource: {
           type: "string",
-          description:
-            "Optional path relative to the skill directory, such as `references/explorer-prompt.md`.",
+          description: "Optional path relative to the skill directory.",
         },
       },
       required: ["name"],
@@ -249,35 +197,47 @@ export function createPstackSkillTool(skills: SkillsHost): ToolDefinition {
     },
     isConcurrencySafe: () => true,
     async execute(rawArgs, exec: ToolRunContext) {
-      const args = rawArgs as { name?: unknown; resource?: unknown };
-      if (typeof args.name !== "string" || !SKILL_NAME.test(args.name)) {
-        throw new Error(`invalid skill name "${String(args.name)}"`);
+      if (typeof rawArgs !== "object" || rawArgs === null || Array.isArray(rawArgs)) {
+        throw new Error("pstack_skill takes an object argument");
       }
-      if (args.resource !== undefined && typeof args.resource !== "string") {
+      const args = rawArgs as Record<string, unknown>;
+      const skillName = args["name"];
+      const resource = args["resource"];
+      if (typeof skillName !== "string" || !SKILL_NAME.test(skillName)) {
+        throw new Error(`invalid skill name "${String(skillName)}"`);
+      }
+      if (resource !== undefined && typeof resource !== "string") {
         throw new Error("resource must be a string when present");
       }
-      const definition = await skills.get(args.name, {
+      const definition = await skills.get(skillName, {
         signal: exec.signal,
         ...(exec.agent === undefined ? {} : { scope: exec.agent }),
       });
       if (definition === undefined) {
-        throw new Error(`skill "${args.name}" is unknown or no longer available`);
+        throw new Error(`skill "${skillName}" is unknown or no longer available`);
       }
       const result: LoadSkillResult = {
         name: definition.name,
         provider: definition.provider,
         ...(definition.resourceBase === undefined ? {} : { resourceBase: definition.resourceBase }),
-        content: definition.content,
-        ...(args.resource === undefined
+        content: toDshText(definition.content),
+        ...(resource === undefined
           ? {}
-          : { resource: await readSkillResource(definition, args.resource) }),
+          : { resource: await readSkillResource(definition, resource) }),
       };
       return result;
     },
   };
 }
 
-/** Register `pstack_skill` on one row. */
-export function apply(ctx: PstackSkillHost): void {
+export function apply(ctx: Context): void {
   ctx.tools.register(createPstackSkillTool(ctx.skills));
+}
+
+function escapeAttribute(value: string): string {
+  return value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
+}
+
+function escapeText(value: string): string {
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }

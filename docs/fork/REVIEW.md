@@ -1,16 +1,22 @@
+> 说明：本文件记录的是 rebase 到上游 0.3.1 之前的审查结论，其中的 `pstack/pstack/`、`src/internal/` 与测试数量已随合并变化，当前状态见 [STATUS.md](STATUS.md)。
+
 # dsh-pstack 插件审查
 
 审查对象：`paipaipai666/dsh-pstack`，`fork/main` 提交 `1733187`
 上游基线：`cursor/plugins` 的 pstack `0.15.36`，提交 `ae5650f`
 审查方式：只读审查，对照上游资产、当前源码、测试、CI 和安装态
 
-## Overview
+#> 说明：本文件记录的是 rebase 到上游 0.3.1 之前的审查结论，其中的 `pstack/pstack/`、`src/internal/` 与测试数量已随合并变化，当前状态见 [STATUS.md](STATUS.md)。
+
+# Overview
 
 当前 fork 已经具备完整的上游 pstack 资产，核心调用层已经改成 the agent harness 的接口，并且有 Linux、Windows 和隔离安装三条 CI 验证路径。它不是“能装但跑不起来”的移植版本。
 
 审查结论是“结构完整、可以继续维护”，但仍有 2 个会影响实际使用的高优先级缺口，集中在运行时文本转译的覆盖范围，以及审批服务缺失时的运行降级。
 
-## Key Concepts
+#> 说明：本文件记录的是 rebase 到上游 0.3.1 之前的审查结论，其中的 `pstack/pstack/`、`src/internal/` 与测试数量已随合并变化，当前状态见 [STATUS.md](STATUS.md)。
+
+# Key Concepts
 
 - 生成树 `pstack/pstack/` 保留上游 pstack 原文，用于同步和审计。
 - 运行时适配层 `src/internal/native-text.ts` 在 skill provider 返回内容时翻译 Cursor 名称。
@@ -19,7 +25,9 @@
 - `pstack_script` 负责五个随包脚本，并在运行前请求 Host 审批。
 - `pstack` preset 是常驻 `poteto-mode`，`poteto-agent` 和 `comment-sicko` 是委派 preset。
 
-## How It Works
+#> 说明：本文件记录的是 rebase 到上游 0.3.1 之前的审查结论，其中的 `pstack/pstack/`、`src/internal/` 与测试数量已随合并变化，当前状态见 [STATUS.md](STATUS.md)。
+
+# How It Works
 
 1. DSH 加载 `dsh-pstack` bundle，`cordis.patch.yml` 注册 6 个原生工具、3 个 preset 和 1 个 skill provider。
 2. 用户输入 `/poteto-mode` 或选择 `pstack` preset，模型读取 `poteto-mode` 技能。
@@ -28,7 +36,9 @@
 5. `pstack_script` 在执行 `check-plan`、`watch-pr`、`worktree-audit`、`log`、`statechart` 前请求审批。
 6. `pstack_doctor` 检查外部命令、随包脚本和角色文件。
 
-## Where Things Live
+#> 说明：本文件记录的是 rebase 到上游 0.3.1 之前的审查结论，其中的 `pstack/pstack/`、`src/internal/` 与测试数量已随合并变化，当前状态见 [STATUS.md](STATUS.md)。
+
+# Where Things Live
 
 | 路径 | 职责 |
 |---|---|
@@ -43,7 +53,9 @@
 | `pstack/pstack/` | 上游 0.15.36 生成树，58 skills、23 playbooks、24 principles |
 | `tests/` | 22 个测试文件，约 138 个用例 |
 
-## Findings
+#> 说明：本文件记录的是 rebase 到上游 0.3.1 之前的审查结论，其中的 `pstack/pstack/`、`src/internal/` 与测试数量已随合并变化，当前状态见 [STATUS.md](STATUS.md)。
+
+# Findings
 
 | 级别 | 发现 | 证据 | 影响 | 建议 |
 |---|---|---|---|---|
@@ -58,7 +70,9 @@
 | **P3** | 没有覆盖率门槛 | CI 只跑 `vp test`，没有 coverage gate | 新增代码可能漏测，回归靠用例数量而非覆盖 | 接入 `vitest --coverage`，先设合理阈值 |
 | **P3** | `pstack_doctor` 顺序执行六个命令，单次最长 5 秒 | `runCommandVersion` 每个命令独立 `timeout: 5_000` | 六个命令最坏约 30 秒，交互式体验差 | 并行探测或缩短超时 |
 
-## Quality Evidence
+#> 说明：本文件记录的是 rebase 到上游 0.3.1 之前的审查结论，其中的 `pstack/pstack/`、`src/internal/` 与测试数量已随合并变化，当前状态见 [STATUS.md](STATUS.md)。
+
+# Quality Evidence
 
 - 最新 CI 全绿，运行 [42164834366](https://github.com/paipaipai666/dsh-pstack/actions/runs/42164834366)
   - Linux typecheck、build、test、generated-tree check、tarball
@@ -67,11 +81,15 @@
 - 资产盘点与上游一致，58 skills、23 playbooks、24 principles、2 agents、11 guide pages
 - 测试规模 22 个文件、约 138 个用例
 
-## Recommendation
+#> 说明：本文件记录的是 rebase 到上游 0.3.1 之前的审查结论，其中的 `pstack/pstack/`、`src/internal/` 与测试数量已随合并变化，当前状态见 [STATUS.md](STATUS.md)。
+
+# Recommendation
 
 先修 P1 的两个转译盲区，再处理 `pstack_script` 的 headless 审批降级。P1 修复应只补测试和运行时路径，不扩大功能面。P2 可以作为下一轮维护项，不需要现在重构架构。
 
-## Fix status
+#> 说明：本文件记录的是 rebase 到上游 0.3.1 之前的审查结论，其中的 `pstack/pstack/`、`src/internal/` 与测试数量已随合并变化，当前状态见 [STATUS.md](STATUS.md)。
+
+# Fix status
 
 修复提交 `61a4fa4` 已处理以下两项：
 

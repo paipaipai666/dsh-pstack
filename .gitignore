@@ -3,11 +3,6 @@ dist
 .audit
 *.log
 .DS_Store
-# Build output of pstack/scripts/build-runtime.ts, consumed by the generator.
-#
-# It is a build directory, not a source tree. The directory sits under `.build/` rather than
-# at the top level so its name cannot collide with a source directory, which an older layout
-# got wrong once.
-/.build
 # Scratch space for local verification; never part of the package.
 .tmp
+artifacts

@@ -9,7 +9,7 @@
 //   - one process tree for open → wait → eval → console → screenshot → close
 //
 // Usage:
-//   node playground/browser.mjs <tokenized-url> [options]
+//   vpx playground/browser.mjs <tokenized-url> [options]
 //
 // Options:
 //   --out <path>      screenshot path (default: .tmp/playground-<timestamp>.png)

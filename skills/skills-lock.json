@@ -1,6 +1,30 @@
 {
   "version": 1,
   "skills": {
+    "control-cli": {
+      "source": "cursor/plugins",
+      "ref": "ae5650febf4320793844c12c4adaa937f417f8da",
+      "sourceType": "github",
+      "skillPath": "cursor-team-kit/skills/control-cli/SKILL.md",
+      "computedHash": "3f6ccb21788bdf59ee96b54eac9ad35aa75e733e44700910c8d2998b165e888b",
+      "via": "."
+    },
+    "control-ui": {
+      "source": "cursor/plugins",
+      "ref": "ae5650febf4320793844c12c4adaa937f417f8da",
+      "sourceType": "github",
+      "skillPath": "cursor-team-kit/skills/control-ui/SKILL.md",
+      "computedHash": "29343abf8da1f692915ef82d11a1ce6d03d211101792b39f8c66e2f7c7868d05",
+      "via": "."
+    },
+    "deslop": {
+      "source": "cursor/plugins",
+      "ref": "ae5650febf4320793844c12c4adaa937f417f8da",
+      "sourceType": "github",
+      "skillPath": "cursor-team-kit/skills/deslop/SKILL.md",
+      "computedHash": "8883a7d459c07a0b2ee06972e79baa634009aa3bab969a6650acbefac394ad41",
+      "via": "."
+    },
     "retro": {
       "source": "mattpocock/skills",
       "ref": "59db609eb1e18aaf59b63284d0e52255aff0c63c",

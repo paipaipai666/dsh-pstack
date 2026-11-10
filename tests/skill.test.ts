@@ -3,39 +3,31 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
-import {
-  createPstackSkillTool,
-  readSkillResource,
-  renderLoadedSkill,
-  type SkillsHost,
-} from "../src/skill.ts";
-import type { SkillDefinition, ToolRunContext } from "../src/internal/host-contract.ts";
+import type { SkillDefinition, SkillRegistry } from "@deepseek-ai/dsh-skill";
+
+import { createPstackSkillTool, readSkillResource, renderLoadedSkill } from "../src/skill.ts";
+import type { ToolRunContext } from "@deepseek-ai/dsh-tools";
 
 const directories: string[] = [];
 
-function temporarySkill(): { directory: string; definition: SkillDefinition } {
+function temporarySkill(): SkillDefinition {
   const directory = mkdtempSync(join(tmpdir(), "pstack-skill-"));
   directories.push(directory);
-  mkdirSync(join(directory, "references"), { recursive: true });
+  mkdirSync(join(directory, "references"));
   writeFileSync(join(directory, "references", "explorer-prompt.md"), "explore this\n");
   writeFileSync(
-    join(directory, "references", "cursor-terms.md"),
-    'Use `Task` with `subagent_type: "generalPurpose"` and `~/.cursor/rules/pstack-models.mdc`.\n',
-  );
-  writeFileSync(
     join(directory, "SKILL.md"),
-    "---\nname: how\ndescription: walk the code\n---\n\n# How\n",
+    "---\nname: how\ndescription: walk code\n---\n\n# How\n",
   );
-  const definition: SkillDefinition = {
+  return {
     name: "how",
-    description: "walk the code",
+    description: "walk code",
     provider: "pstack",
     resourceBase: { kind: "directory", path: directory },
     content: "# How\n",
     invocation: { modelInvocable: false, userInvocable: true },
     source: "bundled",
   };
-  return { directory, definition };
 }
 
 const exec = { signal: new AbortController().signal } as unknown as ToolRunContext;
@@ -47,53 +39,43 @@ afterEach(() => {
 
 describe("pstack_skill", () => {
   it("loads a hidden skill by name", async () => {
-    const { definition } = temporarySkill();
-    const skills: SkillsHost = { get: async (name) => (name === "how" ? definition : undefined) };
+    const definition = temporarySkill();
+    const skills = {
+      get: async (name: string) => (name === "how" ? definition : undefined),
+    } as unknown as SkillRegistry;
     const tool = createPstackSkillTool(skills);
-
     const result = await tool.execute({ name: "how" }, exec);
-
     expect(result).toMatchObject({ name: "how", provider: "pstack", content: "# How\n" });
-    expect(renderLoadedSkill(result as never)).toContain('<skill_content name="how">');
-    expect(renderLoadedSkill(result as never)).toContain("<dsh_adapter>");
-    expect(renderLoadedSkill(result as never)).toContain("`pstack_subagent`");
-    const base = definition.resourceBase;
-    expect(base?.kind).toBe("directory");
-    expect(renderLoadedSkill(result as never)).toContain(
-      `Base directory for this skill: ${base?.kind === "directory" ? base.path : ""}`,
-    );
+    const rendered = renderLoadedSkill(result as never);
+    expect(rendered).toContain('<skill_content name="how">');
+    expect(rendered).toContain("Base directory for this skill:");
+    expect(rendered).toContain("Load referenced resources only as needed.");
   });
 
-  it("reads a relative resource, translates Cursor names, and refuses traversal", async () => {
-    const { definition } = temporarySkill();
-    const loaded = await readSkillResource(definition, "references/explorer-prompt.md");
-    expect(loaded.content).toBe("explore this\n");
-    const translated = await readSkillResource(definition, "references/cursor-terms.md");
-    expect(translated.content).toContain("pstack_subagent");
-    expect(translated.content).toContain('agent: "general"');
-    expect(translated.content).toContain("$DSH_HOME/pstack-models.mdc");
-    expect(translated.content).not.toContain("subagent_type");
+  it("reads a relative resource and refuses traversal", async () => {
+    const definition = temporarySkill();
+    await expect(readSkillResource(definition, "references/explorer-prompt.md")).resolves.toEqual({
+      path: "references/explorer-prompt.md",
+      content: "explore this\n",
+    });
     await expect(readSkillResource(definition, "../secret.txt")).rejects.toThrow(
       /escapes the skill directory/,
     );
   });
 
-  it("reports an unknown skill clearly", async () => {
-    const tool = createPstackSkillTool({ get: async () => undefined });
+  it("rejects an invalid skill name before querying the registry", async () => {
+    const tool = createPstackSkillTool({
+      get: async () => {
+        throw new Error("must not be called");
+      },
+    } as unknown as SkillRegistry);
+    await expect(tool.execute({ name: "../secret" }, exec)).rejects.toThrow("invalid skill name");
+  });
+
+  it("reports an unknown skill", async () => {
+    const tool = createPstackSkillTool({ get: async () => undefined } as unknown as SkillRegistry);
     await expect(tool.execute({ name: "nope" }, exec)).rejects.toThrow(
       'skill "nope" is unknown or no longer available',
     );
-  });
-
-  it("rejects an invalid name before touching the registry", async () => {
-    let called = 0;
-    const tool = createPstackSkillTool({
-      get: async () => {
-        called += 1;
-        return undefined;
-      },
-    });
-    await expect(tool.execute({ name: "Not A Skill" }, exec)).rejects.toThrow(/invalid skill name/);
-    expect(called).toBe(0);
   });
 });

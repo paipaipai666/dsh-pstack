@@ -25,10 +25,9 @@ describe("pstack_doctor", () => {
 
   it("returns the same report from the tool", async () => {
     const tool = createPstackDoctorTool(host);
-    const result = (await tool.execute(
-      {},
-      { signal: new AbortController().signal } as never,
-    )) as ReturnType<typeof collectDoctorReport>;
+    const result = (await tool.execute({}, {
+      signal: new AbortController().signal,
+    } as never)) as ReturnType<typeof collectDoctorReport>;
     expect(result.platform).toBe(process.platform);
     expect(result.commands).toHaveLength(6);
     expect(result.scripts).toHaveLength(5);

@@ -1,70 +1,87 @@
 # 决策记录约定
 
-本目录保存一次已定取舍的记录，是本仓库决策格式、范围、状态与检索规则的唯一来源。`decision-write`（写入、落地更新与取代）与 `decision-audit`（只读审计）两个技能读本文件；改格式前先确认二者仍能解析。
+本目录记录影响当前实现且替代方案有实际代价的工程决策。它不同于 `port/audit.lock.json`：后者保存固定上游基线的能力审核处置，不按本目录规则改写。
 
-## 何时写
+## 文件与格式
 
-非机械改动，且存在代码和测试都解释不了的长期理由时写一条。改名、格式化、文案调整、纯机械重构不写；与代码改动放在同一个提交。
-
-## 文件名
-
-`docs/decisions/YYYY-MM-DD-<topic>.md`，`<topic>` 用连字符小写词。
-
-## 记录格式
+- 文件名使用 `YYYY-MM-DD-<简短英文主题>.md`。
+- 正文使用中文，标题为 `# 决策：<一句话主题>`。
+- 每条记录保留下列五个字段，顺序固定：
 
 ```markdown
-# 决定：<标题>
-
 Status: proposed | accepted | superseded
 Date: YYYY-MM-DD
 Scope: <glob>[, <glob>...]
 Implemented-by: <PR #N | commit:SHA | ->
 Review: YYYY-MM-DD
-Superseded-by: <记录路径> — <一句原因>（仅 Status 为 superseded）
-
-## 背景
-
-要解决什么问题，约束是什么。
-
-## 决定
-
-决定做什么。系统现在实际是什么样。
-
-## 备选方案
-
-- 方案 A。不选的原因是……
-- 方案 B。不选的原因是……
-
-## 后果
-
-得到了什么，付出了什么代价，什么情况下需要重新考虑。
 ```
 
-- `Scope`：受该决定约束的仓库相对路径 glob，目录 glob 覆盖其所有后代；供 `decision-audit` 把改动路由到记录。写入与审计共用同一匹配规则。
-- `Implemented-by`：落地锚点，指向实现该决定的改动。实现改动的路径须与 `Scope` 相交，且至少一个路径在本目录之外。仅当 `decision-write` 的 Land 找不到实现且用户明确确认 record-only exception 时，才可锚到新增记录的提交；审计仍会报告该例外。`PR #N` 须为 MERGED，`commit:SHA` 须在默认分支历史中；未落地或无法核验写 `-`。
-- `Superseded-by`：仅 `Status: superseded` 时必填，写替代记录路径和一句原因；只写链接或只改状态不算完成。
-- `Review`：下次人工复核日期，`full` 模式审计据此提示逾期。
-- 备选方案必写；没有记下被放弃的选项，同一个决定会被反复拿出来重新讨论。
+正文依次使用：
 
-## 状态流转
+```markdown
+## 背景
+## 决策
+## 替代方案
+## 后果
+```
 
-- `proposed`：已记录、未落地，`Implemented-by` 为 `-`。
-- `accepted`：已落地，`Implemented-by` 核验通过。
-- `superseded`：被新记录取代；新记录即使还是 `proposed`，旧记录也立即改为 `superseded`。保留正文与原锚点，填写 `Superseded-by`（路径 + 一句原因），并与新记录互链。旧记录原为 `proposed` 时保留 `Implemented-by: -`，不删除、不回退。
+`背景` 独立描述问题，不预设所选方案。`决策` 对已接受记录使用现在时。每个实际考虑过的替代方案单独说明拒绝理由；只考虑过一个方案时明确写出。`Review` 是最近复核日期，不改变状态或实现锚点。
 
-`Status` 与 `Implemented-by` 是一对，必须同时改：未落地只能 `proposed` + `-`，已落地只能 `accepted` + 核验过的 `PR #N` 或 `commit:SHA`；`accepted` 与 `-` 不能并存。
+## 状态与实现锚点
 
-### 落地后
+`Status` 和 `Implemented-by` 必须作为一对更新：
 
-只新增记录的提交只把记录带入仓库，不构成实现。只有上述经确认的 record-only exception 可以把它作为锚点；其他记录只有在描述已经落地的既有事实、且 `Implemented-by` 指向那次实现时，才写 `accepted`。
+| 证据 | Status | Implemented-by |
+|---|---|---|
+| 尚无已验证的落地锚点 | `proposed` | `-` |
+| PR 已合并且实现该决策 | `accepted` | `PR #N` |
+| 提交是默认分支祖先且实现该决策 | `accepted` | `commit:SHA` |
+| 用户明确确认仅记录决策的 Land 例外 | `accepted` | `commit:<记录提交>` |
+| 已被新记录替代 | `superseded` | 保留原值 |
 
-记录与代码同一次改动写入时，`Status` 按当时的落地证据取值；代码还没合并到默认分支就写 `proposed` + `-`。
+实现锚点的变更路径必须与 `Scope` 相交，并至少包含一个本目录之外的路径。只有记录文件的提交不能充当普通实现锚点。
 
-代码合并到默认分支后，在同一 PR 或紧随的文档提交里更新 `Status`、`Implemented-by` 和 `Review`，不要等审计提醒。这是对头部字段的局部修改，不重写正文；修改统一走 `decision-write` 的“落地”模式，不要直接编辑记录文件。
+记录-only 例外只能通过 `decision-write` 的 Land 流程，由用户明确确认后使用；`decision-audit` 仍将其报告为 C 类发现。已有的 `accepted` 锚点验证失败时停止并报告，不自行降级。
 
-## 检索
+## 开始任务前查找
 
-- 开始每项仓库任务前，只读每条记录的头部（首个 `## ` 之前）即可判定状态与范围；读取所有 `proposed` 与 `accepted` 记录，再按任务及其涉及的路径与 `Scope` 筛选并读正文。`accepted` 记录约束当前实现，`proposed` 记录表示待落地方向；任务与相关记录冲突时，先报告冲突并取得用户指示，再继续。
-- 写新记录或实质更新前：`grep -ril "<关键词>" docs/decisions/*.md`，排除 `AGENTS.md` 与 `README.md`，逐个归类为 duplicate / replaced / overlapping / unrelated，未决项带入报告。
-- 所有记录修改统一走 `decision-write`，不要直接编辑记录文件。
-- 审计规则见 `decision-audit` 技能（按 `Scope`、`Implemented-by`、`Superseded-by`、`Review` 做六类检查）。
+开始任何仓库任务前：
+
+1. 阅读每条 `proposed` 和 `accepted` 记录的完整字段头。
+2. 按任务内容和受影响路径匹配 `Scope`。
+3. 阅读所有相关记录的全文。
+4. `accepted` 记录约束当前实现；`proposed` 记录表达预定方向，不冒充已实现行为。
+5. 任务与相关记录冲突时，报告冲突并取得用户方向后再继续。
+
+仅在追踪历史或替代关系时读取 `superseded` 记录。`AGENTS.md` 和 `README.md` 是约定，不参与记录检索或分类。
+
+## Scope 匹配
+
+写入与审核共用同一套匹配规则：
+
+- `Scope` 是以仓库根目录为锚点、逗号分隔的 Git ignore glob。
+- 路径使用仓库相对的 `/` 分隔形式。
+- `*` 不跨路径段，`**` 可以跨段；匹配目录的 glob 同时覆盖其后代。例如 `src/*` 覆盖 `src/client/index.ts`。
+- 删除 glob 开头的 `./` 和末尾的 `/`；拒绝开头的 `/`、任何 `..` 段和换行。
+- 每个候选路径使用 `decision-write` 的 Scope 参考所定义的隔离 Git matcher 检查，不以文件是否必须存在作为匹配条件。
+- 一条记录至少有一个 glob 匹配一个所选变更路径，才算覆盖该变更。
+
+## 新增、更新与替代
+
+所有记录的新增和修改都通过 `decision-write`，包括状态、正文、锚点、复核日期和关联链接；`decision-audit` 只报告，不直接修改。
+
+写入或实质更新前，按主题、模块和替代方案检索相关记录，并将每个命中分类为：
+
+- **重复**：更新已有记录，不另建同义记录。
+- **替代**：起草新记录并双向链接，同时处理旧记录状态。
+- **重叠**：保留两者、双向链接并协调事实。
+- **无关**：保持不变。
+- **未解决**：保留关系及待人工回答的问题。
+
+新记录替代旧记录时，在同一组获批编辑中立即将旧记录标为 `superseded`，即使旧记录原为 `accepted` 或 `proposed`。保留旧记录正文和原实现锚点；被替代的 `proposed` 记录仍为 `Implemented-by: -`。旧记录在 `Review` 后追加：
+
+```markdown
+Superseded-by: <新记录路径> — <一句话原因>
+```
+
+新记录正文链接旧记录。没有替代原因时先询问，不猜测补写。

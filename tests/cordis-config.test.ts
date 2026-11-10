@@ -8,66 +8,73 @@ const manifest = JSON.parse(readFileSync(resolve(ROOT, "package.json"), "utf8"))
   exports: Record<string, string>;
 };
 
+/** Every row the bundle inserts, in file order, with its raw block up to the next row. */
+const heads = [...cordis.matchAll(/^ {4}- id: ([a-z-]+)$/gm)];
+const rows = heads.map((head, index) => ({
+  id: head[1] as string,
+  block: cordis.slice(head.index, heads[index + 1]?.index ?? cordis.length),
+}));
+
 describe("bundle configuration", () => {
-  it("keeps the expected bundle rows and presets", () => {
-    for (const id of [
+  it("keeps the expected plugin rows and presets", () => {
+    expect(rows.map((row) => row.id)).toEqual([
       "pstack",
+      "pstack-skills",
+      "pstack-vendored-skills",
+      "pstack-authored-skills",
       "pstack-models",
       "pstack-roles",
       "pstack-role-catalog",
+      "pstack-subagent",
       "pstack-doctor",
       "pstack-script-policy",
-      "pstack-subagent",
       "pstack-script",
-    ]) {
-      expect(cordis).toContain(`- id: ${id}`);
-    }
-    for (const id of ["preset-pstack", "preset-poteto-agent", "preset-comment-sicko"]) {
-      expect(cordis).toContain(`- id: ${id}`);
-    }
-    expect(cordis).toMatch(/maxDepth:\s*3/);
+      "preset-poteto-mode",
+      "preset-poteto-mode-creator",
+      "preset-poteto-agent",
+      "preset-comment-sicko",
+      "preset-readonly",
+    ]);
   });
 
   it("keeps every bundle subpath exported by the package", () => {
-    const rows = [...cordis.matchAll(/name:\s*"@paipaipai666\/dsh-pstack(\/[a-z-]+)?"/g)].map(
-      (match) => (match[1] === undefined ? "." : `.${match[1]}`),
-    );
-    expect(rows).toContain(".");
-    for (const key of rows) expect(manifest.exports[key], key).toBeDefined();
+    const keys = rows
+      .map((row) => /name: "?@paipaipai666\/dsh-pstack(\/[a-z-]+)?"?/.exec(row.block))
+      .filter((match) => match !== null)
+      .map((match) => (match[1] === undefined ? "." : `.${match[1]}`));
+    expect(keys.length).toBeGreaterThan(5);
+    expect(keys).toContain(".");
+    for (const key of keys) expect(manifest.exports[key], key).toBeDefined();
   });
 
-  it("exports the doctor, script policy, and native preset surfaces", () => {
+  it("exposes the fork-only doctor, script, and script policy surfaces", () => {
     expect(manifest.exports["./doctor"]).toBe("./dist/doctor.mjs");
+    expect(manifest.exports["./script"]).toBe("./dist/script.mjs");
     expect(manifest.exports["./script-policy"]).toBe("./dist/script-policy.mjs");
-    expect(cordis).toContain('name: "@paipaipai666/dsh-pstack/doctor"');
-    expect(cordis).toContain('name: "@paipaipai666/dsh-pstack/script-policy"');
-    expect(cordis).toContain("id: pstack");
-  });
-
-  it("exports every public source entry", () => {
-    const entries: Record<string, string> = {
-      ".": "./dist/index.mjs",
-      "./doctor": "./dist/doctor.mjs",
-      "./models": "./dist/models.mjs",
-      "./remote": "./dist/remote.mjs",
-      "./role-catalog": "./dist/role-catalog.mjs",
-      "./roles": "./dist/roles.mjs",
-      "./script": "./dist/script.mjs",
-      "./script-policy": "./dist/script-policy.mjs",
-      "./skill": "./dist/skill.mjs",
-      "./subagent": "./dist/subagent.mjs",
-    };
-    for (const [key, target] of Object.entries(entries)) {
-      expect(manifest.exports[key], key).toBe(target);
+    for (const id of ["pstack-doctor", "pstack-script", "pstack-script-policy"]) {
+      expect(rows.map((row) => row.id)).toContain(id);
     }
   });
 
-  it("keeps the pstack preset able to run a full session", () => {
-    const start = cordis.indexOf("- id: preset-pstack");
-    const end = cordis.indexOf("- id: preset-poteto-agent");
-    expect(start, "preset-pstack").toBeGreaterThan(-1);
-    expect(end, "preset-poteto-agent").toBeGreaterThan(start);
-    const preset = cordis.slice(start, end);
+  it("gives each shipped skill tree its own filesystem provider", () => {
+    const providers = rows
+      .slice(0, 5)
+      .filter((row) => row.block.includes("@deepseek-ai/dsh-skill-filesystem"));
+    expect(providers.map((row) => row.id)).toEqual([
+      "pstack-skills",
+      "pstack-vendored-skills",
+      "pstack-authored-skills",
+    ]);
+    expect(providers[0]?.block).toContain("dist/pstack/skills");
+    expect(providers[1]?.block).toContain("dist/skills/vendored");
+    expect(providers[2]?.block).toContain("dist/skills/authored");
+    expect(
+      new Set(providers.map((row) => /providerName: "?([a-z-]+)"?/.exec(row.block)?.[1])).size,
+    ).toBe(3);
+  });
+
+  it("runs a full session from the root preset", () => {
+    const preset = rows.find((row) => row.id === "preset-poteto-mode")?.block ?? "";
     for (const packageName of [
       "@deepseek-ai/dsh-persona",
       "@deepseek-ai/dsh-agent-instructions",
@@ -83,10 +90,15 @@ describe("bundle configuration", () => {
     }
   });
 
-  it("configures the script approval policy as ask by default", () => {
-    expect(cordis).toContain("- id: pstack-script-policy");
-    expect(cordis).toMatch(
-      /- id: pstack-script-policy\n\s+name: "@paipaipai666\/dsh-pstack\/script-policy"\n\s+config:\n\s+mode: ask/,
-    );
+  it("boots children through the spawn provider with a bounded depth", () => {
+    const subagent = rows.find((row) => row.id === "pstack-subagent")?.block ?? "";
+    expect(subagent).toContain("provider: spawn");
+    expect(subagent).toMatch(/maxDepth:\s*2\n/);
+  });
+
+  it("asks before running a bundled script", () => {
+    const policy = rows.find((row) => row.id === "pstack-script-policy")?.block ?? "";
+    expect(policy).toContain('name: "@paipaipai666/dsh-pstack/script-policy"');
+    expect(policy).toMatch(/config:\s*\n\s+mode: ask\n/);
   });
 });

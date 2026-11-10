@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0-beta.6
+
+Fixes the delegation tool so a model no longer has to fill every optional field.
+
+### Fixed
+
+- `pstack_subagent` only requires `description`, `prompt`, and `agent`. `role`, `roleIndex`, `reasoningEffort`, and `cwd` can be left out, and the text `"null"` is read as absent instead of becoming a directory named `null`. Found by running the tool from a fresh session.
 ## 0.5.0-beta.5
 
 Makes `/statechart` usable on Windows. The script was written and tested on POSIX hosts, so two of

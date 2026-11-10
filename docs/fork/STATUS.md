@@ -1,7 +1,7 @@
 # Fork status
 
 Updated 2026-11-10. Base: upstream `dsh-pstack 0.3.1` (`2d577b1`). Package: `@paipaipai666/dsh-pstack`
-`0.5.0-beta.5`.
+`0.5.0-beta.6`.
 
 ## A. Fork foundation
 
@@ -66,6 +66,17 @@ came back as text. The fork renders that one subset itself instead of taking a M
 | CHT-04 tool | Done | `pstack_chart` (row `pstack-chart`) takes `chart.mmd` and writes a standalone SVG, defaulting to `<input>.svg`, and refuses any other output extension |
 | CHT-05 tests | Done | `tests/chart.test.ts` covers parsing, grouping, marks, XML escaping, syntax errors, the front matter block statechart writes, and renders every chart in the statechart corpus |
 | CHT-06 Windows | Done | An end-to-end run on Windows 11 with TLC 1.7.4 found three defects: the janitor and the process-group kill spawned `/bin/sh`, the TLC output parser dropped CRLF markers, and the renderer rejected the chart's front matter. All three are fixed; the run produced `report.md`, `chart.mmd`, and a 3819-byte `chart.svg` from a 5-state, 6-step spec |
+## Delegation arguments (0.5.0-beta.6)
+
+The first end-to-end run of `pstack_subagent` from a fresh session never started a child: the model
+filled the optional `cwd` with the text `null`, and the tool tried to use a directory named `null`.
+Only `description`, `prompt`, and `agent` are required now; `role`, `roleIndex`, `reasoningEffort`,
+and `cwd` default to `null`, and a literal `"null"` or `"undefined"` reads as absent.
+
+| Item | Status | Evidence |
+|---|---|---|
+| DEL-01 optional arguments | Done | A call with three arguments started a child and returned its id and route; `tests/subagent.test.ts` covers the omitted and literal-`null` cases |
+
 ## B. Fixes
 
 | Item | Status | Evidence |
@@ -83,7 +94,7 @@ came back as text. The fork renders that one subset itself instead of taking a M
 ## Quality audit
 
 - Generated tree: 58 skills, 23 playbooks, 24 principles, 2 agent definitions, 11 guide pages.
-- Test suite: 29 files under `tests/` (231 cases) plus 72 runtime cases (4 skipped on Windows); CI runs
+- Test suite: 29 files under `tests/` (233 cases) plus 72 runtime cases (4 skipped on Windows); CI runs
   Linux build/test with a V8 coverage gate, the Windows suite, and a real DSH install smoke.
 - Translation coverage: one test translates every Markdown file in `pstack/` and fails on any
   surviving Cursor tool, field, path, or model name.

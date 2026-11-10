@@ -161,6 +161,16 @@ export function normalizeConfig(value: unknown): PstackSubagentConfig {
   };
 }
 
+/**
+ * Read an optional argument. A model that fills a nullable field can send the text
+ * `"null"`, which would otherwise become a directory named `null`; treat it as absent.
+ */
+function optionalValue(value: unknown): unknown {
+  if (value === undefined) return null;
+  if (typeof value === "string" && ["null", "undefined"].includes(value.trim())) return null;
+  return value;
+}
+
 /** Validate every model-facing argument before doing any Host call. */
 export function parseDelegationArgs(raw: unknown): DelegationArgs {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
@@ -180,25 +190,17 @@ export function parseDelegationArgs(raw: unknown): DelegationArgs {
   for (const key of Object.keys(record)) {
     if (!known.has(key)) throw new Error(`unknown pstack_subagent argument "${key}"`);
   }
-  for (const key of [
-    "description",
-    "prompt",
-    "agent",
-    "role",
-    "roleIndex",
-    "reasoningEffort",
-    "cwd",
-  ]) {
+  for (const key of ["description", "prompt", "agent"]) {
     if (!Object.hasOwn(record, key)) throw new Error(`missing required argument "${key}"`);
   }
 
   const description = record["description"];
   const prompt = record["prompt"];
   const agent = record["agent"];
-  const role = record["role"];
-  const roleIndex = record["roleIndex"];
-  const reasoningEffort = record["reasoningEffort"];
-  const cwd = record["cwd"];
+  const role = optionalValue(record["role"]);
+  const roleIndex = optionalValue(record["roleIndex"]);
+  const reasoningEffort = optionalValue(record["reasoningEffort"]);
+  const cwd = optionalValue(record["cwd"]);
   const maxDepth = record["maxDepth"];
 
   if (typeof description !== "string" || description.trim() === "") {
@@ -479,7 +481,7 @@ export function createPstackSubagentTool(
             "Optional delegation-depth cap. Omit or null to use the configured row and Host cap; explicit values must be at least 1 and cannot exceed that cap.",
         },
       },
-      required: ["description", "prompt", "agent", "role", "roleIndex", "reasoningEffort", "cwd"],
+      required: ["description", "prompt", "agent"],
     },
     output: {
       schema: OUTPUT_SCHEMA,
@@ -498,7 +500,7 @@ export function createPstackSubagentTool(
 const TOOL_DESCRIPTION = [
   "Delegate self-contained work to one or more fresh child agents.",
   "",
-  "Every argument is required except maxDepth. Pass null for role, roleIndex, reasoningEffort, or cwd when unused. Choose agent explicitly.",
+  "Only `description`, `prompt`, and `agent` are required. Leave `role`, `roleIndex`, `reasoningEffort`, `cwd`, or `maxDepth` out when unused; null means the same thing. Choose agent explicitly.",
   "",
   "Omit `maxDepth` to use the configured row and Host delegation cap; an explicit value cannot exceed that cap.",
   "",

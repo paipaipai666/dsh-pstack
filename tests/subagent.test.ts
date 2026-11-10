@@ -65,6 +65,20 @@ describe("pstack_subagent arguments and planning", () => {
     expect(() => normalizeConfig({ nope: true })).toThrow(/unknown config field/);
   });
 
+  it("defaults every optional argument the model leaves out", () => {
+    const parsed = parseDelegationArgs({
+      description: "inspect parser",
+      prompt: "Read the parser and report.",
+      agent: "general",
+    });
+    expect(parsed).toMatchObject({ role: null, roleIndex: null, reasoningEffort: null, cwd: null });
+  });
+
+  it("reads the text null as an absent optional argument", () => {
+    const parsed = args({ role: "null", cwd: "null", reasoningEffort: "undefined" });
+    expect(parsed).toMatchObject({ role: null, reasoningEffort: null, cwd: null });
+  });
+
   it("rejects missing required arguments", () => {
     expect(() => parseDelegationArgs({ agent: "general" })).toThrow(/missing required argument/);
   });

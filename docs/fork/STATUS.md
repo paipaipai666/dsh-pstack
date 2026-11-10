@@ -40,7 +40,7 @@ flattened into `src/`. The fork followed the new layout instead of keeping its o
 | FIX-06 Windows test coverage | Done | The Windows job runs the full suite; four shell-dependent runtime tests skip there and run on Linux |
 | FIX-07 dead translation rules | Done | `environment: "cloud"|"local"` rules lost their trailing `\b`; bare `generalPurpose`, unquoted `subagent_type: generalPurpose`, `readonly: false`, and `readonly/Ask mode` are covered |
 | FIX-08 declared sources vs shipped tree | Done | `tests/skill-sources.test.ts` keeps `.agents/skills`, `skills/.agents/skills`, `skills/authored`, and both lock files in agreement |
-| FIX-09 npm publish | Blocked | See "Still open" |
+| FIX-09 npm publish | Done | `0.4.0-beta.2` is on npm; staged publish plus browser approval, then `latest` moved; an isolated `dsh plugin add` installs it |
 
 ## Quality audit
 
@@ -54,20 +54,26 @@ flattened into `src/`. The fork followed the new layout instead of keeping its o
   verifies every referenced line still exists.
 - Full audit: [AUDIT.md](AUDIT.md).
 
+## Publishing
+
+- `@paipaipai666/dsh-pstack@0.4.0-beta.2` is live. `latest` and `beta` both point at it, and an
+  isolated `dsh plugin --profile web add @paipaipai666/dsh-pstack` installs it from the registry.
+- The account signs in with a passkey rather than a TOTP authenticator, so `--otp` can never be
+  supplied. What works instead:
+  1. `npm stage publish <tarball> --tag beta --force` — staging itself needs no 2FA; `--force` only
+     gets past `devEngines.packageManager`, which pins pnpm.
+  2. Approve the staged version in the npm web UI; that completes the passkey check.
+  3. Moving `latest` still wants 2FA. A `PUT` on `/-/package/<package>/dist-tags/latest` carrying
+     both `npm-auth-type: web` and `npm-command` answers `401` with `authUrl`/`doneUrl`; approving in
+     the browser yields a one-time pass at `GET /-/v1/done?authId=...`, which the retry sends as
+     `npm-otp`.
+- The first staged upload left a placeholder `0.0.0-stage` version in the registry. It is harmless
+  but must never be the version `latest` resolves to.
+- Future releases either repeat those steps or configure GitHub OIDC trusted publishing so
+  `.github/workflows/release.yml` publishes without 2FA.
+
 ## Still open
 
-- Finish the npm publish. The `~/.npmrc` token is valid: with `npm_config_cache` pointing at a
-  writable directory, `npm whoami` returns `paipaipai666` and `npm ping` returns PONG. The earlier
-  E401 was a sandbox EPERM artifact from the default cache `D:\nodejs\node_cache`.
-  `npm profile get --json` reports `tfa: false`, so the account has no bound authenticator and no
-  OTP exists to supply; the earlier `--otp=<6-digit code>` advice is invalid until 2FA is enabled.
-  npm requires 2FA (or a granular token with bypass 2FA) for publishing: one attempt returned E403
-  "Two-factor authentication or granular access token with bypass 2fa enabled is required to publish
-  packages.", and a later one returned E404 (npm hides permission failures behind 404). Three paths:
-  enable 2FA and publish with `--otp`; create a granular token with "Bypass two-factor
-  authentication" and Read/Write on the `@paipaipai666` scope; or use GitHub Actions OIDC trusted
-  publishing, which `.github/workflows/release.yml` already implements. The account owner shelved
-  this on 2026-11-09.
 - Run `/poteto-mode` with a real model session end to end; install smoke only proves bundle loading.
 - The optional-plugin checks read the profile manifest only. Verifying that a listed plugin actually
   enables its tools needs a running session.

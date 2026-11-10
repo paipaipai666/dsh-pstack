@@ -2,7 +2,8 @@
 
 ## 0.4.0-beta.2
 
-Fixes the Desktop boot failure introduced by the 0.3.1 rebase.
+Fixes the Desktop boot failure introduced by the 0.3.1 rebase. Published to npm as
+`@paipaipai666/dsh-pstack@0.4.0-beta.2`; both `latest` and `beta` point at it.
 
 ### Fixed
 
@@ -65,4 +66,4 @@ Everything the fork added is carried forward on the new base.
 ### Known gaps
 
 - Four runtime tests spawn `sh` or create a directory symlink; they are skipped on Windows.
-- The npm package is not published yet.
+- `0.4.0-beta.1` was never published; `0.4.0-beta.2` is the first version on npm.

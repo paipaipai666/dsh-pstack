@@ -107,7 +107,14 @@ tests and fixtures spell the package name bare.
 
 ## Installing this fork
 
-The fork is distributed as a built tarball until the scoped npm package is published:
+The fork is published on npm under its scoped name:
+
+```bash
+dsh plugin --profile <profile> add @paipaipai666/dsh-pstack
+```
+
+`latest` and `beta` both point at the current beta. A locally built tarball still works when you need
+to test a change before publishing:
 
 ```bash
 dsh plugin --profile <profile> add /path/to/paipaipai666-dsh-pstack-<version>.tgz
@@ -132,12 +139,26 @@ compatibility tables in both READMEs), then:
 pnpm install --frozen-lockfile
 pnpm exec vp run build
 pnpm exec vp test
-pnpm publish --access public --tag beta
 ```
 
-`npm publish` needs either 2FA enabled on the account or a granular access token with
-"bypass two-factor authentication"; `.github/workflows/release.yml` is set up for OIDC trusted
-publishing instead.
+The account authenticates with a passkey rather than a TOTP app, so `npm publish --otp` cannot work.
+Publish through staging instead:
+
+```bash
+node "$DSH_PNPM" pack --pack-destination artifacts
+npm stage publish artifacts/paipaipai666-dsh-pstack-<version>.tgz --tag beta --access public --force
+```
+
+`--force` is only there to get past `devEngines.packageManager`, which pins pnpm 12.15.0. Approve the
+staged version on the package page, which completes the passkey check, then move the tags from an
+interactive terminal so npm can open the browser approval flow:
+
+```bash
+npm dist-tag add @paipaipai666/dsh-pstack@<version> latest
+```
+
+`.github/workflows/release.yml` is set up for OIDC trusted publishing instead, which is the route to
+prefer once the package owner configures it. Full details: [docs/fork/STATUS.md](docs/fork/STATUS.md#publishing).
 
 ## Planned work
 

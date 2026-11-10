@@ -2,7 +2,7 @@
 
 > 基于 `l246804/dsh-pstack` v0.3.1（pstack 0.15.36），fork 版本 `0.4.0-beta.2`
 > 目标 DSH：0.2.2-rc.1（本机安装版）
-> 状态：A 全部完成；B 的 FIX-01 至 FIX-08 已完成，FIX-09 只剩 npm 发布；ADD-01 已提前落地
+> 状态：A 全部完成；B 的 FIX-01 至 FIX-09 全部完成（`0.4.0-beta.2` 已发布到 npm）；ADD-01 已提前落地
 > 维护原则：保留 MIT 许可证与原作者署名；优先把通用修复回馈上游，长期分叉只保留 DSH 版本适配和团队特有功能。
 
 ## 进度（2026-11-10，rebase 到上游 0.3.1）
@@ -86,7 +86,7 @@
 
 ## 进度（2026-11-10）
 
-- `FIX-01`..`FIX-08`、`ADD-01` 已全部完成；`FIX-09` 部分完成（包名迁移、README 双语、`publish --dry-run` 均通过，真实发布因账号 2FA 状态与 token 条件被搁置）。
+- `FIX-01`..`FIX-09`、`ADD-01` 已全部完成。`0.4.0-beta.2` 经 npm staged publish 发布，`latest` 与 `beta` 都指向它，隔离 home 里不带版本号的安装命令已验证通过。
 - 本次质量补丁对应 `docs/fork/STATUS.md` 的 `QP-01`..`QP-06`：修掉 6 处用户级技能路径、两条永不命中的 `environment` 规则、缺失的 `generalPurpose`/`readonly: false`/`readonly/Ask mode` 覆盖，生成器新增 `TEXT_REWRITES` 命中守卫，删除无法被 vendor 的 `npm:agent-browser` 声明并补齐锁条目，README 加双语仓库结构表，FORK.md 说明空 submodule。
 
 后续仍未做（按发现顺序）：

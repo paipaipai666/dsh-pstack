@@ -23,3 +23,8 @@
 - Added a V8 coverage gate to the Linux CI job.
 - Added an upstream pstack commit/tree drift check.
 - Added full Windows test execution and CRLF normalization for the harness-doc checker.
+- Mapped `~/.cursor/skills/<name>/` to `$DSH_HOME/skills/<name>/`; it previously became `~/.dsh/skills/`, which only worked with the default home.
+- Fixed the `environment: "cloud"` and `environment: "local"` translation rules, which never matched because a word boundary followed a quote; added `generalPurpose`, unquoted `subagent_type: generalPurpose`, `readonly: false`, and `readonly/Ask mode`.
+- Made the generated-tree script fail when a `TEXT_REWRITES` entry matches nothing, so an upstream edit cannot silently leave Cursor-only instructions behind.
+- Removed the `npm:agent-browser` skill declaration and lock entry, which could never be vendored, and added `tests/skill-sources.test.ts` plus the missing `writing-for-agents` root lock entry.
+- Added a repository layout table to both READMEs and documented the empty submodules and their init commands in `FORK.md`.

@@ -93,6 +93,24 @@
 | 验证 | `/create-verification-skill`、`/statechart` |
 | 审查与维护 | `/show-me-your-work`、`/retro`、`/docs-drift` |
 
+## 🗂️ 仓库结构
+
+58 个 pstack 技能以快照形式提交，而不是安装时生成，这样移植过程可审查，CI 也能对整棵树做差异比对。
+
+| 路径 | 内容 | 是否入库 |
+|---|---|---|
+| `pstack/pstack/` | 应用了移植改动的上游 pstack 树：58 个技能、23 个 playbook、2 个 agent、11 篇 guide，以及 DSH 适配文档。`dist/pstack` 是它的副本。 | 是 |
+| `pstack/harness/` | 按相对路径覆盖上游树的本地层。只有 `docs/harness/dsh.md`，即替换上游 Claude Code 适配文档的那份。 | 是 |
+| `pstack/runtime/` | 五个随包脚本在 DSH 侧的源码，打包时替换上游技能内的脚本。 | 是 |
+| `skills/authored/` | 本 fork 自建的四个技能。 | 是 |
+| `skills/.agents/skills/` | 从 `mattpocock/skills` vendor 来的技能。 | 是 |
+| `src/` | 插件源码：工具、preset、技能 provider 与运行时文本翻译。 | 是 |
+| `dist/` | 构建产物与打包树。被 `.gitignore` 排除，`pnpm exec vp run build` 重新生成。 | 否 |
+| `upstream/cursor-plugins/` | 存放上游 pstack 源码的 submodule。未执行 `git submodule update --init` 时是空目录。 | gitlink |
+| `upstream/deepseek-harness/` | 适配检查所用的 DSH 源码 submodule。 | gitlink |
+
+`pstack/pstack/` 的嵌套是有意的：外层 `pstack/` 是本 fork 的移植工作区，内层 `pstack/` 对应上游仓库路径，生成器因此可以按相对路径复制与比对。
+
 ## 🧩 能力
 
 ### 🛠️ 原生工具
@@ -126,7 +144,7 @@
 | `setup-project-docs` | `authored` | 搭建可持续维护的项目文档。 |
 | `docs-drift` | `authored` | 检查文档漂移并修复获批项。 |
 
-vendored 技能的来源与哈希记录在 [`skills/skills-lock.json`](./skills/skills-lock.json)。
+vendored 技能的来源与哈希记录在 [`skills/skills-lock.json`](./skills/skills-lock.json)，随包发布的全部技能记录在 [`skills-lock.json`](./skills-lock.json)。
 
 ## 🔌 可选 DSH 插件
 

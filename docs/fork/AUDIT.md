@@ -58,31 +58,34 @@
 ### 新增的守卫
 
 - `tests/upstream-parity.test.ts`：技能/playbook/principle/agent 数量与名称一致性
+- `tests/upstream-drift.test.ts`：上游 pstack 的 commit 与 tree hash 漂移检测
 - `tests/cordis-config.test.ts`：bundle 行、preset、`maxDepth: 3`、package exports
-- `tests/native-text.test.ts`：Cursor 名称运行时转译、路径前缀、幂等性
+- `tests/native-text.test.ts`：Cursor 名称运行时转译，扫描 `pstack/pstack` 下全部 158 个 Markdown（不只是 58 个技能正文）
 - `tests/skill-provider.test.ts`：skill provider 返回内容确实经过转译
+- `tests/skill-sources.test.ts`：`package.json` 声明的技能、`skills/.agents/skills` 目录、两份锁文件三方一致
 - `tests/subagent.test.ts`：可选参数默认 null
-- `tests/script.test.ts`：`pstack_script` 缺失/拒绝审批 fail closed
-- `tests/doctor.test.ts`：命令/脚本/角色文件预检
+- `tests/script.test.ts`：`pstack_script` 的窗口/超时/后台行为
+- `tests/script-policy.test.ts`：`ask`/`allow`/`deny` 三种 pre-execute 策略与非法配置
+- `tests/doctor.test.ts`：命令/脚本/角色文件/可选插件状态预检
 - `tests/skill.test.ts`：`pstack_skill` 附加 DSH 适配规则
 
 ### CI 质量门
 
-- Linux：typecheck → build → test → generated-tree check → package tarball
-- Windows：typecheck → build → script smoke
+- Linux：typecheck → build → test（带 V8 覆盖率门槛）→ generated-tree check → package tarball
+- Windows：typecheck → build → 全量 test（不再只跑脚本 smoke）
 - Install smoke (Linux)：安装真实 `@deepseek-ai/dsh@0.2.2-rc.1`，把 tarball 装入隔离 `DSH_HOME`，校验全部 bundle 行和 `preset-pstack`
-- 最新 CI：`42164429877` 全部通过
+- 最新 CI：`42177703239` 全部通过
 
 ## 4. 仍存在的质量缺口
 
 | 缺口 | 影响 | 建议 |
 |---|---|---|
-| 没有覆盖率阈值 | 新代码可能漏测 | 后续接入 `vitest --coverage`，先设合理阈值而不是追求 100% |
 | 没有真实模型会话的端到端测试 | 无法证明 `/poteto-mode` 的完整推理链路 | 增加一个带 `DEEPSEEK_API_KEY` 的可选 e2e job，或在 Desktop 手工验收 |
 | `pstack/pstack` 生成树仍保留上游 Cursor 原文 | 审计时需要知道文本与运行时的差异 | 已由 `native-text.ts` 运行时转译；生成树保持上游可追溯 |
-| `pstack_doctor` 只检查命令与文件，不检查 DSH 可选插件状态 | 推荐插件缺失时仍可能降级 | 后续可扩展 `doctor` 查询插件管理器 |
 | 没有性能/包体预算 | 生成树与 58 技能会持续增大 | 可加 `npm pack` 大小和启动时间基线 |
 | 上游 135 项能力表未逐项映射到测试 | 能力回归靠人工审查 | 可把 `pstack/README.md` 的能力编号做成清单，逐步覆盖高风险项 |
+| `run_in_background: true` 不做字面替换 | 三处句子替换后会破坏语法 | 由 `<dsh_adapter>` 与 `dsh.md` 说明“省略该字段”；见 BACKLOG BL-01 |
+| `typescript-best-practices` 的 `paths` 字段失效 | DSH 不按文件路径挂载技能 | `frontmatter.ts` 只读四个键；见 BACKLOG BL-04 |
 
 ## 5. 结论
 

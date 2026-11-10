@@ -11,14 +11,23 @@ const REPLACEMENTS: readonly (readonly [RegExp, string])[] = [
   [/\bTask (tool|subagent|call|prompt|error|result|model|fields?)\b/g, "pstack_subagent $1"],
   [/\bTask\b/g, "pstack_subagent"],
   [/\bsubagent_type:\s*"generalPurpose"/g, 'agent: "general"'],
+  // Upstream writes the unquoted form too, and the generic rule below would otherwise leave `agent: generalPurpose`.
+  [/\bsubagent_type:\s*generalPurpose\b/g, 'agent: "general"'],
   [/\bsubagent_type:\s*"poteto-agent"/g, 'agent: "poteto-agent"'],
   [/\bsubagent_type:\s*"comment-sicko"/g, 'agent: "comment-sicko"'],
   [/\bsubagent_type:\s*"([^"]+)"/g, 'agent: "$1"'],
   [/\bsubagent_type\b/g, "agent"],
+  // A bare name in prose ("every spawn is `generalPurpose`") still needs the field it stands for.
+  [/\bgeneralPurpose\b/g, 'agent: "general"'],
   [/\breadonly:\s*true\b/g, "no file edits"],
-  [/\benvironment:\s*"cloud"\b/g, "local worktree"],
-  [/\benvironment:\s*"local"\b/g, "current directory"],
+  [/\breadonly:\s*false\b/g, "no read-only restriction"],
+  [/\breadonly\/Ask mode\b/g, "read-only mode"],
+  // No trailing `\b` after a quote: `"` is not a word character, so the boundary never matches there.
+  [/\benvironment:\s*"cloud"/g, "local worktree"],
+  [/\benvironment:\s*"local"/g, "current directory"],
   [/\bcloud_base_branch\b/g, "cwd"],
+  // A user-level path belongs under the configured home, not under the default `.dsh`.
+  [/~\/\.cursor\/skills\//g, "$DSH_HOME/skills/"],
   [/~\/\.cursor\/rules\/pstack-models\.mdc/g, "$DSH_HOME/pstack-models.mdc"],
   [/(?<!\$DSH_HOME\/)\bpstack-models\.mdc\b/g, "$DSH_HOME/pstack-models.mdc"],
   [/~\/\.cursor\/plugins\//g, "the installed dsh-pstack package resources"],

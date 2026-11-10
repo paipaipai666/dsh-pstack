@@ -17,6 +17,14 @@ ports [pstack](https://github.com/cursor/plugins/tree/main/pstack) to
 - GitHub fork created on 2026-11-06: `paipaipai666/dsh-pstack`.
 - `fork/main` is pushed and tracks `origin/fork/main`.
 - The package is named `@paipaipai666/dsh-pstack` in this working tree.
+- The 58 pstack skills are committed under `pstack/pstack/skills/`. That tree is a snapshot of
+  upstream pstack with the port applied, so the skills are reviewable in the repository instead of
+  being generated during install. `pstack/pstack/` is nested because the outer `pstack/` is this
+  fork's porting workspace and the inner one mirrors the upstream path.
+- Both submodules are gitlinks only. A fresh clone shows `upstream/cursor-plugins/` and
+  `upstream/deepseek-harness/` as empty directories until they are initialized, and the committed
+  skills do not depend on them. Only regenerating the tree or running the upstream checks needs
+  the submodules.
 
 ## Branch strategy
 
@@ -34,6 +42,14 @@ Requirements:
 - Node.js `>=24.21.0` (the installed DSH app bundles Node `24.21.0`)
 - pnpm `12.15.0` (see `devEngines`)
 - git submodules for `upstream/cursor-plugins` and `upstream/deepseek-harness`
+
+The clone starts with both submodules empty. Tests, typecheck, and build work without them. Fetch
+them before regenerating the skills tree or comparing against upstream:
+
+```bash
+git submodule update --init --depth 1 upstream/cursor-plugins
+git submodule update --init --depth 1 upstream/deepseek-harness
+```
 
 ```bash
 pnpm fork:check

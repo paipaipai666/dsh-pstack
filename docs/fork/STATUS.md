@@ -1,6 +1,6 @@
 # Fork status
 
-Updated 2026-11-06.
+Updated 2026-11-10.
 
 ## A. Fork foundation
 
@@ -29,17 +29,31 @@ Updated 2026-11-06.
 | FIX-04 Cursor Custom Mode docs | Done | Removed the false Option+Enter/Custom Mode instructions from `poteto-help`, setup guide, and poteto-mode guide; exact rewrites live in `pstack/scripts/generate-pstack-harness-tree.mjs` |
 | FIX-01 `pstack_script` approval | Done | `pstack-script-policy` returns `{ kind: "ask" }` from `tools/pre-execute`; DSH owns approval and fails closed without an answerer. Config supports `ask`/`allow`/`deny`; tests cover all modes |
 | FIX-02 root `pstack` preset | Done | Added `pstack` agent preset with persistent poteto-mode persona and full tool composition; installed tarball boots a temp DSH web host with the preset in `--dump-config` |
-| FIX-05 native skill text | Done | Custom Mode rewrites shipped; the skill provider, `pstack_skill` resources, and delegate bootstrap translate Cursor names at load time. A test scans all 58 generated skill bodies and asserts no Cursor-only names reach the model |
+| FIX-05 native skill text | Done | Custom Mode rewrites shipped; the skill provider, `pstack_skill` resources, and delegate bootstrap translate Cursor names at load time. A test scans every shipped Markdown file in the generated tree, not only the 58 skill bodies, and asserts no Cursor-only name or model slug survives translation |
 | FIX-06 Windows compatibility | Done | Windows CI now runs the full test suite, not only the script smoke; CRLF handling is normalized in the generator, harness-doc checker, and tests |
 | FIX-07 subagent argument schema | Done | `description`/`prompt`/`agent` are required; `role`/`roleIndex`/`reasoningEffort`/`cwd`/`maxDepth` are optional and default to null; test added |
 | FIX-08 real DSH integration tests | Done | `Install smoke (Linux)` CI job installs `@deepseek-ai/dsh@0.2.2-rc.1`, installs the built tarball into an isolated `DSH_HOME`, and asserts every bundle row; model-backed session coverage remains future work |
 | FIX-09 docs and release | Partial | Scoped package rename and README are done; npm `publish --dry-run` passes. Real publish is blocked: the account has 2FA disabled (`npm profile get --json` → `tfa: false`), so there is no authenticator and no OTP to supply; an earlier attempt returned E403 asking for 2FA or a granular token with bypass 2FA, and a later one returned E404 |
 | ADD-01 `pstack_doctor` | Done | Commands, scripts, role file, and optional-plugin state; unit tests and CI green |
 
+## Quality pass (2026-11-10)
+
+Four gaps found while comparing the shipped skills with upstream pstack, plus a repository map.
+
+| Item | Status | Evidence |
+|---|---|---|
+| QP-01 user-level skill path | Done | `~/.cursor/skills/<name>/` now maps to `$DSH_HOME/skills/<name>/` instead of a hardcoded `~/.dsh/skills/`, which was only right when `DSH_HOME` kept its default. Six sites covered: `automate-me`, `reflect`, and three reflect references |
+| QP-02 dead translation rules | Done | `environment: "cloud"` and `environment: "local"` ended in `\b` after a quote, so neither ever matched. Both fixed, plus new rules for bare `generalPurpose`, unquoted `subagent_type: generalPurpose`, `readonly: false`, and `readonly/Ask mode` |
+| QP-03 stale rewrite guard | Done | `generate-pstack-harness-tree.mjs` now counts hits per `TEXT_REWRITES` entry and fails when an entry matches nothing, so an upstream edit cannot silently leave a Cursor-only instruction in the tree |
+| QP-04 declared sources vs shipped tree | Done | Removed the `npm:agent-browser` skill declaration and its lock entry: `skills experimental_sync` only reads `skills/package.json`, so that skill could never be vendored. Added `tests/skill-sources.test.ts` for both directions, and completed the root lock with the `writing-for-agents` entry |
+| QP-05 repository map | Done | `README.md` and `README.zh.md` gained a layout table covering the nested generated tree, the override layer, the vendored and authored skills, `dist`, and both submodules |
+| QP-06 empty submodules | Done | `FORK.md` states that the two submodules start empty and that only regeneration or the upstream checks need them, with the `git submodule update --init --depth 1` commands |
+
 ## Quality audit
 
 - Upstream parity: 58 skills, 23 playbooks, 24 principles, 2 agent definitions, 11 guide pages.
-- Test suite: 24 files, about 150 cases; CI runs Linux build/test with a V8 coverage gate, full Windows test, and a real DSH install smoke.
+- Test suite: 22 files under `tests/` (141 cases) plus 7 script tests under `pstack/runtime/` (52 cases); CI runs Linux build/test with a V8 coverage gate, full Windows test, and a real DSH install smoke.
+- Translation coverage: one test translates all 158 Markdown files in `pstack/pstack` and fails on any surviving Cursor tool, field, path, or model name.
 - Coverage gate: lines 50%, functions 45%, branches 40%, statements 50%; CI run [42177056672](https://github.com/paipaipai666/dsh-pstack/actions/runs/42177056672) is green.
 - Upstream drift: the submodule commit and checked-out tree hash are pinned in `tests/upstream-drift.test.ts`.
 - Full audit: [AUDIT.md](AUDIT.md).

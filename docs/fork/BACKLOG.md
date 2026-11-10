@@ -72,3 +72,17 @@
 - 所有“修复”项都应在 `fork/main` 上以独立 commit/PR 完成，便于回馈上游。
 - 所有“新增”项优先做成插件内工具/技能，不改 DSH 核心；只有 `FIX-02`（根 preset）可能需要 DSH preset API。
 - 平台边界项不进入第一批；如果用户选择，也只做文档/降级说明。
+
+## 进度（2026-11-10）
+
+- `FIX-01`..`FIX-08`、`ADD-01` 已全部完成；`FIX-09` 部分完成（包名迁移、README 双语、`publish --dry-run` 均通过，真实发布因账号 2FA 状态与 token 条件被搁置）。
+- 本次质量补丁对应 `docs/fork/STATUS.md` 的 `QP-01`..`QP-06`：修掉 6 处用户级技能路径、两条永不命中的 `environment` 规则、缺失的 `generalPurpose`/`readonly: false`/`readonly/Ask mode` 覆盖，生成器新增 `TEXT_REWRITES` 命中守卫，删除无法被 vendor 的 `npm:agent-browser` 声明并补齐锁条目，README 加双语仓库结构表，FORK.md 说明空 submodule。
+
+后续仍未做（按发现顺序）：
+
+| ID | 内容 | 为什么现在不做 | 何时做 |
+|---|---|---|---|
+| BL-01 | `run_in_background: true` 保持原样，不翻译 | 逐字替换在 `arena`、`poteto-mode`、`swarm` 三处都会破坏句子语法；现有做法是在 `<dsh_adapter>` 与 `dsh.md` 表里说明“省略该字段” | 等 DSH 子代理接口支持后台子代理时再映射 |
+| BL-02 | 两个锁文件的分工需要写进文档 | `skills/skills-lock.json` 记录 vendored 技能的来源与 hash，根 `skills-lock.json` 记录随包发布的全集；两者目前只由 `tests/skill-sources.test.ts` 双向校验 | 下一次改 vendored 技能时同步，避免再出现单边缺条目 |
+| BL-03 | `computedHash` 的算法没有记录 | 实测既不是 `sha256(原始字节)` 也不是 `sha256(LF 归一)`，只能由 `skills` CLI 生成，手写即伪造 | 重生成锁文件时一并把算法写进本文件 |
+| BL-04 | `typescript-best-practices` 的 `paths` 字段在 DSH 失效 | `src/internal/frontmatter.ts` 只解析 `name`、`description`、`disable-model-invocation`、`whenToUse`，`paths` 被忽略；DSH 没有按文件路径自动挂载技能的机制 | 等 DSH 技能清单支持路径条件 |

@@ -220,10 +220,15 @@ function render() {
     if (wrap) files.get(path).bytes = Buffer.from(text.replace(/^(# .*)\n+/m, `$1\n\n${line}\n\n`));
   }
   files.set("LICENSE", file(join(PSTACK, "LICENSE")));
+  const rewriteHits = new Map(TEXT_REWRITES.map(({ from }) => [from, 0]));
   for (const [path, entry] of files) {
     if (!path.endsWith(".md")) continue;
     let text = entry.bytes.toString("utf8").replace(/\r\n/g, "\n");
-    for (const rewrite of TEXT_REWRITES) text = text.replaceAll(rewrite.from, rewrite.to);
+    for (const rewrite of TEXT_REWRITES) {
+      const hits = text.split(rewrite.from).length - 1;
+      if (hits > 0) rewriteHits.set(rewrite.from, rewriteHits.get(rewrite.from) + hits);
+      text = text.replaceAll(rewrite.from, rewrite.to);
+    }
     text = text.replace(LINK, (link, href) => {
       const target = resolve(path, href);
       if (!target || target.split("/")[0] === ".." || has(files, target)) return link;
@@ -232,12 +237,22 @@ function render() {
     });
     entry.bytes = Buffer.from(text);
   }
-  return files;
+  const stale = TEXT_REWRITES.filter(({ from }) => rewriteHits.get(from) === 0);
+  return { files, stale };
 }
 
 // The host installs only the tree, so a relative link that works from pstack/ has to work inside the tree too.
 // Links to pstack files that the tree leaves out already point at GitHub, so a failure here is a link that leaves pstack/.
-const files = render();
+const { files, stale } = render();
+// An upstream edit can change the sentence a rewrite targets. The rewrite then applies to nothing,
+// and the Cursor-only instruction it was written for ships as is. Fail so the entry is refreshed.
+for (const { from } of stale) {
+  console.log(`FAIL TEXT_REWRITES matches nothing: ${JSON.stringify(from.slice(0, 120))}`);
+}
+if (stale.length > 0) {
+  console.log("Refresh or delete each entry in TEXT_REWRITES, in pstack/scripts/generate-pstack-harness-tree.mjs.");
+  process.exit(1);
+}
 const rendered = new Map();
 const dangling = [];
 for (const [path, entry] of files) {

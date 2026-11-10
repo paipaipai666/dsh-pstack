@@ -1,13 +1,6 @@
 {
   "version": 1,
   "skills": {
-    "agent-browser": {
-      "source": "agent-browser",
-      "sourceType": "node_modules",
-      "skillPath": "skills/agent-browser/SKILL.md",
-      "version": "0.41.0",
-      "computedHash": "dd491d53824ad9286ec950aee667098446332429a6d41fe28b4ba11f1959264c"
-    },
     "decision-audit": {
       "source": "./skills/authored/decision-audit",
       "sourceType": "local",
@@ -35,6 +28,14 @@
       "source": "./skills/authored/setup-project-docs",
       "sourceType": "local",
       "computedHash": "583d7d1660661e6427febdc23562fc56bd5bf3f380f75c152e5064eb91e09370"
+    },
+    "writing-for-agents": {
+      "source": "mattpocock/skills",
+      "ref": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "sourceType": "github",
+      "skillPath": "skills/productivity/writing-for-agents/SKILL.md",
+      "computedHash": "95da47fc97af998e85b7d7e6d57b3ac76727c1e290cfe9ea09005aacb826959f",
+      "via": "."
     }
   }
 }

@@ -93,6 +93,24 @@ To view or edit routes after setup, open **Plugins → Installed plugins → dsh
 | Verify | `/create-verification-skill`, `/statechart` |
 | Review and maintain | `/show-me-your-work`, `/retro`, `/docs-drift` |
 
+## 🗂️ Repository layout
+
+The 58 pstack skills are committed as a snapshot rather than generated at install time, so the port stays reviewable and CI can diff the tree.
+
+| Path | What it holds | In git |
+|---|---|---|
+| `pstack/pstack/` | Upstream pstack tree with the port applied: 58 skills, 23 playbooks, 2 agents, 11 guide pages, and the DSH adapter. `dist/pstack` is a copy of it. | yes |
+| `pstack/harness/` | Local overrides applied by relative path on top of the upstream tree. It holds only `docs/harness/dsh.md`, the adapter that replaces upstream's Claude Code one. | yes |
+| `pstack/runtime/` | DSH-side sources for the five bundled scripts, which replace the upstream skill scripts at pack time. | yes |
+| `skills/authored/` | Four skills written for this fork. | yes |
+| `skills/.agents/skills/` | Vendored skills from `mattpocock/skills`. | yes |
+| `src/` | Plugin sources: tools, presets, the skill provider, and the runtime text translation. | yes |
+| `dist/` | Build output and the packaged tree. `.gitignore` keeps it out of git; `pnpm exec vp run build` recreates it. | no |
+| `upstream/cursor-plugins/` | Submodule with the upstream pstack source. It is empty until `git submodule update --init` runs. | gitlink |
+| `upstream/deepseek-harness/` | Submodule with the DSH source used by the adapter checks. | gitlink |
+
+`pstack/pstack/` is nested on purpose: the outer `pstack/` is this fork's porting workspace, and the inner `pstack/` mirrors the upstream repository path so the generator can copy and compare by relative path.
+
 ## 🧩 Capabilities
 
 ### 🛠️ Native tools
@@ -127,7 +145,7 @@ The package includes six skills maintained independently of pstack.
 | `setup-project-docs` | `authored` | Set up sustainable project documentation. |
 | `docs-drift` | `authored` | Detect documentation drift and repair approved findings. |
 
-[`skills/skills-lock.json`](./skills/skills-lock.json) records the sources and hashes of vendored skills.
+[`skills/skills-lock.json`](./skills/skills-lock.json) records the sources and hashes of the vendored skills, and [`skills-lock.json`](./skills-lock.json) records every skill the package ships.
 
 ## 🔌 Optional DSH plugins
 

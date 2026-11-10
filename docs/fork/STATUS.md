@@ -1,7 +1,7 @@
 # Fork status
 
 Updated 2026-11-10. Base: upstream `dsh-pstack 0.3.1` (`2d577b1`). Package: `@paipaipai666/dsh-pstack`
-`0.5.0-beta.1`.
+`0.5.0-beta.2`.
 
 ## A. Fork foundation
 
@@ -28,7 +28,7 @@ flattened into `src/`. The fork followed the new layout instead of keeping its o
 | RB-06 audit gates | Done | `tests/upstream-parity.test.ts` and `tests/upstream-drift.test.ts` were dropped: `port/scan.mjs --check-lock` and `port/audit.md` own that job now |
 | RB-07 scoped-name tests | Done | `tests/patch-name.ts` renders the patch file with the bare package name the upstream tests expect |
 
-## Remote dispatch (0.5.0-beta.1)
+## Remote dispatch (0.5.0-beta.2)
 
 The user asked for an open doorway to another machine rather than a hosted product: the package owns
 the registry, the dispatch tool, and the worker contract, and owns no machine.

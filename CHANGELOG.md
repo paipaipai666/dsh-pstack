@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0-beta.2
+
+Fixes the packaging of `0.5.0-beta.1`; no behaviour changed.
+
+### Fixed
+
+- `docs/remote-worker.md` was left out of the published tarball, because `package.json#files`
+  listed only `dist`, `assets`, `cordis.patch.yml`, `locale`, and the READMEs. The tool description
+  points at that file, so the install now ships it.
+
 ## 0.5.0-beta.1
 
 Adds a way to run a pstack task on a machine you own. The package still supplies no machine: it

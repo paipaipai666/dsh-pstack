@@ -62,6 +62,11 @@
         mode: ask
     - id: pstack-script
       name: "@paipaipai666/dsh-pstack/script"
+    - id: pstack-remote
+      name: "@paipaipai666/dsh-pstack/remote"
+      config:
+        mode: ask
+        targets: []
     - id: preset-poteto-mode
       name: "@paipaipai666/dsh-pstack/preset"
       config:

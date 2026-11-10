@@ -11,6 +11,8 @@ pstack 技能沿用 Cursor 名称。在 DeepSeek Harness 中，每个会话先�
 | 打开待办清单 | `todo_write`，每次传完整列表并替换上一次。状态只有 `pending`、`in_progress`、`completed`。跳过的步骤写成 `skip: <reason> - <step>`，状态标为 `completed`。 |
 | 运行另一个 pstack 技能（`/name` 或 “the **name** skill”） | `pstack_skill`，传精确的 kebab-case `name`。它可以加载被 `disable-model-invocation` 从 `skill` 目录隐藏的 pstack 技能。传相对 `resource` 读取 `SKILL.md` 旁的 reference 或 playbook。用户命令保持原名，例如 `/setup-pstack`；DSH 不加 `pstack:` 前缀。 |
 | `Grep`、`Glob` | 用 `grep`、`glob` 做发现，已知文件用 `read`，shell 命令用 `bash`。`grep` 使用 ripgrep 语法。搜索工具超限时报告结果保存位置。 |
+| `scripts/` 下的随包脚本 | 优先用 `pstack_script`，id 只有 `check-plan`、`watch-pr`、`worktree-audit`、`log`、`statechart`。它用 Host 自带的 Node 运行随包产物，因此在 `node` 不在 PATH 时也能跑（桌面端跑在 Electron 上）。传 `cwd` 指定工作目录，`timeoutMs` 最大 600000，长任务用 `background: true`。`pstack-script-policy` 行会在每次调用前请求审批；`mode: allow` 只用于受信任的 headless profile。其他脚本保留各自声明的解释器，从 shell 运行。 |
+| 另一台机器（`environment: "cloud"`，或“the VM”） | 用 `pstack_remote` 加目标名：`action: "run"` 在那台机器上启动一次 headless DSH 运行并返回 job id；`status`、`logs` 读取，`cancel` 停止。目标注册表与审批策略由 `pstack-remote` 行负责。机器要么是 PATH 里有 `dsh` 的 SSH 主机，要么是流式输出 NDJSON 的 HTTP worker；契约见 `docs/remote-worker.md`。本插件从不提供 VM、面板或共享文件系统。 |
 
 ## 子代理字段
 
@@ -20,7 +22,7 @@ pstack 技能沿用 Cursor 名称。在 DeepSeek Harness 中，每个会话先�
 | `poteto-agent`、`comment-sicko` | `agent: "poteto-agent"`、`agent: "comment-sicko"`。插件把它们声明为 `@deepseek-ai/dsh-agent-preset`。`poteto-agent` 注入 pstack 人格和 `poteto-mode` 指令的绝对路径；`comment-sicko` 挂载评论评审 preset。它们不是 `subagent_type` 值。 |
 | `readonly: true` | `agent: "readonly"`。readonly preset 挂载只读沙箱策略，拒绝文件写入和可写 shell 命令，保留读取和查询。 |
 | `readonly: false` | `agent: "general"`，继承父工具，包括已挂载的 MCP 工具。 |
-| `environment: "cloud"` | 没有云 VM。用 `create_worktree` 创建本地 checkout，把路径传给 `cwd`，并写明分支或提交。只有 checkout 和分支被隔离。需要云面板或专属机器的步骤跳过。 |
+| `environment: "cloud"` | profile 注册了目标时，用 `pstack_remote`：传 `action: "run"`、`target`、`task`、`workspacePath`。远端机器运行 `dsh --profile headless --json`，本插件从不提供那台机器。没有目标时退回本地 checkout：用 `create_worktree`，把路径传给 `cwd`，并写明分支或提交。只有 checkout 和分支被隔离。 |
 | `environment: "local"` | `cwd: null`，继承会话目录。 |
 | `cloud_base_branch: <b>` | `create_worktree({ from: "<b>" })`，或让子代理先检出 `<b>`。`from` 只解析本地引用，不 fetch。 |
 | `run_in_background: true` | 省略。每个 `pstack_subagent` 都是托管激活，通过完成通知返回。没有后台字段。 |
@@ -61,9 +63,10 @@ DeepSeek Harness 没有 Cursor Automations、Bugbot、Cursor 云代理或内置 
 
 | Cursor | DeepSeek Harness |
 | --- | --- |
-| Cursor Automations：routine、`update_state` routine 调用、`api2.cursor.sh/automations` webhook、routine 唤醒、`SendToUser` 密钥请求 | 按上面跳过。`schedule_create` 处理本地定时跟进，但不是 routine，也不接收 Cursor webhook。不要在聊天里索要 `SendToUser` 密钥。只为 `make-bot-ui` 的 routine、sender key 或唤醒循环存在的步骤也跳过。 |
+| Cursor Automations：routine、`update_state` routine 调用、`api2.cursor.sh/automations` webhook、routine 唤醒、`SendToUser` 密钥请求 | routine 对象按上面跳过。「已验证的入站事件启动新会话」有官方接缝：`@deepseek-ai/dsh-webhook` 加一个 provider 适配器，会把验证过的投递变成普通会话。安装后带 overlay 启动，例如 `dsh web --patch <profile>/node_modules/@deepseek-ai/dsh-webhook-github/examples/github-review/cordis.yml`。目前只有 GitHub 适配器，其它 provider 需要写一个小规则插件。该接缝不去重、也不回报完成，所以不能把 `202` 当成会话已启动。本地定时跟进仍用 `schedule_create`。不要在聊天里索要 `SendToUser` 密钥。 |
 | Bugbot | Bugbot 的 GitHub PR 评论就是普通评审线程，用步骤给出的 forge 命令处理。PR 没有 Bugbot check 或评论时，跳过启动、等待或配置 Bugbot 的步骤。 |
-| Cursor 云代理 | `environment: "cloud"` 按子代理字段映射到本地工作树。需要云代理本身（如面板状态或专属机器）的步骤跳过。 |
+| Cursor 云代理 | `environment: "cloud"` 在 `pstack_remote` 有目标时映射到远端目标，否则按子代理字段映射到本地工作树。远端目标在用户登记的机器上执行；DSH 从不提供那台机器。需要云代理面板、专属镜像或计费的步骤跳过。 |
+| Tailscale 访问本机页面 | 绑定一个具体接口地址：`dsh --profile web --host <tailscale-ip> --public-url http://<tailscale-ip>:<port>`。未指定地址会在加载时被拒绝，所以 `0.0.0.0` 永远不可用。用 `tailscale ip -4` 查地址；浏览器会话 token 仍然生效，把完整 URL 交给设备。 |
 | 内置 PR 工具 | 用步骤给出的 forge 命令，如 `gh pr create`；这不是跳过，不写跳过行。要在 DSH 中查 PR 状态、检查、评审和合并，可启用实验性 `@deepseek-ai/dsh-experimental-forge-bundle`（默认关闭），否则用 `gh`。两者都没有时报告 forge 步骤被阻塞。 |
 | Cursor Projects | Skipped in DeepSeek Harness: 运行一个在笔记本关闭后仍持续的 Cursor Project 云子代理。DSH 没有 Cursor Project 服务或云协调器，本地 agent team 和 workflow 不是等价替代。 |
 
@@ -76,7 +79,7 @@ DeepSeek Harness 没有 Cursor Automations、Bugbot、Cursor 云代理或内置 
 | `/loop` | 自动继续用 `create_goal`，定时心跳用 `schedule_create`，可观察事件用后台 `bash` watcher。它们不订阅 forge 事件。 |
 | `/automate` | 用 `writing-for-agents` 把已验证的工作模式写成个人技能。需要历史证据时用 Optional plugins 里的 session-search 后备。 |
 | Custom Mode | 新建会话时选择随包 `poteto-mode` 根 preset 使用标准工具面，或选择 `poteto-mode-creator` 使用创造模式工具面。两者都把完整技能常驻系统提示直到会话结束。如果会话使用其它 preset，就在每个任务调用 `/poteto-mode`。 |
-| `/visualize` | 图表用 Mermaid。DSH 没有内置图表渲染器，返回 Mermaid 文本，不要声称已生成图片。 |
+| `/visualize` | 优先用社区插件 `@nagi-ovo/dsh-visualize`：它的 `visualize` 工具把 HTML 片段渲染成对话内可交互卡片，最接近内置图表命令。没有它时用 Mermaid 画关系图，返回 Mermaid 文本，不要声称已生成图片。 |
 | `statechart` | 图表用 Mermaid。DSH 没有内置 SVG 渲染器，忽略 `references/render.md` 的渲染步骤，返回 `chart.mmd` 文本，不要声称已生成图片。 |
 | `ketchup-video` | 视频用文字摘要。DSH 没有内置视频渲染器，不要声称已生成视频。 |
 | `control-ui`、`control-cli`、`cursor-team-kit` | 包内 vendored `control-ui` 与 `control-cli` 指令技能。浏览器与 PTY 依赖写在其 `SKILL.md`；需要时启用 `@deepseek-ai/dsh-browser-use` 或实验性持久终端 bundle。不可用的 GUI 或视频证据标记为跳过。 |
@@ -95,3 +98,15 @@ DeepSeek Harness 没有 Cursor Automations、Bugbot、Cursor 云代理或内置 
 | `@deepseek-ai/dsh-mcp-client` | 已配置的 MCP 工具。 | 检查本地文件，使用标准搜索或 fetch 工具。 |
 | `@deepseek-ai/dsh-experimental-agent-team-profile` | Lead/teammate 角色和共享任务板。 | 不要在提供 pstack 根预设的 profile 中启用 Agent Teams。两者都拥有派发和任务协调能力；检测到 Agent Teams 服务时，pstack 根预设会直接启动失败。 |
 | `@deepseek-ai/dsh-experimental-ralph-bundle` | 带结构化交接的前台 `ralph` 循环。 | 用 `create_goal` 配 `schedule_create` 或后台 `bash` watcher。 |
+
+## 社区替代
+
+以下包不是 DeepSeek Harness 官方插件，本包也不依赖它们。只在用户明确需要该能力时点出，并说明是社区包。
+
+| 包 | 替代什么 | 注意 |
+| --- | --- | --- |
+| `@nagi-ovo/dsh-visualize` | `/visualize`，以及任何想要图片而不是文字的步骤 | 把 HTML 片段渲染成对话卡片。它不是图表 DSL，数字仍由模型给出。 |
+| `dsh-plugin-mermaid-gb-svg` | 渲染 `statechart` 或 Mermaid 图 | 按固定 SVG 约定转换 Mermaid，不会还原 pstack statechart 的标注配色。 |
+| `dsh-ffmpeg` | `ketchup-video` 的后处理 | 转码、烧字幕、抽帧。它不生成幻灯片，视频仍需在本包之外拼装。 |
+| `dsh-automations` | Cursor Automations 的事件触发 | 按宿主与会话生命周期事件触发，执行本机命令或 HTTP 请求。不是云端 routine，也没有 Cursor 面板。 |
+| `dsh-remote` | 访问不是本机的那台机器 | 把 SSH 主机镜像成本地工作区，并通过端口转发打开远端 DSH 界面。机器与其 DSH 安装由用户负责。 |

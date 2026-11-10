@@ -21,7 +21,7 @@
     <tr>
       <td align="center"><strong>58</strong><br /><sub>pstack skills</sub></td>
       <td align="center"><strong>23</strong><br /><sub>playbooks</sub></td>
-      <td align="center"><strong>6</strong><br /><sub>native tools</sub></td>
+      <td align="center"><strong>7</strong><br /><sub>native tools</sub></td>
       <td align="center"><strong>5</strong><br /><sub>agent presets</sub></td>
       <td align="center"><strong>5</strong><br /><sub>bundled scripts</sub></td>
     </tr>
@@ -43,7 +43,7 @@
 `dsh-pstack` ports [pstack](https://github.com/cursor/plugins/tree/main/pstack) to [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (DSH). It includes the upstream skills, playbooks, and references, and adds skill routing, role-based model configuration, and role-routed subagents.
 
 > [!NOTE]
-> This is the community fork [`paipaipai666/dsh-pstack`](https://github.com/paipaipai666/dsh-pstack), rebased on upstream `0.3.1`. On top of the port it adds a `pstack_script` launcher so the bundled workflows run under the Host's own Node (the Desktop app has no `node` on PATH), a `pstack_doctor` prerequisite check, and a runtime translation layer that rewrites the Cursor names still present in the upstream skill text. See [FORK.md](./FORK.md) for the full delta.
+> This is the community fork [`paipaipai666/dsh-pstack`](https://github.com/paipaipai666/dsh-pstack), rebased on upstream `0.3.1`. On top of the port it adds a `pstack_script` launcher so the bundled workflows run under the Host's own Node (the Desktop app has no `node` on PATH), a `pstack_doctor` prerequisite check, a `pstack_remote` surface that dispatches a task to a machine you run, and a runtime translation layer that rewrites the Cursor names still present in the upstream skill text. See [FORK.md](./FORK.md) for the full delta.
 See the [capability audit (in Chinese)](./port/audit.md) and [runtime mapping](./port/dsh.md) for the full porting review.
 
 The current review covers 68 Cursor-facing capabilities: 39 direct mappings, 2 official plugins, 16 plugin implementations, and 11 deliberate omissions.
@@ -142,6 +142,9 @@ Use pstack skills when you want to start workflows directly from a Session.
 | `pstack_models` | Lists available providers, models, and reasoning efforts. |
 | `pstack_roles` | Shows each role's type and whether it is an automatic panel, so delegation uses the correct parameters. |
 | `pstack_subagent` | Applies role routing and agent presets. Supports parallel subagents. |
+| `pstack_script` | Runs one of the five bundled workflows (`check-plan`, `watch-pr`, `worktree-audit`, `log`, `statechart`) under the Host's own Node runtime. The `pstack-script-policy` row asks before every call; `background: true` hands a long run to the job system. |
+| `pstack_doctor` | Reports the local prerequisites the bundled workflows need (`git`, `gh`, `node`, `bun`, `ffmpeg`, `mise`, `java`, `jq`), the configured model roles, and the optional plugins the current profile has. |
+| `pstack_remote` | Dispatches one task to a machine you registered, reads its event stream, and stops it. This package supplies no machine: a target is an SSH host with `dsh` on `PATH` or an HTTP worker that streams NDJSON. |
 
 ### 🎭 Agent presets
 
@@ -203,18 +206,29 @@ Enable packages through **Plugins → Add plugin**, then restart the profile whe
 
 Steps that depend on a disabled plugin report skipped or blocked, never passed. See the [DSH adaptation guide](./pstack/docs/harness/dsh.md#optional-plugins) for setup and fallbacks.
 
+## 🔁 Migrating from Cursor
+
+A project that already uses pstack in Cursor needs four edits before it behaves the same here.
+
+| Cursor habit | What to do in DSH |
+|---|---|
+| `.cursor/rules/*.mdc` always-applied rules | Move the text into `AGENTS.md`. DSH never loads `.mdc` files; the one exception is the role file, which `pstack_subagent` reads from `$DSH_HOME/pstack-models.mdc`. |
+| Model slugs such as `claude-opus-5-5-xhigh` | Pass `role: "<role key>"` instead. Run `pstack_models` to see the routes this deployment serves, then write them with `setup-pstack`. |
+| `environment: "cloud"` in a Task call | Register a machine with `pstack_remote` and name it, or let the step fall back to a local worktree. DSH does not supply a VM. |
+| A chart, a video, or an inbound webhook | Install a replacement rather than rewriting the skill: `@nagi-ovo/dsh-visualize` for charts, `dsh-ffmpeg` for media post-processing, and `@deepseek-ai/dsh-webhook` plus a provider adapter for inbound events. |
+
 ## ⚠️ Remaining gaps
 
 These limitations remain even after all optional plugins that can coexist with pstack are enabled.
 
 | Area | Limitation |
 |---|---|
-| Cursor platform services | No Automations, Cursor webhooks, `SendToUser`, cloud agents, or persistent cloud Projects. |
+| Cursor platform services | No Automations dashboard, `SendToUser`, or persistent cloud Projects. A cloud agent maps to a remote target you register; DSH never supplies the machine. |
 | Bugbot | Cannot start, configure, or wait for Bugbot. Existing Bugbot comments can still be handled as PR reviews. |
 | PR orchestration | No model-side change-request tool or Agent Teams-style PR tracking board and shared ledger. `watch-pr` still provides stack verdicts. |
 | Mode switching | No Option+Enter toggle or mid-session mode switch. Select `poteto-mode` or `poteto-mode-creator` at session creation; other presets invoke `/poteto-mode` for each task. |
-| Event-driven loops | No forge event subscription. Local goals, schedules, and watchers are not equivalent. |
-| Diagram rendering | No built-in renderer. Charts return Mermaid text; render an image with your own tools when needed. |
+| Event-driven loops | No forge event subscription. The official `dsh-webhook` seam can start a Session from a verified delivery, but it has no dedupe, no completion report, and only GitHub ships an adapter. |
+| Diagram rendering | No built-in renderer. Charts return Mermaid text; install `@nagi-ovo/dsh-visualize` for conversation cards, or render an image with your own tools. |
 | Media evidence | No built-in video rendering, recording, or frame-level verification. Use external recording or FFmpeg tools. |
 | Desktop coverage | Computer use is limited to macOS PTC desktop-control sessions. Windows support is incomplete. |
 | MCP discovery | No automatic evidence-category discovery. Configure and identify MCP tools explicitly. |
@@ -237,7 +251,7 @@ Choose a release by its declared DSH range. Within each compatibility range, eve
 <!-- compatibility-keys: ["dsh-0.2.2-rc.1+port-v1","dsh-0.2.1-rc.5+legacy-v1","dsh-0.2.0-0.3.0+legacy-v1"] -->
 | DSH version | dsh-pstack release | Included pstack version |
 |---|---|---|
-| `>=0.2.2-rc.1` | `0.4.0-beta.2` | `0.15.36` |
+| `>=0.2.2-rc.1` | `0.4.0-beta.2`、`0.5.0-beta.1` | `0.15.36` |
 | `>=0.2.1-rc.5` | `0.2.2` | `0.15.36` |
 | `>=0.2.0 < 0.3.0` | `0.1.0` | `0.15.29` |
 

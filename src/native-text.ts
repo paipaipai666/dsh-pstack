@@ -23,7 +23,7 @@ const REPLACEMENTS: readonly (readonly [RegExp, string])[] = [
   [/\breadonly:\s*false\b/g, "no read-only restriction"],
   [/\breadonly\/Ask mode\b/g, "read-only mode"],
   // No trailing `\b` after a quote: `"` is not a word character, so the boundary never matches there.
-  [/\benvironment:\s*"cloud"/g, "local worktree"],
+  [/\benvironment:\s*"cloud"/g, "a pstack_remote target"],
   [/\benvironment:\s*"local"/g, "current directory"],
   [/\bcloud_base_branch\b/g, "cwd"],
   // A user-level path belongs under the configured home, not under the default `.dsh`.

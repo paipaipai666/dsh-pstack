@@ -66,7 +66,7 @@ describe("native skill text translation", () => {
   });
 
   it("translates the remaining spawn fields", () => {
-    expect(toDshText('environment: "cloud"')).toBe("local worktree");
+    expect(toDshText('environment: "cloud"')).toBe("a pstack_remote target");
     expect(toDshText('environment: "local"')).toBe("current directory");
     expect(toDshText("readonly: false")).toBe("no read-only restriction");
     expect(toDshText("readonly: true")).toBe("no file edits");

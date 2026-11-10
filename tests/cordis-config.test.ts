@@ -29,6 +29,7 @@ describe("bundle configuration", () => {
       "pstack-doctor",
       "pstack-script-policy",
       "pstack-script",
+      "pstack-remote",
       "preset-poteto-mode",
       "preset-poteto-mode-creator",
       "preset-poteto-agent",
@@ -47,11 +48,12 @@ describe("bundle configuration", () => {
     for (const key of keys) expect(manifest.exports[key], key).toBeDefined();
   });
 
-  it("exposes the fork-only doctor, script, and script policy surfaces", () => {
+  it("exposes the fork-only doctor, script, script policy, and remote surfaces", () => {
     expect(manifest.exports["./doctor"]).toBe("./dist/doctor.mjs");
     expect(manifest.exports["./script"]).toBe("./dist/script.mjs");
     expect(manifest.exports["./script-policy"]).toBe("./dist/script-policy.mjs");
-    for (const id of ["pstack-doctor", "pstack-script", "pstack-script-policy"]) {
+    expect(manifest.exports["./remote"]).toBe("./dist/remote.mjs");
+    for (const id of ["pstack-doctor", "pstack-script", "pstack-script-policy", "pstack-remote"]) {
       expect(rows.map((row) => row.id)).toContain(id);
     }
   });
@@ -100,5 +102,12 @@ describe("bundle configuration", () => {
     const policy = rows.find((row) => row.id === "pstack-script-policy")?.block ?? "";
     expect(policy).toContain('name: "@paipaipai666/dsh-pstack/script-policy"');
     expect(policy).toMatch(/config:\s*\n\s+mode: ask\n/);
+  });
+
+  it("ships an empty remote registry that asks before dispatching", () => {
+    const remote = rows.find((row) => row.id === "pstack-remote")?.block ?? "";
+    expect(remote).toContain('name: "@paipaipai666/dsh-pstack/remote"');
+    expect(remote).toMatch(/mode: ask\n/);
+    expect(remote).toMatch(/targets: \[\]\n/);
   });
 });

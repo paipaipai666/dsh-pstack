@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.5.0-beta.1
+
+Adds a way to run a pstack task on a machine you own. The package still supplies no machine: it
+holds a target registry, dispatches one headless DSH run, and records the event stream.
+
+### Added
+
+- `pstack_remote` with `list`, `run`, `status`, `logs`, and `cancel`. A target is an SSH host with
+  `dsh` on its `PATH`, an HTTP worker that streams NDJSON, or a local command used by tests. The
+  task text travels on stdin, never as shell syntax.
+- The `pstack-remote` bundle row owns the target registry and the approval policy. `mode: ask` is
+  the default and gates `run`/`cancel` through the approval prompt; `allow` and `deny` exist for a
+  trusted profile and for keeping targets registered while dispatch is impossible.
+- Job records live under `$DSH_HOME/remote/jobs/`. A job whose Host process exited is reported as
+  failed with that reason instead of hanging.
+- `docs/remote-worker.md` documents the whole worker contract, including a complete Node worker.
+- `pstack_doctor` now checks `bun` (needed by `watch-pr`) and `jq` (needed by `worktree-audit`).
+
+### Changed
+
+- `environment: "cloud"` in skill text now maps to a registered `pstack_remote` target; without a
+  target the step falls back to a local worktree as before.
+- Both adapters (`port/dsh.md`, `port/dsh.zh.md`) gained the remote tool row and the Tailscale,
+  webhook, and `/visualize` replacements; the READMEs gained a "Migrating from Cursor" section.
+- `port/audit.md`: CAP-039 moves from dropped to plugin-implemented; CAP-066 (video rendering) is
+  marked deferred.
+
 ## 0.4.0-beta.2
 
 Fixes the Desktop boot failure introduced by the 0.3.1 rebase. Published to npm as

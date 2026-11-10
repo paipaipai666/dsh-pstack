@@ -1,6 +1,6 @@
 {
   "name": "@paipaipai666/dsh-pstack",
-  "version": "0.4.0-beta.2",
+  "version": "0.5.0-beta.1",
   "description": "pstack for DeepSeek Harness: rigorous agent workflows ported from cursor/plugins.",
   "keywords": [
     "agent-skills",
@@ -49,6 +49,7 @@
     "./preset": "./dist/preset.mjs",
     "./preset-copy": "./dist/preset-copy.mjs",
     "./readonly": "./dist/readonly.mjs",
+    "./remote": "./dist/remote.mjs",
     "./role-catalog": "./dist/role-catalog.mjs",
     "./role-config": "./dist/role-config.mjs",
     "./role-editor": "./dist/role-editor.mjs",

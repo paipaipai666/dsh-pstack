@@ -31,6 +31,7 @@
 | 发布元数据 | `port/release-compatibility.ts`、`bump.config.ts` | 按显式兼容键同步双语 README 的版本表；每个 `x.y` 保留最新 `z`，新兼容键新增行，并把双语 README 加入发布提交。 |
 | Fork 增量：脚本与审计 | `src/script.ts`、`src/script-policy.ts`、`src/doctor.ts`、`runtime/`、`scripts/replace-runtime-scripts.mjs` | 以宿主自带的 Node 运行随包脚本，入口固定为五个 id；审批交给 `tools/pre-execute` 行 `pstack-script-policy`；报告脚本依赖的宿主前置条件；编译后的 `.mjs` 覆盖生成树里的脚本源文件。 |
 | Fork 增量：运行时翻译 | `src/native-text.ts`、`src/skill.ts`、`src/poteto-mode.ts` | 在读取技能正文与资源时把 Cursor 词汇（`Task`、`subagent_type`、`~/.cursor/...`、模型 slug）换成 DSH 名称；生成树保留上游原文，便于 `port/generate.mjs --check` 证明改动了什么。 |
+| Fork 增量：远程派发 | `src/remote.ts`、`docs/remote-worker.md`、bundle 行 `pstack-remote` | 把一次并行 owner 的任务派发到用户自己登记的机器（PATH 里有 `dsh` 的 SSH 主机，或流式输出 NDJSON 的 HTTP worker），记录事件流并支持 `status`/`logs`/`cancel`。插件不提供机器、云 SDK 或面板；审批走 `tools/pre-execute`，`mode: ask` 是默认值。 |
 | 构建与打包 | `vite.config.ts`、`package.json` | 分别构建 Host、浏览器 Client 与 `runtime/` 三个 pack；导出 Host 模块，复制生成树和技能资源，并把编译后的脚本替换进生成树。 |
 | 自动化验证 | `tests/`、`playground/start.mjs`、`playground/cases-run.mjs`、`playground/run-cases.mjs`、`playground/browser.mjs` | 运行单元和 DOM 交互测试；在真实 DSH playground 中验证插件和模型驱动用例，并用浏览器脚本做不涉及模型选择的交互。 |
 

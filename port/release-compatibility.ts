@@ -245,7 +245,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       throw new Error("Compatibility tables are stale; run vpx port/release-compatibility.ts");
     }
     console.log(
-      `Compatibility tables current for ${syncCompatibility(metadata, false).releases.join("、")}.`,
+      `Compatibility tables current for ${metadata.compatibilityKey} (${metadata.version}).`,
     );
   } else {
     const result = syncCompatibility(metadata);

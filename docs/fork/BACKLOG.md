@@ -12,9 +12,10 @@
 | RB-01 生成树迁移 | 已完成 | 生成树从 `pstack/pstack/` 移到 `pstack/`，由 `port/generate.mjs` 整体重写，`--check` 进 CI |
 | RB-02 `src/` 拍平 | 已完成 | fork 的五个模块迁到 `src/`，`src/internal/` 不再存在 |
 | RB-03 bundle 行 | 已完成 | 采用上游三行技能与五个 preset，再追加 `pstack-doctor`、`pstack-script-policy`、`pstack-script` |
-| RB-04 客户端 | 已完成 | 采用上游客户端与角色 Remote，删除 fork 旧对话框、可选插件页与 `src/remote.ts` |
+| RB-04 客户端 | 已完成 | 采用上游客户端与角色 Remote，删除 fork 旧对话框与可选插件页（`src/remote.ts` 在 0.5.0 以远程派发工具的身份重新出现） |
 | RB-05 runtime 构建 | 已完成 | 第三个 pack 构建 `runtime/`，`scripts/replace-runtime-scripts.mjs` 替换生成树里的脚本并丢弃编译后的测试 |
 | RB-06 审核门 | 已完成 | `port/scan.mjs --check-lock` 与 `--check port/audit.md` 取代 fork 自建的 parity/drift 测试 |
+| REMOTE 远程派发 | 已完成（0.5.0-beta.1） | `pstack_remote` 五个动作、`pstack-remote` 注册表与审批、`$DSH_HOME/remote/jobs` 作业记录、`docs/remote-worker.md` 契约；19 条单测覆盖本地/超时/取消/HTTP 流 |
 
 ## 建议的第一批（MVP）
 

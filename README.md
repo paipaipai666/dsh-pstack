@@ -242,6 +242,7 @@ Choose a release by its declared DSH range. Within each compatibility range, eve
 | `>=0.2.0 < 0.3.0` | `0.1.0` | `0.15.29` |
 
 
+
 A new compatibility range adds a row. Other releases update their row automatically; see [Porting](./port/AGENTS.md#破坏性变更).
 
 ## 🔗 Friendly Links

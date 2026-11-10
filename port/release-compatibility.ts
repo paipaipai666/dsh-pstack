@@ -201,7 +201,7 @@ function updateReadme(path: string, heading: string, metadata: ReleaseMetadata, 
     ...updated.rows.map(serializeRow),
   ];
   const before = lines.slice(0, headerIndex - 1).join("\n");
-  const after = lines.slice(dataEnd).join("\n").replace(/^\n*/, "\n\n");
+  const after = "\n\n" + lines.slice(dataEnd).join("\n").replace(/^\n+/, "");
   return {
     text: `${text.slice(0, start)}${before}\n${replacement.join("\n")}${after}${text.slice(end)}`,
     appendedRow: updated.appendedRow,

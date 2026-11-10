@@ -155,4 +155,14 @@ describe("release compatibility metadata", () => {
       "`0.4.1`",
     ]);
   });
+
+  it("renders the same README twice so the check gate can pass after a write", () => {
+    prepare();
+    const read = (path: string) => JSON.parse(readFileSync(join(ROOT, path), "utf8"));
+    syncCompatibility(releaseMetadata(read), true, ROOT);
+    const once = readFileSync(join(ROOT, "README.md"), "utf8");
+    syncCompatibility(releaseMetadata(read), true, ROOT);
+    expect(readFileSync(join(ROOT, "README.md"), "utf8")).toBe(once);
+    expect(once).not.toMatch(/\n{4,}/);
+  });
 });

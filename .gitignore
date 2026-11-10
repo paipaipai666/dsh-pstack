@@ -6,3 +6,4 @@ dist
 # Scratch space for local verification; never part of the package.
 .tmp
 artifacts
+coverage

@@ -94,10 +94,13 @@ came back as text. The fork renders that one subset itself instead of taking a M
 
 ## Publishing
 
-- `@paipaipai666/dsh-pstack@0.5.0-beta.2` is live. `latest` and `beta` both point at it, and an
+- `@paipaipai666/dsh-pstack@0.5.0-beta.5` is live. `latest` and `beta` both point at it, and an
   isolated `dsh plugin --profile web add @paipaipai666/dsh-pstack` installs it from the registry.
 - `0.5.0-beta.2` exists only because the `0.5.0-beta.1` tarball left out `docs/remote-worker.md`;
   `package.json#files` now lists that document.
+  The later betas followed the same staged flow: beta.3 added the doctor workspace check and
+  `docs/automations.md`, beta.4 added `pstack_chart`, and beta.5 the Windows fixes that an
+  end-to-end `/statechart` run on Windows found.
 - The account signs in with a passkey rather than a TOTP authenticator, so `--otp` can never be
   supplied. What works instead:
   1. `npm stage publish <tarball> --tag beta --force` — staging itself needs no 2FA; `--force` only

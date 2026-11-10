@@ -143,7 +143,7 @@
 | `pstack_roles` | 展示每个角色的类型及是否为自动面板，确保委派时使用正确的参数。 |
 | `pstack_subagent` | 应用角色路由与 agent preset，支持并行子代理。 |
 | `pstack_script` | 在宿主自带的 Node 运行时下运行五个随包工作流之一（`check-plan`、`watch-pr`、`worktree-audit`、`log`、`statechart`）。`pstack-script-policy` 行会在每次调用前请求审批；`background: true` 把长任务交给 job 系统。 |
-| `pstack_doctor` | 报告随包工作流需要的本机依赖（`git`、`gh`、`node`、`bun`、`ffmpeg`、`mise`、`java`、`jq`）、已配置的模型角色，以及当前 profile 中可选插件的状态。 |
+| `pstack_doctor` | 报告随包工作流需要的本机依赖（`git`、`gh`、`node`、`bun`、`ffmpeg`、`mise`、`java`、`jq`）、已配置的模型角色、当前 profile 中可选插件的状态，以及工作区里那些 DSH 永远不会加载的 `.cursor/rules/*.mdc` 文件。 |
 | `pstack_remote` | 把一次任务派发到你登记的机器，读取它的事件流，并可以停止它。本插件不提供机器：目标是 PATH 里有 `dsh` 的 SSH 主机，或流式输出 NDJSON 的 HTTP worker。 |
 
 ### 🎭 Agent preset
@@ -217,6 +217,8 @@ vendored 技能的来源与哈希记录在 [`skills/skills-lock.json`](./skills/
 | Task 调用里的 `environment: "cloud"` | 用 `pstack_remote` 登记一台机器并指名，或者让该步骤退回本地 worktree。DSH 不提供 VM。 |
 | 图表、视频、入站 webhook | 装替代插件，不要改写技能：图表用 `@nagi-ovo/dsh-visualize`，媒体后处理用 `dsh-ffmpeg`，入站事件用 `@deepseek-ai/dsh-webhook` 加一个 provider 适配器。 |
 
+`pstack_doctor` 会检查当前会话的工作区，把发现的 `.cursor/rules/*.mdc` 文件逐个列出来，所以第一行不必靠记忆。自动化配方（包括无人值守怎么跑）见 [docs/automations.md](./docs/automations.md)。
+
 ## ⚠️ 仍存在的缺口
 
 即使启用所有可与 pstack 共存的可选插件，以下限制仍然存在。
@@ -251,7 +253,7 @@ vendored 技能的来源与哈希记录在 [`skills/skills-lock.json`](./skills/
 <!-- compatibility-keys: ["dsh-0.2.2-rc.1+port-v1","dsh-0.2.1-rc.5+legacy-v1","dsh-0.2.0-0.3.0+legacy-v1"] -->
 | DSH 版本 | dsh-pstack 发布版本 | 包含的 pstack 版本 |
 |---|---|---|
-| `>=0.2.2-rc.1` | `0.4.0-beta.2`、`0.5.0-beta.2` | `0.15.36` |
+| `>=0.2.2-rc.1` | `0.4.0-beta.2`、`0.5.0-beta.3` | `0.15.36` |
 | `>=0.2.1-rc.5` | `0.2.2` | `0.15.36` |
 | `>=0.2.0 < 0.3.0` | `0.1.0` | `0.15.29` |
 

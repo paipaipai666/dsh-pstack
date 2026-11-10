@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { collectDoctorReport, createPstackDoctorTool, runCommandVersion } from "../src/doctor.ts";
+import {
+  collectDoctorReport,
+  collectWorkspaceCheck,
+  createPstackDoctorTool,
+  renderReport,
+  runCommandVersion,
+} from "../src/doctor.ts";
 
 const host = {
   dshHome: "/tmp/dsh-home",
@@ -58,5 +64,63 @@ describe("pstack_doctor", () => {
     expect(byId["OPT-07"]).toMatchObject({ status: "installed" });
     expect(byId["OPT-03"]).toMatchObject({ status: "partial" });
     expect(byId["OPT-09"]).toMatchObject({ status: "missing" });
+  });
+
+  it("flags Cursor rule files that DSH never loads", () => {
+    const check = collectWorkspaceCheck(
+      "/work",
+      () => false,
+      (path) =>
+        /[\\/]\.cursor[\\/]rules$/.test(path) ? ["zeta.mdc", "Alpha.mdc", "notes.md"] : [],
+    );
+    expect(check).toMatchObject({
+      checked: true,
+      agentsFile: false,
+      cursorRules: ["Alpha.mdc", "zeta.mdc"],
+    });
+    expect(check.hint).toContain("DSH never loads .cursor/rules/*.mdc");
+  });
+
+  it("stays quiet when AGENTS.md already carries the rules", () => {
+    const check = collectWorkspaceCheck(
+      "/work",
+      (path) => /[\\/]AGENTS\.md$/.test(path),
+      () => ["style.mdc"],
+    );
+    expect(check).toMatchObject({ checked: true, agentsFile: true, cursorRules: ["style.mdc"] });
+    expect(check.hint).toBeUndefined();
+  });
+
+  it("renders an uninspected workspace without inventing a path", () => {
+    expect(
+      collectWorkspaceCheck(
+        undefined,
+        () => false,
+        () => [],
+      ),
+    ).toEqual({
+      checked: false,
+      agentsFile: false,
+      cursorRules: [],
+    });
+    const report = collectDoctorReport(host);
+    expect(report.workspace.checked).toBe(false);
+    expect(renderReport(report)).toContain("workspace: not inspected");
+  });
+
+  it("inspects the workspace path passed to the tool", async () => {
+    const tool = createPstackDoctorTool({
+      ...host,
+      readDir: (path) => (/[\\/]\.cursor[\\/]rules$/.test(path) ? ["a.mdc"] : []),
+    });
+    const result = (await tool.execute({ workspacePath: "/repo" }, {
+      signal: new AbortController().signal,
+    } as never)) as ReturnType<typeof collectDoctorReport>;
+    expect(result.workspace).toMatchObject({
+      path: "/repo",
+      checked: true,
+      cursorRules: ["a.mdc"],
+    });
+    expect(result.workspace.hint).toContain("AGENTS.md");
   });
 });

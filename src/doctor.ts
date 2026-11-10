@@ -7,10 +7,16 @@
  */
 
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
-import type { JsonSchemaNode, ToolDefinition, ToolsHost } from "./host-contract.ts";
+import type {
+  JsonSchemaNode,
+  ToolDefinition,
+  ToolRunContext,
+  ToolsHost,
+  WorkingDirectoryHost,
+} from "./host-contract.ts";
 import { OPTIONAL_PLUGINS, type OptionalPluginId } from "./optional-plugins.ts";
 import { PORT_ROOT } from "./paths.ts";
 import { modelsFilePath, resolveDshHome } from "./role-config.ts";
@@ -71,6 +77,19 @@ export interface DoctorReport {
     readonly path: string;
     readonly exists: boolean;
   };
+  readonly workspace: WorkspaceCheck;
+}
+
+/** What a Cursor project would carry into DSH, and what DSH actually reads. */
+export interface WorkspaceCheck {
+  /** The directory that was inspected, when one could be resolved. */
+  readonly path?: string;
+  readonly checked: boolean;
+  /** `.mdc` files under `.cursor/rules`, relative to that directory. */
+  readonly cursorRules: readonly string[];
+  readonly agentsFile: boolean;
+  /** Set only when something in the workspace would silently do nothing. */
+  readonly hint?: string;
 }
 
 export type CommandRunner = (command: string, args: readonly string[]) => string | undefined;
@@ -78,9 +97,12 @@ export type CommandRunner = (command: string, args: readonly string[]) => string
 export interface DoctorHost {
   readonly dshHome: string;
   readonly profileDir?: string;
+  readonly workspacePath?: string;
   readonly runCommand?: CommandRunner;
   readonly exists?: (path: string) => boolean;
   readonly readFile?: (path: string) => string | undefined;
+  readonly readDir?: (path: string) => readonly string[];
+  readonly resolveWorkspace?: (exec: ToolRunContext) => Promise<string | undefined>;
 }
 
 /** Run one command and return its first output line, or undefined when it is unavailable. */
@@ -166,6 +188,40 @@ export function collectOptionalPluginChecks(
   });
 }
 
+/**
+ * Report what a Cursor workspace carries that DSH never reads.
+ *
+ * DSH loads `AGENTS.md`; `.cursor/rules/*.mdc` is inert. The check stays read-only and
+ * names the files, because "my rules stopped working" is otherwise invisible.
+ */
+export function collectWorkspaceCheck(
+  workspacePath: string | undefined,
+  exists: (path: string) => boolean,
+  readDir: (path: string) => readonly string[],
+): WorkspaceCheck {
+  if (workspacePath === undefined) {
+    return { checked: false, agentsFile: false, cursorRules: [] };
+  }
+  const rulesDir = join(workspacePath, ".cursor", "rules");
+  const cursorRules = readDir(rulesDir)
+    .filter((entry) => entry.toLowerCase().endsWith(".mdc"))
+    .sort();
+  const agentsFile = exists(join(workspacePath, "AGENTS.md"));
+  const check: WorkspaceCheck = {
+    path: workspacePath,
+    checked: true,
+    agentsFile,
+    cursorRules,
+  };
+  if (cursorRules.length > 0 && !agentsFile) {
+    return {
+      ...check,
+      hint: "DSH never loads .cursor/rules/*.mdc. Move the rules that must apply into AGENTS.md.",
+    };
+  }
+  return check;
+}
+
 /** Build the report without touching any external service. */
 export function collectDoctorReport(host: DoctorHost): DoctorReport {
   const exists = host.exists ?? existsSync;
@@ -179,6 +235,15 @@ export function collectDoctorReport(host: DoctorHost): DoctorReport {
       }
     });
   const run = host.runCommand ?? ((command: string) => runCommandVersion(command));
+  const readDir =
+    host.readDir ??
+    ((path: string): readonly string[] => {
+      try {
+        return readdirSync(path);
+      } catch {
+        return [];
+      }
+    });
   const commands = CHECKED_COMMANDS.map((command) => {
     const version = run(command, ["--version"]);
     return version === undefined
@@ -198,10 +263,11 @@ export function collectDoctorReport(host: DoctorHost): DoctorReport {
     scripts,
     optionalPlugins: collectOptionalPluginChecks(host.profileDir, readFile),
     roleFile: { path: rolePath, exists: exists(rolePath) },
+    workspace: collectWorkspaceCheck(host.workspacePath, exists, readDir),
   };
 }
 
-function renderReport(report: DoctorReport): string {
+export function renderReport(report: DoctorReport): string {
   const commandLines = report.commands.map(
     (command) => `- ${command.name}: ${command.ok ? (command.version ?? "available") : "MISSING"}`,
   );
@@ -212,6 +278,17 @@ function renderReport(report: DoctorReport): string {
     const target = plugin.bundle ?? plugin.packages.join(", ");
     return `- ${plugin.id}: ${plugin.status} (${target})`;
   });
+  const workspace = report.workspace;
+  const workspaceLines = !workspace.checked
+    ? ["workspace: not inspected"]
+    : [
+        `workspace: ${workspace.path ?? "unknown"}`,
+        `AGENTS.md: ${workspace.agentsFile ? "present" : "missing"}`,
+        workspace.cursorRules.length === 0
+          ? "cursor rules: none"
+          : `cursor rules: ${workspace.cursorRules.length} .mdc file(s) under .cursor/rules (${workspace.cursorRules.join(", ")})`,
+        ...(workspace.hint === undefined ? [] : [`hint: ${workspace.hint}`]),
+      ];
   return [
     "pstack doctor",
     `platform: ${report.platform}`,
@@ -228,6 +305,8 @@ function renderReport(report: DoctorReport): string {
     ...pluginLines,
     "",
     `role file: ${report.roleFile.exists ? "present" : "missing"} (${report.roleFile.path})`,
+    "",
+    ...workspaceLines,
   ].join("\n");
 }
 
@@ -290,19 +369,43 @@ const OUTPUT_SCHEMA: JsonSchemaNode = {
       },
       required: ["path", "exists"],
     },
+    workspace: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        path: { type: "string" },
+        checked: { type: "boolean" },
+        cursorRules: { type: "array", items: { type: "string" } },
+        agentsFile: { type: "boolean" },
+        hint: { type: "string" },
+      },
+      required: ["checked", "cursorRules", "agentsFile"],
+    },
   },
-  required: ["platform", "node", "dshHome", "commands", "scripts", "optionalPlugins", "roleFile"],
+  required: [
+    "platform",
+    "node",
+    "dshHome",
+    "commands",
+    "scripts",
+    "optionalPlugins",
+    "roleFile",
+    "workspace",
+  ],
 };
 
 const TOOL_DESCRIPTION = [
   "Check the local prerequisites pstack playbooks use: git, gh, node, bun, ffmpeg, mise, java,",
-  "jq, the five bundled script artefacts, the role configuration file, and the optional plugin",
-  "state recorded in the current profile manifest.",
+  "jq, the five bundled script artefacts, the role configuration file, the optional plugin",
+  "state recorded in the current profile manifest, and what the workspace itself expects.",
   "",
   "Read-only. It reports what is present, never installs anything, and never reads model routes.",
   "Missing commands are reported with their name; a missing script lists the expected path.",
   "`bun` matters to `watch-pr` and `jq` to `worktree-audit`; the other scripts declare the rest.",
   "Optional plugin status is enabled, installed, partial, missing, or unknown.",
+  "",
+  "The workspace check names `.cursor/rules/*.mdc` files, because DSH loads `AGENTS.md` and never",
+  "reads Cursor's rule files. Pass `workspacePath` to inspect a directory other than the session's.",
 ].join("\n");
 
 export function createPstackDoctorTool(host: DoctorHost): ToolDefinition {
@@ -312,7 +415,13 @@ export function createPstackDoctorTool(host: DoctorHost): ToolDefinition {
     parameters: {
       type: "object",
       additionalProperties: false,
-      properties: {},
+      properties: {
+        workspacePath: {
+          type: "string",
+          description:
+            "Directory to inspect for Cursor rule files; defaults to the session workspace.",
+        },
+      },
     },
     output: {
       schema: OUTPUT_SCHEMA,
@@ -321,8 +430,13 @@ export function createPstackDoctorTool(host: DoctorHost): ToolDefinition {
       ],
     },
     isConcurrencySafe: () => true,
-    async execute() {
-      return collectDoctorReport(host);
+    async execute(args, exec) {
+      const requested = (args as { readonly workspacePath?: unknown }).workspacePath;
+      const workspacePath =
+        typeof requested === "string"
+          ? requested
+          : (host.workspacePath ?? (await host.resolveWorkspace?.(exec)));
+      return collectDoctorReport({ ...host, workspacePath });
     },
   };
 }
@@ -330,6 +444,7 @@ export function createPstackDoctorTool(host: DoctorHost): ToolDefinition {
 /** The slice of the Cordis context this row uses. */
 export interface PstackDoctorHost {
   readonly tools: ToolsHost;
+  readonly workingDirectory: WorkingDirectoryHost;
 }
 
 /** Register `pstack_doctor`. */
@@ -338,6 +453,16 @@ export function apply(ctx: PstackDoctorHost): void {
     createPstackDoctorTool({
       dshHome: resolveDshHome(process.env),
       profileDir: process.env.DSH_PROFILE_DIR,
+      resolveWorkspace: async (exec) => {
+        if (exec.agent === undefined) {
+          return undefined;
+        }
+        try {
+          return await ctx.workingDirectory.ensure(exec.agent, exec.signal);
+        } catch {
+          return undefined;
+        }
+      },
     }),
   );
 }

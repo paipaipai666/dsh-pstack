@@ -1,7 +1,7 @@
 # Fork status
 
 Updated 2026-11-10. Base: upstream `dsh-pstack 0.3.1` (`2d577b1`). Package: `@paipaipai666/dsh-pstack`
-`0.5.0-beta.2`.
+`0.5.0-beta.3`.
 
 ## A. Fork foundation
 
@@ -28,7 +28,7 @@ flattened into `src/`. The fork followed the new layout instead of keeping its o
 | RB-06 audit gates | Done | `tests/upstream-parity.test.ts` and `tests/upstream-drift.test.ts` were dropped: `port/scan.mjs --check-lock` and `port/audit.md` own that job now |
 | RB-07 scoped-name tests | Done | `tests/patch-name.ts` renders the patch file with the bare package name the upstream tests expect |
 
-## Remote dispatch (0.5.0-beta.2)
+## Remote dispatch (0.5.0-beta.3)
 
 The user asked for an open doorway to another machine rather than a hosted product: the package owns
 the registry, the dispatch tool, and the worker contract, and owns no machine.
@@ -41,6 +41,18 @@ the registry, the dispatch tool, and the worker contract, and owns no machine.
 | REM-04 job records | Done | `$DSH_HOME/remote/jobs/<jobId>.{json,jsonl}`; a settled job kills its child, and a record whose Host exited is reported as failed instead of hanging |
 | REM-05 worker contract | Done | `docs/remote-worker.md` specifies `POST /jobs`, the NDJSON response, `x-remote-job-id`, bearer auth, and the limits (no retries, no resumption, no shared filesystem), with a complete Node worker |
 | REM-06 pstack mapping | Done | `environment: "cloud"` now names a registered target; when none exists the skill falls back to a local worktree. `/visualize`, webhook, and Tailscale get their official or community replacement |
+
+## Migration and automation (0.5.0-beta.3)
+
+A Cursor project's rules and its scheduled or triggered work were the two remaining silent gaps: the
+rules simply never loaded, and the playbooks that create a routine had nowhere to land.
+
+| Item | Status | Evidence |
+|---|---|---|
+| MIG-01 workspace check | Done | `pstack_doctor` reads `.cursor/rules` and `AGENTS.md` (or a `workspacePath` argument) and hints when `.mdc` rules would be inert; it never creates the directory |
+| MIG-02 automation recipes | Done | `docs/automations.md` maps Cursor's automation and routine objects onto `schedule_create`, `@deepseek-ai/dsh-webhook`, `dsh-automations`, and `pstack_remote`, and states the unattended-approval tradeoff |
+| MIG-03 packaging | Done | `package.json#files` lists `docs/automations.md`, so the install carries the page the READMEs and adapters point at |
+
 ## B. Fixes
 
 | Item | Status | Evidence |
@@ -58,7 +70,7 @@ the registry, the dispatch tool, and the worker contract, and owns no machine.
 ## Quality audit
 
 - Generated tree: 58 skills, 23 playbooks, 24 principles, 2 agent definitions, 11 guide pages.
-- Test suite: 28 files under `tests/` (211 cases) plus 72 runtime cases (4 skipped on Windows); CI runs
+- Test suite: 28 files under `tests/` (215 cases) plus 72 runtime cases (4 skipped on Windows); CI runs
   Linux build/test with a V8 coverage gate, the Windows suite, and a real DSH install smoke.
 - Translation coverage: one test translates every Markdown file in `pstack/` and fails on any
   surviving Cursor tool, field, path, or model name.

@@ -143,7 +143,7 @@ Use pstack skills when you want to start workflows directly from a Session.
 | `pstack_roles` | Shows each role's type and whether it is an automatic panel, so delegation uses the correct parameters. |
 | `pstack_subagent` | Applies role routing and agent presets. Supports parallel subagents. |
 | `pstack_script` | Runs one of the five bundled workflows (`check-plan`, `watch-pr`, `worktree-audit`, `log`, `statechart`) under the Host's own Node runtime. The `pstack-script-policy` row asks before every call; `background: true` hands a long run to the job system. |
-| `pstack_doctor` | Reports the local prerequisites the bundled workflows need (`git`, `gh`, `node`, `bun`, `ffmpeg`, `mise`, `java`, `jq`), the configured model roles, and the optional plugins the current profile has. |
+| `pstack_doctor` | Reports the local prerequisites the bundled workflows need (`git`, `gh`, `node`, `bun`, `ffmpeg`, `mise`, `java`, `jq`), the configured model roles, the optional plugins the current profile has, and the `.cursor/rules/*.mdc` files in the workspace that DSH will never load. |
 | `pstack_remote` | Dispatches one task to a machine you registered, reads its event stream, and stops it. This package supplies no machine: a target is an SSH host with `dsh` on `PATH` or an HTTP worker that streams NDJSON. |
 
 ### 🎭 Agent presets
@@ -217,6 +217,10 @@ A project that already uses pstack in Cursor needs four edits before it behaves 
 | `environment: "cloud"` in a Task call | Register a machine with `pstack_remote` and name it, or let the step fall back to a local worktree. DSH does not supply a VM. |
 | A chart, a video, or an inbound webhook | Install a replacement rather than rewriting the skill: `@nagi-ovo/dsh-visualize` for charts, `dsh-ffmpeg` for media post-processing, and `@deepseek-ai/dsh-webhook` plus a provider adapter for inbound events. |
 
+`pstack_doctor` inspects the session workspace and names any `.cursor/rules/*.mdc` files it finds, so
+the first row is not something you have to remember. The automation recipes, including how to run
+unattended work, are in [docs/automations.md](./docs/automations.md).
+
 ## ⚠️ Remaining gaps
 
 These limitations remain even after all optional plugins that can coexist with pstack are enabled.
@@ -251,7 +255,7 @@ Choose a release by its declared DSH range. Within each compatibility range, eve
 <!-- compatibility-keys: ["dsh-0.2.2-rc.1+port-v1","dsh-0.2.1-rc.5+legacy-v1","dsh-0.2.0-0.3.0+legacy-v1"] -->
 | DSH version | dsh-pstack release | Included pstack version |
 |---|---|---|
-| `>=0.2.2-rc.1` | `0.4.0-beta.2`、`0.5.0-beta.2` | `0.15.36` |
+| `>=0.2.2-rc.1` | `0.4.0-beta.2`、`0.5.0-beta.3` | `0.15.36` |
 | `>=0.2.1-rc.5` | `0.2.2` | `0.15.36` |
 | `>=0.2.0 < 0.3.0` | `0.1.0` | `0.15.29` |
 

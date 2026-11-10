@@ -63,7 +63,7 @@ DeepSeek Harness 没有 Cursor Automations、Bugbot、Cursor 云代理或内置 
 
 | Cursor | DeepSeek Harness |
 | --- | --- |
-| Cursor Automations：routine、`update_state` routine 调用、`api2.cursor.sh/automations` webhook、routine 唤醒、`SendToUser` 密钥请求 | routine 对象按上面跳过。「已验证的入站事件启动新会话」有官方接缝：`@deepseek-ai/dsh-webhook` 加一个 provider 适配器，会把验证过的投递变成普通会话。安装后带 overlay 启动，例如 `dsh web --patch <profile>/node_modules/@deepseek-ai/dsh-webhook-github/examples/github-review/cordis.yml`。目前只有 GitHub 适配器，其它 provider 需要写一个小规则插件。该接缝不去重、也不回报完成，所以不能把 `202` 当成会话已启动。本地定时跟进仍用 `schedule_create`。不要在聊天里索要 `SendToUser` 密钥。 |
+| Cursor Automations：routine、`update_state` routine 调用、`api2.cursor.sh/automations` webhook、routine 唤醒、`SendToUser` 密钥请求 | routine 对象按上面跳过。「已验证的入站事件启动新会话」有官方接缝：`@deepseek-ai/dsh-webhook` 加一个 provider 适配器，会把验证过的投递变成普通会话。安装后带 overlay 启动，例如 `dsh web --patch <profile>/node_modules/@deepseek-ai/dsh-webhook-github/examples/github-review/cordis.yml`。目前只有 GitHub 适配器，其它 provider 需要写一个小规则插件。该接缝不去重、也不回报完成，所以不能把 `202` 当成会话已启动。本地定时跟进仍用 `schedule_create`。不要在聊天里索要 `SendToUser` 密钥。定时与事件两条路（含无人值守时的审批）见 `docs/automations.md`。 |
 | Bugbot | Bugbot 的 GitHub PR 评论就是普通评审线程，用步骤给出的 forge 命令处理。PR 没有 Bugbot check 或评论时，跳过启动、等待或配置 Bugbot 的步骤。 |
 | Cursor 云代理 | `environment: "cloud"` 在 `pstack_remote` 有目标时映射到远端目标，否则按子代理字段映射到本地工作树。远端目标在用户登记的机器上执行；DSH 从不提供那台机器。需要云代理面板、专属镜像或计费的步骤跳过。 |
 | Tailscale 访问本机页面 | 绑定一个具体接口地址：`dsh --profile web --host <tailscale-ip> --public-url http://<tailscale-ip>:<port>`。未指定地址会在加载时被拒绝，所以 `0.0.0.0` 永远不可用。用 `tailscale ip -4` 查地址；浏览器会话 token 仍然生效，把完整 URL 交给设备。 |

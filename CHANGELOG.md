@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.5.0-beta.3
+
+Closes the migration gap that was still silent: a Cursor project's `.mdc` rules never load here, and
+nothing said so. Adds the automation recipes that replace Cursor's scheduled and triggered objects.
+
+### Added
+
+- `pstack_doctor` now inspects the session workspace (or a `workspacePath` argument) and reports every
+  `.cursor/rules/*.mdc` file it finds, whether `AGENTS.md` exists, and a hint when rules would be
+  silently inert. The check is read-only and never creates a directory.
+- `docs/automations.md`: the capability map and four recipes for scheduled work (`schedule_create`),
+  event deliveries (`@deepseek-ai/dsh-webhook`), local lifecycle triggers (`dsh-automations`), and
+  dispatch to another machine (`pstack_remote`). It also spells out why an unattended run with
+  `mode: ask` parks, and when `mode: allow` is the honest choice.
+- The document is listed in `package.json#files`, so the published install carries it.
+
+### Changed
+
+- Both READMEs point at `docs/automations.md` from the migration table, and both adapters
+  (`port/dsh.md`, `port/dsh.zh.md`) point there from the Automations row.
+- The doctor tool description mentions the workspace check.
+
 ## 0.5.0-beta.2
 
 Fixes the packaging of `0.5.0-beta.1`; no behaviour changed.

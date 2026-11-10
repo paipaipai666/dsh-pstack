@@ -127,8 +127,18 @@ and `cwd` default to `null`, and a literal `"null"` or `"undefined"` reads as ab
 - Future releases either repeat those steps or configure GitHub OIDC trusted publishing so
   `.github/workflows/release.yml` publishes without 2FA.
 
+## Real-session runs
+
+Both skills were exercised from a fresh session in the packaged app, not only from a terminal:
+
+- `/statechart` on Windows 11 with TLC 1.7.4 wrote `report.md`, `chart.mmd`, and a 3819-byte SVG
+  from a 5-state, 6-step spec, and surfaced the three Windows defects listed under CHT-06.
+- `/poteto-mode` asked for one child. The model sent only `description`, `prompt`, and `agent`,
+  the tool started child `58a133f6-c85b-432f-a4b0-989be94cad40` ("Read package version", continuable),
+  and the child injected the instruction path, read `package.json`, and answered
+  `version: 0.5.0-beta.6 name: @paipaipai666/dsh-pstack line: 3`.
+
 ## Still open
 
-- Run `/poteto-mode` with a real model session end to end; install smoke only proves bundle loading.
 - The optional-plugin checks read the profile manifest only. Verifying that a listed plugin actually
   enables its tools needs a running session.

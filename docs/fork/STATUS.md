@@ -53,12 +53,12 @@ the registry, the dispatch tool, and the worker contract, and owns no machine.
 | FIX-06 Windows test coverage | Done | The Windows job runs the full suite; four shell-dependent runtime tests skip there and run on Linux |
 | FIX-07 dead translation rules | Done | `environment: "cloud"|"local"` rules lost their trailing `\b`; bare `generalPurpose`, unquoted `subagent_type: generalPurpose`, `readonly: false`, and `readonly/Ask mode` are covered |
 | FIX-08 declared sources vs shipped tree | Done | `tests/skill-sources.test.ts` keeps `.agents/skills`, `skills/.agents/skills`, `skills/authored`, and both lock files in agreement |
-| FIX-09 npm publish | Done | `0.4.0-beta.2` is on npm; staged publish plus browser approval, then `latest` moved; an isolated `dsh plugin add` installs it |
+| FIX-09 npm publish | Done | `0.5.0-beta.2` is on npm; staged publish plus browser approval, then `latest` moved; an isolated `dsh plugin add` installs it |
 
 ## Quality audit
 
 - Generated tree: 58 skills, 23 playbooks, 24 principles, 2 agent definitions, 11 guide pages.
-- Test suite: 26 files under `tests/` (186 cases) plus 72 runtime cases (4 skipped on Windows); CI runs
+- Test suite: 28 files under `tests/` (211 cases) plus 72 runtime cases (4 skipped on Windows); CI runs
   Linux build/test with a V8 coverage gate, the Windows suite, and a real DSH install smoke.
 - Translation coverage: one test translates every Markdown file in `pstack/` and fails on any
   surviving Cursor tool, field, path, or model name.
@@ -69,8 +69,10 @@ the registry, the dispatch tool, and the worker contract, and owns no machine.
 
 ## Publishing
 
-- `@paipaipai666/dsh-pstack@0.4.0-beta.2` is live. `latest` and `beta` both point at it, and an
+- `@paipaipai666/dsh-pstack@0.5.0-beta.2` is live. `latest` and `beta` both point at it, and an
   isolated `dsh plugin --profile web add @paipaipai666/dsh-pstack` installs it from the registry.
+- `0.5.0-beta.2` exists only because the `0.5.0-beta.1` tarball left out `docs/remote-worker.md`;
+  `package.json#files` now lists that document.
 - The account signs in with a passkey rather than a TOTP authenticator, so `--otp` can never be
   supplied. What works instead:
   1. `npm stage publish <tarball> --tag beta --force` — staging itself needs no 2FA; `--force` only

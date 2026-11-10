@@ -115,18 +115,24 @@ try {
         env: { ...process.env, TMPDIR: tmp },
       },
     );
-    janitor = spawn(
-      "/bin/sh",
-      [
-        "-c",
-        'while read -r line; do :; done; kill -s KILL -- "-$1"; rm -rf -- "$2" "$3"',
-        "sh",
-        String(worker.pid),
-        stage,
-        tmp,
-      ],
-      { detached: true, stdio: ["pipe", "ignore", "ignore"] },
-    );
+    // The janitor is a POSIX shell that holds the pipe open: when this process dies, the pipe
+    // closes, and it kills the worker group and removes both folders. Windows has no such shell,
+    // so the `finally` block below does the same cleanup while this process is still alive.
+    janitor =
+      process.platform === "win32"
+        ? undefined
+        : spawn(
+            "/bin/sh",
+            [
+              "-c",
+              'while read -r line; do :; done; kill -s KILL -- "-$1"; rm -rf -- "$2" "$3"',
+              "sh",
+              String(worker.pid),
+              stage,
+              tmp,
+            ],
+            { detached: true, stdio: ["pipe", "ignore", "ignore"] },
+          );
     const exited = new Promise<number>((resolve) =>
       worker.on("exit", (code) => resolve(code ?? 2)),
     );

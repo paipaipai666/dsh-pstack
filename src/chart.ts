@@ -82,6 +82,7 @@ export interface ParsedChart {
   readonly edges: readonly ChartEdge[];
   readonly classDefs: ReadonlyMap<string, string>;
   readonly direction: "TB" | "LR";
+  readonly title?: string;
 }
 
 const ENTITY = /#(\d+);/g;
@@ -148,7 +149,28 @@ export function parseChart(source: string): ParsedChart {
   };
 
   const lines = source.split(/\r?\n/);
-  for (const [index, raw] of lines.entries()) {
+  // statechart writes a YAML front matter block with the title the view returned.
+  let first = 0;
+  let title: string | undefined;
+  const opening = lines.findIndex((line) => line.trim() !== "");
+  if (opening !== -1 && lines[opening]?.trim() === "---") {
+    let closing = -1;
+    for (let index = opening + 1; index < lines.length; index++) {
+      if (lines[index]?.trim() === "---") {
+        closing = index;
+        break;
+      }
+    }
+    if (closing === -1)
+      throw new ChartSyntaxError(opening + 1, "front matter has no closing `---`");
+    for (let index = opening + 1; index < closing; index++) {
+      const value = /^title:\s*(.*)$/.exec(lines[index]?.trim() ?? "")?.[1]?.trim();
+      if (value !== undefined && value !== "") title = value.replace(/^"(.*)"$/s, "$1");
+    }
+    first = closing + 1;
+  }
+  for (let index = first; index < lines.length; index++) {
+    const raw = lines[index] ?? "";
     const line = index + 1;
     const text = raw.trim();
     if (!text || text.startsWith("%%")) continue;
@@ -266,7 +288,9 @@ export function parseChart(source: string): ParsedChart {
       if (!withMarks.has(endpoint)) throw new ChartSyntaxError(1, `unknown state \`${endpoint}\``);
     }
   }
-  return { items: withMarks, roots, children, edges, classDefs, direction };
+  return title === undefined
+    ? { items: withMarks, roots, children, edges, classDefs, direction }
+    : { items: withMarks, roots, children, edges, classDefs, direction, title };
 }
 
 interface Box {
@@ -285,6 +309,7 @@ interface ScopeLayout {
 const PAD = 16;
 const GAP_X = 56;
 const GAP_Y = 64;
+const TITLE_HEIGHT = 28;
 const GROUP_TITLE = 22;
 
 const charWidth = (text: string) => {
@@ -559,12 +584,18 @@ export function renderChartSvg(chart: ParsedChart): string {
   };
 
   const width = root.width + PAD * 2;
-  const height = root.height + PAD * 2;
-  drawScope("", root, PAD, PAD);
+  const titleHeight = chart.title === undefined ? 0 : TITLE_HEIGHT;
+  const height = root.height + PAD * 2 + titleHeight;
+  drawScope("", root, PAD, PAD + titleHeight);
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.ceil(width)}" height="${Math.ceil(height)}" viewBox="0 0 ${Math.ceil(width)} ${Math.ceil(height)}" role="img" aria-label="statechart">`,
     '<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6b7280"/></marker></defs>',
     `<rect width="100%" height="100%" fill="#ffffff"/>`,
+    ...(chart.title === undefined
+      ? []
+      : [
+          `<text x="${PAD}" y="${PAD}" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="600" fill="#111827">${escapeXml(chart.title)}</text>`,
+        ]),
     ...parts,
     "</svg>",
     "",

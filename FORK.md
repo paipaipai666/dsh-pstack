@@ -31,12 +31,17 @@ Everything upstream ships is kept. On top of it the fork carries six additions:
 `runtime/dist/`, and `scripts/replace-runtime-scripts.mjs` copies the compiled `.mjs` into the
 shipped tree under `dist/pstack/skills/<skill>/scripts/`, dropping the compiled tests.
 
+Three of those scripts carry small Windows fixes that upstream never needed because it only runs
+them there on macOS and Linux: the statechart janitor and process-group kill avoid `/bin/sh`, and
+the TLC output parser tolerates CRLF. They stay confined to `runtime/`, so re-merging upstream still
+shows as a clean diff.
+
 ## Current status
 
 - GitHub fork created on 2026-11-06: `paipaipai666/dsh-pstack`.
 - `fork/upstream-0.3.1` carries the rebase onto upstream `0.3.1`; `fork/main` is the integration
   branch that gets pushed.
-- The package is named `@paipaipai666/dsh-pstack` and reports version `0.5.0-beta.4`.
+- The package is named `@paipaipai666/dsh-pstack` and reports version `0.5.0-beta.5`.
 - The generated tree is committed at `pstack/` and is rewritten as a whole by
   `vpx port/generate.mjs`. It is generated from `upstream/cursor-plugins` plus the adapter source
   `port/dsh.md`, so the 58 skills are reviewable in the repository instead of being generated during

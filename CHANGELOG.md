@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.5.0-beta.5
+
+Makes `/statechart` usable on Windows. The script was written and tested on POSIX hosts, so two of
+its assumptions fail there: the janitor process and the TLC output parser. A third gap showed up in
+the renderer as soon as a real chart came out of the script.
+
+### Fixed
+
+- `runtime/skills/statechart/scripts/statechart.ts`: the janitor that clears `tlc.out` and the
+  scratch directory was spawned as `/bin/sh -c 'while read ...; kill -s KILL -- "-$1"'`. On Windows
+  that throws `spawn /bin/sh ENOENT` before TLC ever runs. The janitor is now POSIX-only, with a
+  comment explaining that the `finally` block already removes the same files while the parent lives.
+- `runtime/skills/statechart/scripts/run.ts`: killing a TLC process group used the same `/bin/sh`
+  trick. Windows now calls `taskkill /PID <pid> /T /F`.
+- `runtime/skills/statechart/scripts/frontends/dot.ts`: TLC prints CRLF on Windows, so the
+  `@!@!@STARTMSG`/`@!@!@ENDMSG` markers never matched and a violated invariant was reported as
+  "its output names no rule that broke". Lines are now trimmed of a trailing `\r` before matching.
+- `src/chart.ts`: the statechart backend writes a YAML front matter block with the diagram title, and
+  the parser rejected it (`expected stateDiagram-v2 on the first line`). Front matter is now read,
+  the `title` is drawn above the diagram, and a missing closing `---` reports its own line.
+
+### Changed
+
+- `tests/chart.test.ts` covers the front matter case.
+
 ## 0.5.0-beta.4
 
 Renders the charts `statechart` produces. The script writes the colours into `chart.mmd`, but DSH had

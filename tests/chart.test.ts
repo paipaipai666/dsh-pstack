@@ -130,6 +130,16 @@ describe("pstack_chart", () => {
     expect(() => parseChart("graph TD\n  a --> b\n")).toThrow(/expected `stateDiagram-v2`/);
   });
 
+  it("reads the front matter statechart writes above the diagram", () => {
+    const chart = parseChart(
+      '---\ntitle: "A session that can be reopened"\n---\nstateDiagram-v2\n  s0: idle\n  s0 --> s1: you send\n  s1: streaming\n',
+    );
+    expect(chart.title).toBe("A session that can be reopened");
+    expect(chart.items.get("s0")?.label).toBe("idle");
+    expect(chart.edges).toHaveLength(1);
+    expect(renderChartSvg(chart)).toContain("A session that can be reopened");
+  });
+
   it("refuses an edge that points at a state nobody declared", () => {
     expect(() => parseChart("stateDiagram-v2\n  s0: zero\n  s0 --> s9\n")).toThrow(
       /unknown state `s9`/,

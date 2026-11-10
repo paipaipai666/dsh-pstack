@@ -1,7 +1,7 @@
 # Fork status
 
 Updated 2026-11-10. Base: upstream `dsh-pstack 0.3.1` (`2d577b1`). Package: `@paipaipai666/dsh-pstack`
-`0.4.0-beta.1`.
+`0.4.0-beta.2`.
 
 ## A. Fork foundation
 

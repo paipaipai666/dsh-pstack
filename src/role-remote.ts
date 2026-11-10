@@ -17,6 +17,7 @@ import type {
   TypertSchema,
 } from "@deepseek-ai/dsh-typert-protocol";
 import type { TypertContribution } from "@deepseek-ai/dsh-typert-registry";
+import { PACKAGE_NAME } from "./package-name.ts";
 
 import type { CatalogueResult } from "./models.ts";
 import { type BudgetApplyRequest, parseBudgetApplyRequest } from "./budget.ts";
@@ -32,8 +33,8 @@ import {
   type SaveRoleResult,
 } from "./role-wire.ts";
 
-/** npm package owning these methods. */
-export const REMOTE_PACKAGE = "dsh-pstack";
+/** npm package owning these methods. Must match the row name and the client banner id. */
+export const REMOTE_PACKAGE = PACKAGE_NAME;
 
 /** Cordis service key and wire namespace. */
 export const ROLES_SERVICE = "pstackRoles";

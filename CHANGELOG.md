@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.4.0-beta.2
+
+Fixes the Desktop boot failure introduced by the 0.3.1 rebase.
+
+### Fixed
+
+- The client bundle registered its factory as `dsh-pstack` while the composition mounts
+  `@paipaipai666/dsh-pstack`. The Desktop client loader keyed the row by the package name, found no
+  factory, loaded the bundle a second time, and aborted the boot with
+  `client-modules: duplicate factory registration for "dsh-pstack"`. The banner id now comes from
+  `package.json#name` at build time, and `tests/package-name.test.ts` asserts that the built
+  `dist/client.js` carries it.
+- The plugin-detail Configure action and the remote role descriptors still compared against the bare
+  name, so the dialog never appeared and the Host rejected the descriptors. Both now share
+  `src/package-name.ts` with the rest of the package identity.
+- `ci.yml` install smoke matches `./*dsh-pstack-*.tgz` instead of a hardcoded beta version.
+
 ## 0.4.0-beta.1
 
 Rebased on upstream `dsh-pstack 0.3.1`, which replaced `pstack/scripts/` with `port/`, flattened

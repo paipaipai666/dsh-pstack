@@ -34,7 +34,7 @@ shipped tree under `dist/pstack/skills/<skill>/scripts/`, dropping the compiled 
 - GitHub fork created on 2026-11-06: `paipaipai666/dsh-pstack`.
 - `fork/upstream-0.3.1` carries the rebase onto upstream `0.3.1`; `fork/main` is the integration
   branch that gets pushed.
-- The package is named `@paipaipai666/dsh-pstack` and reports version `0.4.0-beta.1`.
+- The package is named `@paipaipai666/dsh-pstack` and reports version `0.4.0-beta.2`.
 - The generated tree is committed at `pstack/` and is rewritten as a whole by
   `vpx port/generate.mjs`. It is generated from `upstream/cursor-plugins` plus the adapter source
   `port/dsh.md`, so the 58 skills are reviewable in the repository instead of being generated during
@@ -110,7 +110,7 @@ tests and fixtures spell the package name bare.
 The fork is distributed as a built tarball until the scoped npm package is published:
 
 ```bash
-dsh plugin --profile <profile> add /path/to/paipaipai666-dsh-pstack-0.4.0-beta.1.tgz
+dsh plugin --profile <profile> add /path/to/paipaipai666-dsh-pstack-<version>.tgz
 ```
 
 Do not use the upstream `dsh-pstack` npm package for this fork. It is a different build.

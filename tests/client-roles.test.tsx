@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
 import type { Context } from "@deepseek-ai/cordis";
 
 import { apply } from "../src/client/index.ts";
+import { PACKAGE_NAME } from "../src/package-name.ts";
 import { createPstackConfigAction, PstackConfigDialog } from "../src/client/PstackConfigDialog.tsx";
 import { draftOf, resetRoutes } from "../src/client/role-draft.ts";
 import type { RoleSettingsApi } from "../src/client/RoleSettingsPage.tsx";
@@ -695,7 +696,7 @@ describe("dialog focus management", () => {
     await act(async () => {
       root.render(
         createElement(Action as never, {
-          subject: { kind: "bundle", pkg: { name: "dsh-pstack" } },
+          subject: { kind: "bundle", pkg: { name: PACKAGE_NAME } },
         }),
       );
     });
@@ -780,7 +781,7 @@ describe("remote adapter unwrap", () => {
     await act(async () => {
       root.render(
         createElement(Component as never, {
-          subject: { kind: "bundle", pkg: { name: "dsh-pstack" } },
+          subject: { kind: "bundle", pkg: { name: PACKAGE_NAME } },
         }),
       );
     });
@@ -801,7 +802,7 @@ describe("remote adapter unwrap", () => {
     await act(async () => {
       root.render(
         createElement(Component as never, {
-          subject: { kind: "bundle", pkg: { name: "dsh-pstack" } },
+          subject: { kind: "bundle", pkg: { name: PACKAGE_NAME } },
         }),
       );
     });
@@ -818,7 +819,7 @@ describe("remote adapter unwrap", () => {
     await act(async () => {
       root.render(
         createElement(Component as never, {
-          subject: { kind: "bundle", pkg: { name: "dsh-pstack" } },
+          subject: { kind: "bundle", pkg: { name: PACKAGE_NAME } },
         }),
       );
     });

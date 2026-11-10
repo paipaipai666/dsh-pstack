@@ -1,7 +1,19 @@
+import { readFileSync } from "node:fs";
 import { defineConfig } from "vite-plus";
 
 /** DSH provides its own runtime packages; never bundle them. */
 const dshProvided = /^@deepseek-ai\//;
+
+/**
+ * The client loader keys factories by the id in the bundle banner and rows by
+ * the package name the composition mounts, so both must be the same string.
+ * Read it from the manifest instead of repeating the name here.
+ */
+const packageName = (
+  JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8")) as {
+    readonly name: string;
+  }
+).name;
 
 export default defineConfig({
   pack: [
@@ -44,7 +56,7 @@ export default defineConfig({
       },
       outputOptions: {
         entryFileNames: "client.js",
-        banner: 'window.__ModuleLoader__.load({ id: "dsh-pstack", factory: (require) => {',
+        banner: `window.__ModuleLoader__.load({ id: ${JSON.stringify(packageName)}, factory: (require) => {`,
         footer: "return module.exports; } });",
         intro: "var module = { exports: {} }; var exports = module.exports;",
       },

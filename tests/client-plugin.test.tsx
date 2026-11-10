@@ -4,6 +4,7 @@ import { describe, expect, it } from "vite-plus/test";
 import type { Context } from "@deepseek-ai/cordis";
 
 import { apply, inject } from "../src/client/index.ts";
+import { PACKAGE_NAME } from "../src/package-name.ts";
 import { ROLE_COPY } from "../src/client/role-copy.ts";
 import { ROLE_MANIFEST } from "../src/role-manifest.ts";
 import type { PstackRolesNamespace } from "../src/role-remote.ts";
@@ -116,7 +117,7 @@ describe("pstack client", () => {
     const Component = action?.component as (props: unknown) => unknown;
     const html = renderToStaticMarkup(
       createElement(Component as never, {
-        subject: { kind: "bundle", pkg: { name: "dsh-pstack" } },
+        subject: { kind: "bundle", pkg: { name: PACKAGE_NAME } },
       }),
     );
     expect(html).toContain("Configure");

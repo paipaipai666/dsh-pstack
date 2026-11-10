@@ -7,6 +7,7 @@ import type {} from "@deepseek-ai/dsh-client-ui-plugin-manager/client";
 
 import { IconClose, IconSettings } from "./icons.tsx";
 import { useFocusTrap } from "./focus-trap.ts";
+import { PACKAGE_NAME } from "../package-name.ts";
 import { RecommendedPluginsView, type PluginManagerApi } from "./RecommendedPluginsPage.tsx";
 import { RoleSettingsView, type RoleSettingsApi } from "./RoleSettingsPage.tsx";
 import { ensurePstackStyles } from "./styles.ts";
@@ -164,7 +165,7 @@ export function createPstackConfigAction(
       triggerRef.current?.focus();
     }, [open]);
 
-    if (props.subject.kind !== "bundle" || props.subject.pkg.name !== "dsh-pstack") return null;
+    if (props.subject.kind !== "bundle" || props.subject.pkg.name !== PACKAGE_NAME) return null;
     return (
       <>
         <Button

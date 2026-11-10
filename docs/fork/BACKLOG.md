@@ -1,6 +1,6 @@
 # dsh-pstack fork backlog
 
-> 基于 `l246804/dsh-pstack` v0.3.1（pstack 0.15.36），fork 版本 `0.4.0-beta.1`
+> 基于 `l246804/dsh-pstack` v0.3.1（pstack 0.15.36），fork 版本 `0.4.0-beta.2`
 > 目标 DSH：0.2.2-rc.1（本机安装版）
 > 状态：A 全部完成；B 的 FIX-01 至 FIX-08 已完成，FIX-09 只剩 npm 发布；ADD-01 已提前落地
 > 维护原则：保留 MIT 许可证与原作者署名；优先把通用修复回馈上游，长期分叉只保留 DSH 版本适配和团队特有功能。

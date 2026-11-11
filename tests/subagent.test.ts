@@ -122,6 +122,13 @@ describe("pstack_subagent arguments and planning", () => {
     );
     expect(result.kind).toBe("activation");
     expect(result.children[0]?.childId).toBe("child-1");
+    const rendered = createPstackSubagentTool(runtime).output?.render({}, result as never) as {
+      text: string;
+    }[];
+    expect(rendered[0]?.text).toContain(
+      "Results from started children arrive as completion notices",
+    );
+    expect(rendered[0]?.text).toContain("do not poll");
   });
 
   it("keeps started child ids when a later activation fails", async () => {

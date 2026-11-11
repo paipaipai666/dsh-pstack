@@ -58,6 +58,8 @@ const TERMS = [
   },
 ];
 const ROUTE_KEY = "Run another pstack skill";
+/** Skills whose DSH mapping is not detected by TERMS but still needs the adapter pointer. */
+const EXTRA_ADAPTER_SKILLS = new Set(["ketchup", "statechart"]);
 
 function walk(dir) {
   return readdirSync(dir).flatMap((name) => {
@@ -126,11 +128,47 @@ function classify(skill) {
     .match(/^name:(.*)$/m)?.[1]
     .trim()
     .replace(/^(["'])(.*)\1$/, "$2");
-  return { terms, wrap: terms.size > 0 && /^# /m.test(text), name };
+  const wrap = (terms.size > 0 || EXTRA_ADAPTER_SKILLS.has(skill)) && /^# /m.test(text);
+  return { terms, wrap, name };
 }
 
+function readOverrides() {
+  const root = join(ROOT, "port/overrides");
+  if (!existsSync(root)) return new Map();
+  return new Map(walk(root).map((path) => [rel(root, path), file(path)]));
+}
+
+function readPatches() {
+  const root = join(ROOT, "port/patches");
+  if (!existsSync(root)) return [];
+  const patches = [];
+  for (const path of walk(root)
+    .filter((entry) => entry.endsWith(".md"))
+    .sort()) {
+    const text = readText(path);
+    for (const section of text.split(/^## /m).slice(1)) {
+      const file = section.match(/^`([^`]+)`/)?.[1];
+      const find = section.match(/\*\*Find\*\*\n\n```text\n([\s\S]*?)\n```/)?.[1];
+      const replace = section.match(/\*\*Replace\*\*\n\n```text\n([\s\S]*?)\n```/)?.[1];
+      if (!file || find === undefined || replace === undefined) {
+        console.log(
+          `FAIL ${rel(ROOT, path)} has an invalid patch section: ${section.split("\n")[0]}`,
+        );
+        process.exit(1);
+      }
+      patches.push({ file, find, replace });
+    }
+  }
+  return patches;
+}
+
+const overrides = readOverrides();
+const patches = readPatches();
 const classes = new Map(skills.map((skill) => [skill, classify(skill)]));
 const problems = [];
+for (const path of overrides.keys()) {
+  if (!existsSync(join(SOURCE, path))) problems.push(`port/overrides/${path} has no upstream file`);
+}
 const users = new Map();
 for (const [skill, { terms, wrap, name }] of classes) {
   if (terms.size > 0 && !wrap)
@@ -186,7 +224,21 @@ function render() {
     "plugin.json",
   ];
   const files = new Map(copies.map((path) => [path, file(join(SOURCE, path))]));
+  for (const [path, entry] of overrides) files.set(path, entry);
   files.set(ADAPTER_TREE, { bytes: Buffer.from(adapterText), executable: false });
+  for (const { file: path, find, replace } of patches) {
+    const entry = files.get(path);
+    if (!entry) {
+      console.log(`FAIL patch target ${path} is not in the generated tree`);
+      process.exit(1);
+    }
+    const text = entry.bytes.toString("utf8");
+    if (!text.includes(find)) {
+      console.log(`FAIL patch for ${path} did not match its Find block`);
+      process.exit(1);
+    }
+    entry.bytes = Buffer.from(text.replace(find, replace));
+  }
   const line =
     `In DeepSeek Harness, read [the DSH adapter](../../${ADAPTER_TREE}) once per session before you follow this skill. ` +
     "It maps the Cursor names in pstack skills to DeepSeek Harness.";

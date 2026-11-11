@@ -1,5 +1,7 @@
 # pstack
 
+> This is the DeepSeek Harness port. Install it with `dsh plugin --profile web add @paipaipai666/dsh-pstack`; read the [DSH adapter](./docs/harness/dsh.md). The install section below describes the upstream Cursor edition.
+
 i'm [poteto](https://x.com/poteto). i'm not a president or ceo, but i've worked with millions of lines of code at Meta, Netflix, and Cursor. i'm also on the react core team where i help build and maintain react compiler.
 
 there's a growing sense that ai writes too much slop code. i agree. i don't want to ship like a team of twenty slop artists. throughput without quality is not a goal i aspire to. if you want to go fast, go deep first. 
@@ -282,9 +284,7 @@ when a default changes, a rule written before the change still pins the old defa
 
 ## automations
 
-pstack also ships a dormant [benny automation pack](https://github.com/cursor/plugins/tree/main/pstack/automations/benny). benny triages slack issue reports, then reproduces and fixes confirmed bugs with real ui evidence. its files are not registered as slash skills.
-
-to set it up, point cursor at [`FOR_AGENTS.md`](https://github.com/cursor/plugins/blob/main/pstack/automations/benny/FOR_AGENTS.md). setup copies the pack into the target repository at `.cursor/automations/benny/`, enables pstack there for shared skills, and keeps user configuration outside the copied pack. benny runs on cursor automations, so it is cursor-only.
+pstack upstream also ships a dormant benny automation pack. It is not included in this DSH package: the pack depends on Cursor Automations, which DeepSeek Harness does not provide. For event-driven automation in DeepSeek Harness, use the package's `docs/automations.md` with `schedule_create`, `create_goal`, or the webhook plugin.
 
 ## license
 

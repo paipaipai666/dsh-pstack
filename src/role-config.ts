@@ -7,9 +7,9 @@
  * of silently behaving like a fresh install.
  */
 
-import { readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 
 import { parseRoleFileDocument, type RoleEntry, type RoleFileIssue } from "./role-file.ts";
 import { PSTACK_MODELS_FILENAME, ROLE_MANIFEST, findRole, type RoleSpec } from "./role-manifest.ts";
@@ -33,6 +33,30 @@ export type RoleConfiguration =
 /** Absolute role-file path for one DSH home. */
 export function modelsFilePath(dshHome: string): string {
   return join(dshHome, PSTACK_MODELS_FILENAME);
+}
+
+/** The first-run role file: every role inherits the parent route until the user configures one. */
+export function renderBaselineRoleFile(): string {
+  return [
+    "# pstack model configuration. One line per role. Delete a line to inherit the parent route.",
+    "# `inherit-parent` or `auto` as a value: the role runs on the parent chat model.",
+    ...ROLE_MANIFEST.map((role) => `${role.key}: inherit-parent`),
+    "",
+  ].join("\n");
+}
+
+/**
+ * Write the baseline role file when it is missing.
+ *
+ * An existing file is never rewritten, including a malformed one. The role
+ * service reports malformed lines; silently replacing them would discard edits.
+ * Returns true when this call created the file.
+ */
+export function ensureRoleBaseline(path: string): boolean {
+  if (existsSync(path)) return false;
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, renderBaselineRoleFile(), "utf8");
+  return true;
 }
 
 /** Resolve `$DSH_HOME`: environment first, then `~/.dsh`. */

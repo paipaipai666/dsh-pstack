@@ -1,9 +1,15 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
-import { parseRoleConfiguration, readRoleConfiguration, selectRoutes } from "../src/role-config.ts";
+import {
+  ensureRoleBaseline,
+  parseRoleConfiguration,
+  readRoleConfiguration,
+  renderBaselineRoleFile,
+  selectRoutes,
+} from "../src/role-config.ts";
 import { parseRoute } from "../src/route.ts";
 import { findRole } from "../src/role-manifest.ts";
 
@@ -76,6 +82,26 @@ describe("role manifest and parser", () => {
       },
       { line: 2, message: 'unknown pstack role "retired role"' },
     ]);
+  });
+
+  it("writes an inherit-parent baseline once and never overwrites it", () => {
+    const path = join(homeWithRoles(undefined), "pstack-models.mdc");
+    expect(existsSync(path)).toBe(false);
+
+    expect(ensureRoleBaseline(path)).toBe(true);
+    const parsed = readRoleConfiguration(path);
+    expect(parsed.status).toBe("loaded");
+    if (parsed.status !== "loaded") return;
+    expect(parsed.issues).toEqual([]);
+    expect(parsed.roles.size).toBe(17);
+    expect([...parsed.roles.values()].every((role) => role.routes[0]?.kind === "inherit")).toBe(
+      true,
+    );
+
+    writeFileSync(path, "bug-fix: inherit-parent\n");
+    expect(ensureRoleBaseline(path)).toBe(false);
+    expect(readFileSync(path, "utf8")).toBe("bug-fix: inherit-parent\n");
+    expect(renderBaselineRoleFile()).toContain("feature, refactoring: inherit-parent");
   });
 
   it("distinguishes a missing file from an unreadable path", () => {

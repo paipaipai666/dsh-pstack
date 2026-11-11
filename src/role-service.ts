@@ -8,7 +8,12 @@ import type {} from "@deepseek-ai/dsh-typert-registry";
 
 import { collectCatalogue, type CatalogueResult } from "./models.ts";
 import type { BudgetApplyRequest } from "./budget.ts";
-import { modelsFilePath, readRoleConfiguration, resolveDshHome } from "./role-config.ts";
+import {
+  ensureRoleBaseline,
+  modelsFilePath,
+  readRoleConfiguration,
+  resolveDshHome,
+} from "./role-config.ts";
 import {
   saveBudgetConfiguration,
   saveRoleConfiguration,
@@ -31,6 +36,7 @@ export class PstackRolesService extends TypertRemoteService {
   }
 
   protected [Service.init](): void {
+    ensureRoleBaseline(roleFilePath());
     this.ctx.typert.register(pstackRolesHostContribution);
   }
 

@@ -23,14 +23,14 @@ export const SECTION_NAME = "pstack:poteto-mode";
 /** Section order. */
 export const SECTION_ORDER = 10;
 
-/** Error used when Agent Teams would compete with pstack delegation. */
+/** Notice shown when Agent Teams would compete with pstack delegation. */
 export const AGENT_TEAMS_CONFLICT =
-  "pstack root presets cannot be used with Agent Teams. Disable @deepseek-ai/dsh-experimental-agent-team-profile in this profile, or use the standard or Creator preset for Agent Teams.";
+  "pstack root presets cannot run their persistent poteto-mode workflow while Agent Teams is enabled in this profile. This preset loads without that section. Disable @deepseek-ai/dsh-experimental-agent-team-profile to restore it.";
 
-/** Refuse to mount a pstack root preset when Agent Teams owns delegation. */
-export function assertNoAgentTeams(ctx: Context): void {
+/** Whether Agent Teams owns delegation in this context. */
+export function hasAgentTeams(ctx: Context): boolean {
   const host = ctx as unknown as { get(name: string): unknown };
-  if (host.get("agentTeams") !== undefined) throw new Error(AGENT_TEAMS_CONFLICT);
+  return host.get("agentTeams") !== undefined;
 }
 
 /** The prompt section shape accepted by the system prompt registry. */
@@ -83,16 +83,17 @@ export interface PotetoModeSectionPaths {
 }
 
 export function apply(ctx: Context, paths?: PotetoModeSectionPaths): void {
-  assertNoAgentTeams(ctx);
   const host = ctx as unknown as SystemPromptHost;
+  if (hasAgentTeams(ctx)) {
+    const notice: PromptSectionLike = {
+      name: SECTION_NAME,
+      order: SECTION_ORDER,
+      interpolate: false,
+      text: AGENT_TEAMS_CONFLICT,
+    };
+    ctx.effect(() => host.systemPrompt.section(notice), "pstack.poteto-mode.agent-teams-notice()");
+    return;
+  }
   const section = createPotetoModeSection(paths?.skillPath, paths?.harnessDocPath);
   ctx.effect(() => host.systemPrompt.section(section), "pstack.poteto-mode.section()");
-  ctx.effect(
-    () =>
-      ctx.on("agent/created", ({ agent }) => {
-        const preset = agent.session.header.agentPreset;
-        if (preset === "poteto-mode" || preset === "poteto-mode-creator") assertNoAgentTeams(ctx);
-      }),
-    "pstack.poteto-mode.team-guard()",
-  );
 }

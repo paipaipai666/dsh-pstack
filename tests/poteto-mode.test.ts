@@ -9,8 +9,8 @@ import { readPatch } from "./patch-name.ts";
 import {
   AGENT_TEAMS_CONFLICT,
   apply,
-  assertNoAgentTeams,
   createPotetoModeSection,
+  hasAgentTeams,
   SECTION_NAME,
   SECTION_ORDER,
   type PromptSectionLike,
@@ -108,15 +108,21 @@ describe("poteto-mode creator root preset", () => {
   });
 });
 
-describe("Agent Teams guard", () => {
-  it("rejects a profile with the Agent Teams service", () => {
-    const ctx = {
+describe("Agent Teams detection", () => {
+  it("reports whether the Agent Teams service is present", () => {
+    const present = {
       get(name: string) {
         return name === "agentTeams" ? {} : undefined;
       },
     } as unknown as Context;
+    const absent = {
+      get() {
+        return undefined;
+      },
+    } as unknown as Context;
 
-    expect(() => assertNoAgentTeams(ctx)).toThrow(AGENT_TEAMS_CONFLICT);
+    expect(hasAgentTeams(present)).toBe(true);
+    expect(hasAgentTeams(absent)).toBe(false);
   });
 });
 
@@ -148,5 +154,35 @@ describe("apply", () => {
     expect(captured).toHaveLength(1);
     expect(captured[0]?.name).toBe(SECTION_NAME);
     expect(captured[0]?.interpolate).toBe(false);
+  });
+
+  it("registers a conflict notice instead of the skill when Agent Teams is present", () => {
+    const captured: PromptSectionLike[] = [];
+    const { skillPath, directory } = temporarySkill();
+    const ctx = {
+      get(name: string) {
+        return name === "agentTeams" ? {} : undefined;
+      },
+      effect(fn: () => () => void) {
+        fn();
+        return () => {};
+      },
+      on() {
+        return () => {};
+      },
+      systemPrompt: {
+        section(section: PromptSectionLike) {
+          captured.push(section);
+          return () => {};
+        },
+      },
+    } as unknown as Context;
+
+    apply(ctx, { skillPath, harnessDocPath: join(directory, "dsh.md") });
+
+    expect(captured).toHaveLength(1);
+    expect(captured[0]?.name).toBe(SECTION_NAME);
+    expect(captured[0]?.text).toBe(AGENT_TEAMS_CONFLICT);
+    expect(captured[0]?.text).not.toContain("PROVE-THE-SECTION");
   });
 });

@@ -21,7 +21,6 @@ import type {
 } from "@deepseek-ai/dsh-subagent";
 import type { JsonSchemaNode, ToolDefinition, ToolRunContext } from "@deepseek-ai/dsh-tools";
 
-import { POTETO_MODE_SKILL_PATH } from "./paths.ts";
 import {
   modelsFilePath,
   readRoleConfiguration,
@@ -132,7 +131,6 @@ export interface DelegationRuntime {
   readonly llm: LlmRuntime;
   readonly workingDirectory: WorkingDirectoryService;
   readonly dshHome: string;
-  readonly potetoModeSkillPath: string;
 }
 
 /** Validate the row's own config; omitted config uses the default provider. */
@@ -291,10 +289,7 @@ export function planDelegation(
   ];
   const roleName = selection?.role.key ?? "(none)";
   const agentPreset = args.agent === "general" ? undefined : AGENT_PRESETS[args.agent];
-  const prompt =
-    args.agent === "poteto-agent"
-      ? injectPotetoModePath(args.prompt, runtime.potetoModeSkillPath)
-      : args.prompt;
+  const prompt = args.agent === "poteto-agent" ? injectPotetoModeSkill(args.prompt) : args.prompt;
   const hostDepth = runtime.subagents.resolveMaxDepth(config.maxDepth);
   const depth = resolveChildDepth(args.maxDepth, config, hostDepth);
 
@@ -422,7 +417,6 @@ export function apply(ctx: Context, rawConfig?: unknown): void {
     llm: ctx.llm,
     workingDirectory: ctx.workingDirectory,
     dshHome: resolveDshHome(),
-    potetoModeSkillPath: POTETO_MODE_SKILL_PATH,
   };
   ctx.tools.register(createPstackSubagentTool(runtime, config));
 }
@@ -689,12 +683,13 @@ function isWithin(root: string, target: string): boolean {
   return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
 }
 
-function injectPotetoModePath(task: string, path: string): string {
+function injectPotetoModeSkill(task: string): string {
   return [
-    "Absolute path injected by `pstack_subagent`:",
-    `- \`poteto-mode\` SKILL.md: \`${path}\``,
+    "Load the `poteto-mode` skill before doing any work:",
+    'call `pstack_skill` with `name: "poteto-mode"` and read the full instructions,',
+    "including its inline Principles index.",
     "",
-    "Read it directly before doing any work. Your skill catalog hides this skill, so a missing catalog entry does not mean pstack is absent.",
+    "Your skill catalog hides this skill, so a missing catalog entry does not mean pstack is absent.",
     "",
     "Task:",
     "",

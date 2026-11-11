@@ -1,3 +1,5 @@
+import { join } from "node:path";
+
 import { describe, expect, it } from "vite-plus/test";
 
 import {
@@ -5,6 +7,7 @@ import {
   collectWorkspaceCheck,
   createPstackDoctorTool,
   renderReport,
+  resolveProfileDir,
   runCommandVersion,
 } from "../src/doctor.ts";
 
@@ -39,6 +42,16 @@ describe("pstack_doctor", () => {
     expect(result.scripts).toHaveLength(5);
     expect(result.optionalPlugins).toHaveLength(8);
     expect(result.optionalPlugins.every((plugin) => plugin.status === "unknown")).toBe(true);
+  });
+
+  it("derives the profile directory from DSH_HOME when the environment omits it", () => {
+    expect(resolveProfileDir({}, "/tmp/dsh-home")).toBe(
+      join("/tmp/dsh-home", "profiles", "desktop"),
+    );
+    expect(resolveProfileDir({ DSH_PROFILE: "headless" }, "/tmp/dsh-home")).toBe(
+      join("/tmp/dsh-home", "profiles", "headless"),
+    );
+    expect(resolveProfileDir({ DSH_PROFILE_DIR: "/explicit" }, "/tmp/dsh-home")).toBe("/explicit");
   });
 
   it("reports enabled, installed, partial, and missing optional plugins from the profile manifest", () => {

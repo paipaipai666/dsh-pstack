@@ -118,6 +118,21 @@ export function runCommandVersion(command: string): string | undefined {
   return output.split(/\r?\n/, 1)[0] || "available";
 }
 
+/** Resolve the active profile directory, deriving it from DSH_HOME when the environment omits it. */
+export function resolveProfileDir(
+  env: {
+    readonly DSH_HOME?: string;
+    readonly DSH_PROFILE_DIR?: string;
+    readonly DSH_PROFILE?: string;
+  },
+  dshHome: string,
+): string {
+  const explicit = env.DSH_PROFILE_DIR?.trim();
+  if (explicit) return explicit;
+  const profile = env.DSH_PROFILE?.trim() || "desktop";
+  return join(dshHome, "profiles", profile);
+}
+
 /** Read the current profile's optional-plugin state from its package manifest. */
 export function collectOptionalPluginChecks(
   profileDir: string | undefined,
@@ -452,7 +467,7 @@ export function apply(ctx: PstackDoctorHost): void {
   ctx.tools.register(
     createPstackDoctorTool({
       dshHome: resolveDshHome(process.env),
-      profileDir: process.env.DSH_PROFILE_DIR,
+      profileDir: resolveProfileDir(process.env, resolveDshHome(process.env)),
       resolveWorkspace: async (exec) => {
         if (exec.agent === undefined) {
           return undefined;

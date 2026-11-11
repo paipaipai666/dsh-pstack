@@ -188,11 +188,14 @@
     "CAP-020": {
       "key": "run_in_background",
       "origin": "accepted",
-      "decision": "直接映射",
-      "recommendation": "🟢 直接映射。标准模式覆盖，无剩余缺口。",
-      "conflict": "无。",
-      "residual": "无。",
-      "sourceDigest": "sha256:29701c939f3e580c86a4d9a6597ad6a7ebc17f9fbae63bcc85c48cb90e7b3ddc"
+      "decision": "插件实现",
+      "recommendation": "🟠 插件实现。`pstack_subagent` 启动后立即返回，结果以 completion notice 送达；技能正文不写 `run_in_background`。",
+      "conflict": "标准 `subagent` 与 `pstack_subagent` 都返回子会话 id；pstack 的角色与预算只走后者。",
+      "residual": "无。`run_in_background` 不是 `pstack_subagent` 的字段；调用方省略它。",
+      "sourceDigest": "sha256:29701c939f3e580c86a4d9a6597ad6a7ebc17f9fbae63bcc85c48cb90e7b3ddc",
+      "requirement": "插件提供 `pstack_subagent` 的启动即返回语义。验收：一次调用返回 childId，完成后父会话收到 completion notice。",
+      "dshImplementation": "src/subagent.ts:484-570",
+      "dshTests": "tests/subagent.test.ts"
     },
     "CAP-021": {
       "key": "resume",
@@ -512,11 +515,13 @@
     "CAP-054": {
       "key": "bun",
       "origin": "accepted",
-      "decision": "直接映射",
-      "recommendation": "🟢 直接映射。`watch-pr` 原样保留 Bun shebang，插件声明 Bun 依赖。Bun 缺失时明确报错，不改写为 Node。",
-      "conflict": "DSH 主运行时是 Node 26，`watch-pr` 要求 Bun。两套运行时并存。",
-      "residual": "Bun 缺失时 `watch-pr` 不可用，不能改用 Node 运行，因为入口用了 Bun API。",
-      "sourceDigest": "sha256:0cba746e15c313003fc1b74ff9a2897df613cb1e0462d4aa745b21c20b7df7c5"
+      "decision": "舍弃",
+      "recommendation": "🔴 舍弃。不在 DSH 侧保留 Bun 依赖，`watch-pr` 统一用 Host Node 执行。",
+      "conflict": "无。",
+      "residual": "仍需外部 `gh` 登录与网络访问 GitHub。",
+      "sourceDigest": "sha256:0cba746e15c313003fc1b74ff9a2897df613cb1e0462d4aa745b21c20b7df7c5",
+      "dshImplementation": "runtime/skills/poteto-mode/scripts/watch-pr/cli.ts",
+      "dshTests": "runtime/skills/poteto-mode/scripts/watch-pr/cli.test.ts"
     },
     "CAP-055": {
       "key": "mise",
@@ -584,11 +589,13 @@
     "CAP-062": {
       "key": "log.sh",
       "origin": "accepted",
-      "decision": "直接映射",
-      "recommendation": "🟢 直接映射。标准模式覆盖，无剩余缺口。",
+      "decision": "插件实现",
+      "recommendation": "🟠 插件实现。`pstack_script` 的 `log` 入口用 Host Node 运行 `log.mjs` 追加 TSV。",
       "conflict": "无。",
       "residual": "无。",
-      "sourceDigest": "sha256:612227370459adc1e0e406d0013d54345f8c0a447241fec7bedcd7457fdf230f"
+      "sourceDigest": "sha256:612227370459adc1e0e406d0013d54345f8c0a447241fec7bedcd7457fdf230f",
+      "dshImplementation": "runtime/skills/show-me-your-work/scripts/log.ts",
+      "dshTests": "runtime/skills/show-me-your-work/scripts/log.test.ts"
     },
     "CAP-063": {
       "key": "statechart",
@@ -602,21 +609,25 @@
     "CAP-064": {
       "key": "bootstrap.ts",
       "origin": "accepted",
-      "decision": "直接映射",
-      "recommendation": "🟢 直接映射。`bootstrap.ts` 保持原样，首次运行联网安装到技能目录的 `node_modules`。离线时报告依赖缺失。",
-      "conflict": "`bootstrap.ts` 用 Bun 安装依赖，和仓库的 pnpm 是两套包管理。",
-      "residual": "离线环境不可用，且会在技能目录写 `node_modules`。",
-      "sourceDigest": "sha256:0c633e9d7e77230aec0cd7eec859eedd76919ec70327a2601606286d1c183fdd"
+      "decision": "舍弃",
+      "recommendation": "🔴 舍弃。构建期把 `watch-pr` 依赖内联到 runtime 产物，运行期没有 bootstrap 步骤。",
+      "conflict": "无。",
+      "residual": "仍需 `gh` 登录与网络访问 GitHub。",
+      "sourceDigest": "sha256:0c633e9d7e77230aec0cd7eec859eedd76919ec70327a2601606286d1c183fdd",
+      "dshImplementation": "package.json:90",
+      "dshTests": "runtime/skills/poteto-mode/scripts/watch-pr/cli.test.ts"
     },
     "CAP-065": {
       "key": "Pele",
       "origin": "override",
-      "decision": "舍弃",
-      "recommendation": "🔴 舍弃。不提供图表渲染；statechart 只输出 Mermaid 文本，用户需要图片时自行渲染。",
+      "decision": "插件实现",
+      "recommendation": "🟠 插件实现。`pstack_chart` 把 `chart.mmd` 画成 SVG，不依赖 Mermaid、浏览器或外部二进制。",
       "requirement": "无。插件不实现渲染步骤。",
-      "conflict": "Mermaid 文本与外部渲染器是两条路径。插件只输出 Mermaid 文本，需要图片时由用户自行渲染。",
-      "residual": "没有内置 SVG 输出，图片需用户在插件之外生成。",
-      "sourceDigest": "sha256:fc315f98ff60abd84409f1e9ca9aa0440627119715911432f11aa59e96dcdd7d"
+      "conflict": "布局是确定的近似值，不是 Mermaid 的排版。`chart.mmd` 仍是权威产物；无法解析的行按行号报错，不猜测。",
+      "residual": "交叉边与自环只画一条近似曲线；复杂图的可读性不如 Pele 的在线渲染。",
+      "sourceDigest": "sha256:fc315f98ff60abd84409f1e9ca9aa0440627119715911432f11aa59e96dcdd7d",
+      "dshImplementation": "src/chart.ts",
+      "dshTests": "tests/chart.test.ts"
     },
     "CAP-066": {
       "key": "视频渲染",

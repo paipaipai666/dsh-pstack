@@ -34,31 +34,31 @@
 | 技能 | 58 |
 | 脚本入口 | 5 |
 | 引用校验 | 234 |
-| 🟢 直接映射 | 40 |
+| 🟢 直接映射 | 37 |
 | 🔵 官方插件 | 3 |
-| 🟠 插件实现 | 19 |
-| 🔴 舍弃 | 6 |
+| 🟠 插件实现 | 21 |
+| 🔴 舍弃 | 8 |
 
 `脚本入口` 只统计随包可执行入口（check-plan、watch-pr、worktree-audit、log、statechart），不含 Java 测试辅助、Cursor Automations 等运行时能力项。
 
 | 分类 | 能力 | 推荐分布 |
 |:--|--:|:--|
 | [A 工具](#cat-a) | 12 | 🟢 直接映射 8 · 🟠 插件实现 3 · 🔴 舍弃 1 |
-| [B 子代理字段](#cat-b) | 10 | 🟢 直接映射 6 · 🟠 插件实现 4 |
+| [B 子代理字段](#cat-b) | 10 | 🟢 直接映射 5 · 🟠 插件实现 5 |
 | [C 模型与角色](#cat-c) | 7 | 🟢 直接映射 2 · 🟠 插件实现 5 |
 | [D 路径与历史](#cat-d) | 5 | 🟢 直接映射 4 · 🔴 舍弃 1 |
 | [E Cursor 平台](#cat-e) | 14 | 🟢 直接映射 8 · 🔵 官方插件 2 · 🟠 插件实现 3 · 🔴 舍弃 1 |
 | [F 其他 Cursor 插件](#cat-f) | 6 | 🔵 官方插件 1 · 🟠 插件实现 3 · 🔴 舍弃 2 |
-| [G 运行时与脚本](#cat-g) | 14 | 🟢 直接映射 12 · 🟠 插件实现 1 · 🔴 舍弃 1 |
+| [G 运行时与脚本](#cat-g) | 14 | 🟢 直接映射 9 · 🟠 插件实现 2 · 🔴 舍弃 3 |
 
 ## 按推荐分组
 
 | 推荐 | 数量 | 编号 |
 |:--|--:|:--|
-| 🟢 直接映射 | 40 | [CAP-002](#cap-002) [CAP-003](#cap-003) [CAP-005](#cap-005) [CAP-006](#cap-006) [CAP-007](#cap-007) [CAP-008](#cap-008) [CAP-009](#cap-009) [CAP-010](#cap-010) [CAP-014](#cap-014) [CAP-018](#cap-018) [CAP-019](#cap-019) [CAP-020](#cap-020) [CAP-021](#cap-021) [CAP-022](#cap-022) [CAP-026](#cap-026) [CAP-027](#cap-027) [CAP-030](#cap-030) [CAP-031](#cap-031) [CAP-032](#cap-032) [CAP-034](#cap-034) [CAP-037](#cap-037) [CAP-038](#cap-038) [CAP-040](#cap-040) [CAP-042](#cap-042) [CAP-043](#cap-043) [CAP-044](#cap-044) [CAP-045](#cap-045) [CAP-047](#cap-047) [CAP-054](#cap-054) [CAP-055](#cap-055) [CAP-056](#cap-056) [CAP-057](#cap-057) [CAP-058](#cap-058) [CAP-059](#cap-059) [CAP-060](#cap-060) [CAP-061](#cap-061) [CAP-062](#cap-062) [CAP-063](#cap-063) [CAP-064](#cap-064) [CAP-067](#cap-067) |
+| 🟢 直接映射 | 37 | [CAP-002](#cap-002) [CAP-003](#cap-003) [CAP-005](#cap-005) [CAP-006](#cap-006) [CAP-007](#cap-007) [CAP-008](#cap-008) [CAP-009](#cap-009) [CAP-010](#cap-010) [CAP-014](#cap-014) [CAP-018](#cap-018) [CAP-019](#cap-019) [CAP-021](#cap-021) [CAP-022](#cap-022) [CAP-026](#cap-026) [CAP-027](#cap-027) [CAP-030](#cap-030) [CAP-031](#cap-031) [CAP-032](#cap-032) [CAP-034](#cap-034) [CAP-037](#cap-037) [CAP-038](#cap-038) [CAP-040](#cap-040) [CAP-042](#cap-042) [CAP-043](#cap-043) [CAP-044](#cap-044) [CAP-045](#cap-045) [CAP-047](#cap-047) [CAP-055](#cap-055) [CAP-056](#cap-056) [CAP-057](#cap-057) [CAP-058](#cap-058) [CAP-059](#cap-059) [CAP-060](#cap-060) [CAP-061](#cap-061) [CAP-063](#cap-063) [CAP-067](#cap-067) |
 | 🔵 官方插件 | 3 | [CAP-041](#cap-041) [CAP-046](#cap-046) [CAP-050](#cap-050) |
-| 🟠 插件实现 | 19 | [CAP-001](#cap-001) [CAP-004](#cap-004) [CAP-011](#cap-011) [CAP-013](#cap-013) [CAP-015](#cap-015) [CAP-016](#cap-016) [CAP-017](#cap-017) [CAP-023](#cap-023) [CAP-024](#cap-024) [CAP-025](#cap-025) [CAP-028](#cap-028) [CAP-029](#cap-029) [CAP-035](#cap-035) [CAP-039](#cap-039) [CAP-048](#cap-048) [CAP-049](#cap-049) [CAP-051](#cap-051) [CAP-065](#cap-065) [CAP-068](#cap-068) |
-| 🔴 舍弃 | 6 | [CAP-012](#cap-012) [CAP-033](#cap-033) [CAP-036](#cap-036) [CAP-052](#cap-052) [CAP-053](#cap-053) [CAP-066](#cap-066) |
+| 🟠 插件实现 | 21 | [CAP-001](#cap-001) [CAP-004](#cap-004) [CAP-011](#cap-011) [CAP-013](#cap-013) [CAP-015](#cap-015) [CAP-016](#cap-016) [CAP-017](#cap-017) [CAP-020](#cap-020) [CAP-023](#cap-023) [CAP-024](#cap-024) [CAP-025](#cap-025) [CAP-028](#cap-028) [CAP-029](#cap-029) [CAP-035](#cap-035) [CAP-039](#cap-039) [CAP-048](#cap-048) [CAP-049](#cap-049) [CAP-051](#cap-051) [CAP-062](#cap-062) [CAP-065](#cap-065) [CAP-068](#cap-068) |
+| 🔴 舍弃 | 8 | [CAP-012](#cap-012) [CAP-033](#cap-033) [CAP-036](#cap-036) [CAP-052](#cap-052) [CAP-053](#cap-053) [CAP-054](#cap-054) [CAP-064](#cap-064) [CAP-066](#cap-066) |
 
 `CAP-066` 视频渲染延期（deferred），不计入本轮实现范围。
 
@@ -108,7 +108,7 @@
 | [CAP-017](#cap-017) | 只读子代理 | 🟠 插件实现 | 标准模式没有只读子代理入口 | 插件实现 | |
 | [CAP-018](#cap-018) | 执行环境 | 🟢 直接映射 | Cursor 云代理本身按上游排除项舍弃 | 直接映射 | |
 | [CAP-019](#cap-019) | 云代理基线分支 | 🟢 直接映射 | 云代理舍弃后，这个字段只对工作树有意义 | 直接映射 | |
-| [CAP-020](#cap-020) | 后台子代理 | 🟢 直接映射 | 无 | 直接映射 | |
+| [CAP-020](#cap-020) | 后台子代理 | 🟠 插件实现 | `pstack_subagent` 启动后立即返回，结果以 completion notice 送达；没有 background 字段 | 插件实现 | |
 | [CAP-021](#cap-021) | 恢复子代理 | 🟢 直接映射 | 无 | 直接映射 | |
 | [CAP-022](#cap-022) | 文件附件 | 🟢 直接映射 | 没有附件对象，只有路径 | 直接映射 | |
 | [CAP-023](#cap-023) | Claude 模型 slug | 🟠 插件实现 | 本部署的路由不是 Claude 命名，slug 必须映射到实际路由 | 插件实现 | |
@@ -142,7 +142,7 @@
 | [CAP-051](#cap-051) | 代码去噪技能 | 🟠 插件实现 | `deslop` 属于 `cursor-team-kit`，pstack 仓库和 DSH 标准模式都没有这份技能 | 插件实现 | |
 | [CAP-052](#cap-052) | Graphite CLI | 🔴 舍弃 | 上游明确非必需 | 舍弃 | |
 | [CAP-053](#cap-053) | Origin forge CLI | 🔴 舍弃 | 本机没有 `origin` | 舍弃 | |
-| [CAP-054](#cap-054) | Bun 运行时 | 🟢 直接映射 | 插件必须声明 Bun 依赖 | 直接映射 | |
+| [CAP-054](#cap-054) | Bun 运行时 | 🔴 舍弃 | `watch-pr` 已由 runtime TypeScript 经 `pstack_script` 用 Host Node 运行，不需要 Bun | 舍弃 | |
 | [CAP-055](#cap-055) | mise 工具管理器 | 🟢 直接映射 | 首次运行需要网络与管理器可用 | 直接映射 | |
 | [CAP-056](#cap-056) | TLC 模型检查器 | 🟢 直接映射 | 需要网络与 mise | 直接映射 | |
 | [CAP-057](#cap-057) | Java 运行时 | 🟢 直接映射 | 需要网络与 mise 才能安装首选版本 | 直接映射 | |
@@ -150,9 +150,9 @@
 | [CAP-059](#cap-059) | 计划文件校验脚本 | 🟢 直接映射 | 无 | 直接映射 | |
 | [CAP-060](#cap-060) | watch-pr 脚本 | 🟢 直接映射 | 需要 Bun、网络与 gh 登录 | 直接映射 | |
 | [CAP-061](#cap-061) | worktree-audit 脚本 | 🟢 直接映射 | 无 | 直接映射 | |
-| [CAP-062](#cap-062) | 决策日志脚本 | 🟢 直接映射 | 无 | 直接映射 | |
+| [CAP-062](#cap-062) | 决策日志脚本 | 🟠 插件实现 | 只出货 `log.mjs`，经 `pstack_script` 的 `log` 入口调用 | 插件实现 | |
 | [CAP-063](#cap-063) | statechart 脚本树 | 🟢 直接映射 | 依赖 Bun 或 Node 的 TypeScript 执行、mise、TLC、Java 与网络 | 直接映射 | |
-| [CAP-064](#cap-064) | 依赖安装器 | 🟢 直接映射 | 离线环境不可用 | 直接映射 | |
+| [CAP-064](#cap-064) | 依赖安装器 | 🔴 舍弃 | `watch-pr` 依赖在构建期内联，dist 与 `script-registry` 都没有 `bootstrap.ts` | 舍弃 | |
 | [CAP-065](#cap-065) | Pele 图表渲染 | 🟠 插件实现 | `pstack_chart` 把 `chart.mmd` 画成 SVG，不依赖 Mermaid 或浏览器 | 插件实现 | |
 | [CAP-066](#cap-066) | 视频渲染 | 🔴 舍弃 | 延期（deferred），不在本轮范围；需要视频时由用户使用外部工具 | 舍弃 | |
 | [CAP-067](#cap-067) | 性能测量 工具链 | 🟢 直接映射 | 本机缺少 `py-spy` | 直接映射 | |
@@ -543,7 +543,7 @@
 
 <a id="cap-020"></a>
 
-### CAP-020 run_in_background 后台子代理　🟢 直接映射
+### CAP-020 run_in_background 后台子代理　🟠 插件实现
 
 | 维度 | 内容 |
 |:--|:--|
@@ -551,11 +551,13 @@
 | 🖱️ Cursor 行为 | `run_in_background: true` 让派生立即返回。 |
 | 🧰 标准模式 | `subagent` 立即返回子会话 id，完成后通知父会话。 |
 | 🧩 官方插件 | 无。 |
-| 🕳️ 剩余缺口 | 无。 |
-| ⚔️ 冲突 | 无。 |
+| 🕳️ 剩余缺口 | `pstack_subagent` 的 schema 没有 `run_in_background` 字段，传了会报 `unknown pstack_subagent argument`。 |
+| 🧾 DSH 实现 | `src/subagent.ts:484-570`：一次调用启动子代理后立即返回，结果以 completion notice 送达；技能正文不传后台字段。 |
+| 🧪 测试 | `tests/subagent.test.ts`。 |
+| ⚔️ 冲突 | 标准 `subagent` 与 `pstack_subagent` 都返回子会话 id；pstack 角色与预算只走后者。 |
 | 🚧 最终遗留 | 无。 |
-| 💡 推荐 | 🟢 直接映射。标准模式覆盖，无剩余缺口。 |
-| ✅ 处置 | 直接映射 |
+| 💡 推荐 | 🟠 插件实现。`pstack_subagent` 启动即返回，结果以 completion notice 送达；技能正文不写 `run_in_background`。 |
+| ✅ 处置 | 插件实现 |
 
 [返回审核清单](#审核清单)
 
@@ -1213,19 +1215,21 @@
 
 <a id="cap-054"></a>
 
-### CAP-054 Bun 运行时　🟢 直接映射
+### CAP-054 Bun 运行时　🔴 舍弃
 
 | 维度 | 内容 |
 |:--|:--|
 | 📍 使用位置 | `skills/poteto-mode/scripts/bootstrap.ts:21`、`skills/reflect/references/synthesizer.md:33`、`skills/statechart/scripts/statechart:22`、`skills/poteto-mode/scripts/bootstrap.ts:43` |
 | 🖱️ Cursor 行为 | `watch-pr` 入口 shebang 是 `#!/usr/bin/env bun`，并调用 `bootstrap.ts` 安装依赖。 |
-| 🧰 标准模式 | DSH 自带 Node 26。Bun 由 mise 安装，本机可用。 |
+| 🧰 标准模式 | DSH 自带 Node 运行时。 |
 | 🧩 官方插件 | 无。 |
-| 🕳️ 剩余缺口 | 插件必须声明 Bun 依赖。缺少 Bun 时 `watch-pr` 不可用。 |
-| ⚔️ 冲突 | DSH 主运行时是 Node 26，`watch-pr` 要求 Bun。两套运行时并存。 |
-| 🚧 最终遗留 | Bun 缺失时 `watch-pr` 不可用，不能改用 Node 运行，因为入口用了 Bun API。 |
-| 💡 推荐 | 🟢 直接映射。`watch-pr` 原样保留 Bun shebang，插件声明 Bun 依赖。Bun 缺失时明确报错，不改写为 Node。 |
-| ✅ 处置 | 直接映射 |
+| 🕳️ 剩余缺口 | `watch-pr` 已改为 runtime TypeScript，`pstack_script` 用 Host Node 执行；不再需要 Bun。 |
+| 🧾 DSH 实现 | `runtime/skills/poteto-mode/scripts/watch-pr/cli.ts` 编译为 `runtime/dist/poteto-mode/scripts/watch-pr/cli.mjs`，由 `src/script.ts` 的 `pstack_script` 执行。 |
+| 🧪 测试 | `runtime/skills/poteto-mode/scripts/watch-pr/cli.test.ts`。 |
+| ⚔️ 冲突 | 无。 |
+| 🚧 最终遗留 | 仍需外部 `gh` 登录与网络访问 GitHub。 |
+| 💡 推荐 | 🔴 舍弃。不在 DSH 侧保留 Bun 依赖，`watch-pr` 统一用 Host Node 执行。 |
+| ✅ 处置 | 舍弃 |
 
 [返回审核清单](#审核清单)
 
@@ -1357,19 +1361,21 @@
 
 <a id="cap-062"></a>
 
-### CAP-062 log.sh 决策日志脚本　🟢 直接映射
+### CAP-062 log.sh 决策日志脚本　🟠 插件实现
 
 | 维度 | 内容 |
 |:--|:--|
 | 📍 使用位置 | `skills/show-me-your-work/scripts/log.sh:3`、`skills/show-me-your-work/scripts/log.sh:7`、`skills/show-me-your-work/SKILL.md:38` |
 | 🖱️ Cursor 行为 | show-me-your-work 用 `log.sh` 追加 TSV 行，自动写表头、转义单元格。 |
-| 🧰 标准模式 | Bash 脚本，依赖 `date` 与基础 shell 工具。原样复制并保留可执行位。 |
+| 🧰 标准模式 | DSH 没有 TSV 决策日志脚本。 |
 | 🧩 官方插件 | 无。 |
-| 🕳️ 剩余缺口 | 无。 |
+| 🕳️ 剩余缺口 | 上游 `log.sh` 不随包；本插件出货 `log.mjs`。 |
+| 🧾 DSH 实现 | `runtime/skills/show-me-your-work/scripts/log.ts` 编译为 `runtime/dist/show-me-your-work/scripts/log.mjs`，由 `pstack_script` 的 `log` 入口调用。 |
+| 🧪 测试 | `runtime/skills/show-me-your-work/scripts/log.test.ts`。 |
 | ⚔️ 冲突 | 无。 |
 | 🚧 最终遗留 | 无。 |
-| 💡 推荐 | 🟢 直接映射。标准模式覆盖，无剩余缺口。 |
-| ✅ 处置 | 直接映射 |
+| 💡 推荐 | 🟠 插件实现。`pstack_script id:"log"` 用 Host Node 追加 TSV。 |
+| ✅ 处置 | 插件实现 |
 
 [返回审核清单](#审核清单)
 
@@ -1393,19 +1399,21 @@
 
 <a id="cap-064"></a>
 
-### CAP-064 bootstrap.ts 依赖安装器　🟢 直接映射
+### CAP-064 bootstrap.ts 依赖安装器　🔴 舍弃
 
 | 维度 | 内容 |
 |:--|:--|
 | 📍 使用位置 | `skills/poteto-mode/scripts/watch-pr/watch-pr:2` |
 | 🖱️ Cursor 行为 | `watch-pr` 启动前调用 `ensureDependenciesInstalled()`，安装 `commander` 等依赖。 |
-| 🧰 标准模式 | Node/Bun 脚本，会写 `node_modules` 并访问网络。 |
+| 🧰 标准模式 | `pstack_script` 用 Host Node 执行随包 `runtime/dist` 产物。 |
 | 🧩 官方插件 | 无。 |
-| 🕳️ 剩余缺口 | 离线环境不可用。需要声明网络与写盘。 |
-| ⚔️ 冲突 | `bootstrap.ts` 用 Bun 安装依赖，和仓库的 pnpm 是两套包管理。 |
-| 🚧 最终遗留 | 离线环境不可用，且会在技能目录写 `node_modules`。 |
-| 💡 推荐 | 🟢 直接映射。`bootstrap.ts` 保持原样，首次运行联网安装到技能目录的 `node_modules`。离线时报告依赖缺失。 |
-| ✅ 处置 | 直接映射 |
+| 🕳️ 剩余缺口 | 不随包出货 `bootstrap.ts`；`watch-pr` 的依赖在构建期打进 runtime 产物。 |
+| 🧾 DSH 实现 | `package.json:90` 把 `commander` 标为 `catalog:inlined`；`runtime/dist/poteto-mode/scripts/watch-pr/cli.mjs` 直接运行。 |
+| 🧪 测试 | `runtime/skills/poteto-mode/scripts/watch-pr/cli.test.ts`。 |
+| ⚔️ 冲突 | 无。 |
+| 🚧 最终遗留 | 无需联网安装依赖；仍需 `gh` 登录与网络访问。 |
+| 💡 推荐 | 🔴 舍弃。构建期内联依赖，运行期没有 bootstrap 步骤。 |
+| ✅ 处置 | 舍弃 |
 
 [返回审核清单](#审核清单)
 
@@ -1420,6 +1428,8 @@
 | 🧰 标准模式 | DSH 标准模式没有图表渲染器。`statechart` 把颜色写进 `chart.mmd` 的 `classDef`/`class` 行，缺的只是一个画笔。 |
 | 🧩 官方插件 | 无。社区 `dsh-plugin-mermaid-gb-svg` 按固定约定转 SVG，不认 statechart 的标注配色。 |
 | 🕳️ 剩余缺口 | 本包新增 `pstack_chart`：解析 statechart 发出的 Mermaid 子集，画成独立 SVG，内置 `breaks`/`mayBreak`/`bugPath`/`repeats` 调色板（后两类上游只写 `class` 不写 `classDef`），不依赖 Mermaid、浏览器或外部二进制。 |
+| 🧾 DSH 实现 | `src/chart.ts` 的 `pstack_chart`；`port/overrides/skills/statechart/references/render.md` 指向该工具。 |
+| 🧪 测试 | `tests/chart.test.ts`。 |
 | 🛠️ 插件要求与验收 | 工具 `pstack_chart`（`input` 指向 `chart.mmd`，默认写 `<input>.svg`）；`tests/chart.test.ts` 覆盖解析、配色、转义、行号报错与整份语料渲染；`pstack\skills\statechart\scripts\test\corpus` 33 份图全部可渲染。验收：`vp test run tests/chart.test.ts` 通过，且不新增运行时依赖。 |
 | ⚔️ 冲突 | 布局是确定的近似值，不是 Mermaid 的排版。`chart.mmd` 仍是权威产物；无法解析的行按行号报错，不猜测。 |
 | 🚧 最终遗留 | 交叉边与自环只画一条近似曲线；复杂图的可读性不如 Pele 的在线渲染。 |

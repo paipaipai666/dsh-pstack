@@ -1,6 +1,6 @@
 # dsh-pstack fork backlog
 
-> 基于 `l246804/dsh-pstack` v0.3.1（pstack 0.15.36），fork 版本 `0.4.0-beta.2`
+> 基于 `l246804/dsh-pstack` v0.3.1（pstack 0.15.36），fork 版本 `0.5.0-beta.6`
 > 目标 DSH：0.2.2-rc.1（本机安装版）
 > 状态：A 全部完成；B 的 FIX-01 至 FIX-09 全部完成（`0.4.0-beta.2` 已发布到 npm）；ADD-01 已提前落地
 > 维护原则：保留 MIT 许可证与原作者署名；优先把通用修复回馈上游，长期分叉只保留 DSH 版本适配和团队特有功能。
@@ -87,8 +87,8 @@
 
 ## 进度（2026-11-10）
 
-- `FIX-01`..`FIX-09`、`ADD-01` 已全部完成。`0.4.0-beta.2` 经 npm staged publish 发布，`latest` 与 `beta` 都指向它，隔离 home 里不带版本号的安装命令已验证通过。
-- 本次质量补丁对应 `docs/fork/STATUS.md` 的 `QP-01`..`QP-06`：修掉 6 处用户级技能路径、两条永不命中的 `environment` 规则、缺失的 `generalPurpose`/`readonly: false`/`readonly/Ask mode` 覆盖，生成器新增 `TEXT_REWRITES` 命中守卫，删除无法被 vendor 的 `npm:agent-browser` 声明并补齐锁条目，README 加双语仓库结构表，FORK.md 说明空 submodule。
+- `FIX-01`..`FIX-09`、`ADD-01` 基本完成；`FIX-03` 的 `maxDepth` 仍为 2，`FIX-08` 的真实 DSH 集成 smoke 尚未做。`0.5.0-beta.6` 已发布，`latest` 与 `beta` 都指向它。
+- 本次质量补丁修掉 6 处用户级技能路径、两条永不命中的 `environment` 规则、缺失的 `generalPurpose`/`readonly: false`/`readonly/Ask mode` 覆盖，生成器新增 `TEXT_REWRITES` 命中守卫，删除无法被 vendor 的 `npm:agent-browser` 声明并补齐锁条目，README 加双语仓库结构表，FORK.md 说明空 submodule。
 
 后续仍未做（按发现顺序）：
 
@@ -97,4 +97,4 @@
 | BL-01 | `run_in_background: true` 保持原样，不翻译 | 逐字替换在 `arena`、`poteto-mode`、`swarm` 三处都会破坏句子语法；现有做法是在 `<dsh_adapter>` 与 `dsh.md` 表里说明“省略该字段” | 等 DSH 子代理接口支持后台子代理时再映射 |
 | BL-02 | 两个锁文件的分工需要写进文档 | `skills/skills-lock.json` 记录 vendored 技能的来源与 hash，根 `skills-lock.json` 记录随包发布的全集；两者目前只由 `tests/skill-sources.test.ts` 双向校验 | 下一次改 vendored 技能时同步，避免再出现单边缺条目 |
 | BL-03 | `computedHash` 的算法没有记录 | 实测既不是 `sha256(原始字节)` 也不是 `sha256(LF 归一)`，只能由 `skills` CLI 生成，手写即伪造 | 重生成锁文件时一并把算法写进本文件 |
-| BL-04 | `typescript-best-practices` 的 `paths` 字段在 DSH 失效 | `src/internal/frontmatter.ts` 只解析 `name`、`description`、`disable-model-invocation`、`whenToUse`，`paths` 被忽略；DSH 没有按文件路径自动挂载技能的机制 | 等 DSH 技能清单支持路径条件 |
+| BL-04 | `typescript-best-practices` 的 `paths` 字段在 DSH 失效 | `dsh-skill-filesystem` 的 frontmatter 只认 `name`、`description` 等字段，`paths` 被忽略；DSH 没有按文件路径自动挂载技能的机制 | 等 DSH 技能清单支持路径条件 |

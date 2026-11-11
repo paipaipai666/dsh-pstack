@@ -49,7 +49,7 @@
 | `src/doctor.ts` | `pstack_doctor` 预检 |
 | `src/internal/skill-provider.ts` | skill 索引和 `toDshText` 接入点 |
 | `src/internal/native-text.ts` | Cursor 名称到 DSH 名称的运行时转译 |
-| `cordis.patch.yml` | bundle 行、三个 preset、`maxDepth: 3` |
+| `cordis.patch.yml` | bundle 行、五个 preset（`poteto-mode`、`poteto-mode-creator`、`poteto-agent`、`comment-sicko`、`readonly`）、`maxDepth: 2` |
 | `pstack/pstack/` | 上游 0.15.36 生成树，58 skills、23 playbooks、24 principles |
 | `tests/` | 22 个测试文件，约 138 个用例 |
 
@@ -94,7 +94,7 @@
 修复提交 `61a4fa4` 已处理以下两项：
 
 - `pstack_skill` 的 `resource` 读取现在经过 `toDshText`，并新增资源级测试。
-- `poteto-agent` 的委派 prompt 改为调用 `pstack_skill` 加载 `poteto-mode`，不再注入原始 `SKILL.md` 路径；旧 `POTETO_MODE_SKILL_PATH` 已移除。
+- `poteto-agent` 的委派 prompt 改为调用 `pstack_skill` 加载 `poteto-mode`，不再注入原始 `SKILL.md` 路径；`POTETO_MODE_SKILL_PATH` 仍由根 preset 的常驻段使用。
 - `pstack_doctor` 改用 `spawnSync` 同时读取 stdout 和 stderr，并增加真实可执行文件版本探测测试。
 
 后续提交 `47d32ab` 又纠正了策略分层：

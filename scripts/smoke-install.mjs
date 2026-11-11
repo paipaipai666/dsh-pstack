@@ -9,7 +9,17 @@
  *     node scripts/smoke-install.mjs path/to/dsh-pstack.tgz
  */
 
-import { closeSync, mkdirSync, mkdtempSync, openSync, readFileSync, rmSync } from "node:fs";
+import {
+  closeSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  openSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+} from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -68,6 +78,8 @@ try {
     "- id: pstack-doctor",
     "- id: pstack-script-policy",
     "- id: pstack-script",
+    "- id: pstack-remote",
+    "- id: pstack-chart",
     "- id: preset-poteto-mode",
     "- id: preset-poteto-mode-creator",
     "- id: preset-poteto-agent",
@@ -78,6 +90,29 @@ try {
     if (!config.includes(line)) throw new Error(`missing bundle row: ${line}`);
   }
   if (!/maxDepth:\s*2/.test(config)) throw new Error("pstack-subagent maxDepth is not 2");
+
+  const installed = join(home, "profiles", "web", "node_modules", "@paipaipai666", "dsh-pstack");
+  for (const file of ["dist/client.js", "dist/pstack/docs/harness/dsh.md"]) {
+    if (!existsSync(join(installed, file))) throw new Error(`missing packaged file: ${file}`);
+  }
+  const skillsRoot = join(installed, "dist", "pstack", "skills");
+  const cursorNames = [];
+  const walk = (dir) => {
+    for (const name of readdirSync(dir)) {
+      const path = join(dir, name);
+      if (statSync(path).isDirectory()) walk(path);
+      else if (name.endsWith(".md")) {
+        const text = readFileSync(path, "utf8");
+        for (const pattern of [/~\/\.cursor/, /\bsubagent_type\b/, /\bgeneralPurpose\b/]) {
+          if (pattern.test(text)) cursorNames.push(`${path}: ${pattern}`);
+        }
+      }
+    }
+  };
+  walk(skillsRoot);
+  if (cursorNames.length > 0)
+    throw new Error(`packaged skill catalog still carries Cursor names: ${cursorNames.join(", ")}`);
+
   console.log(`smoke-install OK: ${tarball}`);
   console.log(readFileSync(join(home, "profiles", "web", "package.json"), "utf8"));
 } finally {

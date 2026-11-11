@@ -15,9 +15,9 @@
 | Guide 文档 | 11 | 11 | 一致 |
 | 技能 reference | 29 | 62（含上游 copy 与本地/生成引用） | 多于上游，属于打包差异 |
 | 原生工具 | Cursor 的 Task/AskQuestion 等 | 8 个：`pstack_skill`、`pstack_models`、`pstack_roles`、`pstack_doctor`、`pstack_subagent`、`pstack_script`、`pstack_remote`、`pstack_chart` | 已替换为 DSH 原生接口 |
-| Agent preset | Cursor custom modes | 3 个：`pstack`（常驻）、`poteto-agent`、`comment-sicko` | 覆盖常驻模式与委派 |
+| Agent preset | Cursor custom modes | 5 个：`poteto-mode`、`poteto-mode-creator`（两个根模式）、`poteto-agent`、`comment-sicko`、`readonly` | 覆盖常驻模式与委派 |
 | 脚本入口 | 5 个 | 5 个：`check-plan`、`watch-pr`、`worktree-audit`、`log`、`statechart` | 一致，均 Node 重写 |
-| 测试文件 | 上游无 DSH 测试 | `tests/` 29 个文件 233 个用例，另有 `runtime/` 72 个脚本用例（Windows 跳过 4 个） | 已建立 QA 基线 |
+| 测试文件 | 上游无 DSH 测试 | `tests/` 30 个文件 239 个用例，另有 `runtime/` 76 个脚本用例（Windows 跳过 4 个） | 已建立 QA 基线 |
 
 ## 2. 与上游的功能差异
 
@@ -38,7 +38,7 @@
 | `TodoWrite` | `todo_write` |
 | `~/.cursor/rules/pstack-models.mdc` | `$DSH_HOME/pstack-models.mdc` |
 | `.cursor/skills/` | `.dsh/skills/` 或 `.agents/skills/` |
-| Cursor Custom Mode | `pstack` agent preset 常驻模式 |
+| Cursor Custom Mode | `poteto-mode` / `poteto-mode-creator` 根 preset 常驻模式 |
 | Cursor 脚本路径 | `pstack_script` 的 5 个固定 `id` |
 
 ### 明确不移植（平台边界）
@@ -64,30 +64,31 @@
 - `tests/poteto-mode.test.ts`、`tests/preset-copy.test.ts`、`tests/preset-parity.test.ts`：根 preset 的工具集与 `cordis.patch.yml` 一致（用 `tests/patch-name.ts` 抹平作用域包名带来的引号差异）
 - `tests/skill-sources.test.ts`：`package.json` 声明的技能、`skills/.agents/skills` 目录、两份锁文件三方一致
 - `tests/subagent.test.ts`：可选参数默认 null
-- `tests/script.test.ts`：`pstack_script` 的窗口/超时/后台行为
+- `tests/script.test.ts`：`pstack_script` 的 5 个 id、参数白名单、真实 `log` 运行与无 jobs 服务时的后台拒绝；超时和 SIGKILL 路径未覆盖
 - `tests/script-policy.test.ts`：`ask`/`allow`/`deny` 三种 pre-execute 策略与非法配置
 - `tests/doctor.test.ts`：命令/脚本/角色文件/可选插件状态与工作区 `.mdc` 预检
 - `tests/remote.test.ts`：远端目标注册表、`pstack_remote` 五种动作、作业记录、超时与取消
 - `tests/chart.test.ts`：`statechart` 的 `chart.mmd` 解析、布局、四类标记配色与零依赖 SVG 输出
-- `tests/skill.test.ts`：`pstack_skill` 返回的正文与资源都经过 `toDshText`
+- `tests/skill.test.ts`：`pstack_skill` 的正文渲染、相对资源读取和目录穿越拒绝；没有 `toDshText` 断言
 
 ### CI 质量门
 
-- Linux：typecheck → build → test（带 V8 覆盖率门槛）→ generated-tree check → package tarball
-- Windows：typecheck → build → 全量 test（不再只跑脚本 smoke）
-- Install smoke (Linux)：安装真实 `@deepseek-ai/dsh@0.2.2-rc.1`，把 tarball 装入隔离 `DSH_HOME`，校验全部 bundle 行和 `preset-pstack`
+- Linux：typecheck → build → `vp test` → `vp run test:runtime` → generated-tree check → port audit → compatibility check → package tarball
+- Windows：typecheck → build → 全量 test → `vp run test:runtime`（五个脚本的真实执行）→ generated-tree check
+- Install smoke (Linux)：安装真实 `@deepseek-ai/dsh@0.2.2-rc.1`，把 tarball 装入隔离 `DSH_HOME`，校验 bundle 行（含 `pstack-remote`、`pstack-chart`）和五个 preset 行
+- Playground case definitions：`tests/playground-cases.test.mjs` 加载全部 17 个 case 文件，校验 id、prompt 与 verify；真实模型执行仍不进 CI
 - 最新 CI：`42177703239` 全部通过
 
 ## 4. 仍存在的质量缺口
 
 | 缺口 | 影响 | 建议 |
 |---|---|---|
-| 没有真实模型会话的端到端测试 | 无法证明 `/poteto-mode` 的完整推理链路 | 增加一个带 `DEEPSEEK_API_KEY` 的可选 e2e job，或在 Desktop 手工验收 |
-| `pstack/` 生成树仍保留上游 Cursor 原文 | 审计时需要知道文本与运行时的差异 | 已由 `native-text.ts` 运行时转译；生成树保持上游可追溯 |
+| 没有真实模型会话的端到端测试 | 无法证明 `/poteto-mode` 的完整推理链路 | 已增加 playground 定义校验与 build 后 catalog 翻译检查；真实模型执行仍需带 `DEEPSEEK_API_KEY` 的可选 e2e job，或在 Desktop 手工验收 |
+| `pstack/` 生成树仍保留上游 Cursor 原文 | 审计时需要知道文本与运行时的差异 | `pstack_skill` 运行时经 `toDshText` 转译；原生 catalog 在 build 时由 `scripts/translate-skill-catalog.mjs` 转译 |
 | 没有性能/包体预算 | 生成树与 58 技能会持续增大 | 可加 `npm pack` 大小和启动时间基线 |
 | 上游 135 项能力表未逐项映射到测试 | 能力回归靠人工审查 | 可把 `pstack/README.md` 的能力编号做成清单，逐步覆盖高风险项 |
 | `run_in_background: true` 不做字面替换 | 三处句子替换后会破坏语法 | 由 `<dsh_adapter>` 与 `dsh.md` 说明“省略该字段”；见 BACKLOG BL-01 |
-| `typescript-best-practices` 的 `paths` 字段失效 | DSH 不按文件路径挂载技能 | `frontmatter.ts` 只读四个键；见 BACKLOG BL-04 |
+| `typescript-best-practices` 的 `paths` 字段失效 | DSH 不按文件路径挂载技能 | `dsh-skill-filesystem` 只认 `name` 和 `description`；见 BACKLOG BL-04 |
 
 ## 5. 结论
 

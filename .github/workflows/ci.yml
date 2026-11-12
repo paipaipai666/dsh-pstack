@@ -25,8 +25,15 @@ jobs:
           fetch-depth: 0
           submodules: false
 
+      # Authenticate the fetch: anonymous submodule clones from shared runner
+      # IPs get rate-limited (HTTP 429). The workflow token lifts that limit.
       - name: Checkout upstream pstack submodule
-        run: git submodule update --init --depth 1 upstream/cursor-plugins
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
+          git submodule update --init --depth 1 upstream/cursor-plugins
 
       - name: Setup pnpm
         uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
@@ -118,8 +125,15 @@ jobs:
           fetch-depth: 0
           submodules: false
 
+      # Authenticate the fetch: anonymous submodule clones from shared runner
+      # IPs get rate-limited (HTTP 429). The workflow token lifts that limit.
       - name: Checkout upstream pstack submodule
-        run: git submodule update --init --depth 1 upstream/cursor-plugins
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
+          git submodule update --init --depth 1 upstream/cursor-plugins
 
       - name: Setup pnpm
         uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10

@@ -37,8 +37,6 @@ export interface OptionalPluginDefinition {
   readonly conflict?: boolean;
   /** Whether this page may offer a switch for the bundle. */
   readonly switchable?: boolean;
-  /** Bundle names that must not be enabled together with this row's bundle. */
-  readonly exclusiveWith?: readonly string[];
 }
 
 /** Group order shared by the page and its tests. */
@@ -56,10 +54,8 @@ export const OPTIONAL_PLUGINS: readonly OptionalPluginDefinition[] = [
     packages: ["@deepseek-ai/dsh-experimental-forge-bundle"],
     bundle: "@deepseek-ai/dsh-experimental-forge-bundle",
     recommended: true,
-    exclusiveWith: [
-      "@deepseek-ai/dsh-experimental-worktree",
-      "@deepseek-ai/dsh-experimental-tool-worktree",
-    ],
+    // The forge bundle and the official Git-worktree plugin both create worktrees;
+    // that conflict is documented in port/audit.md (CAP worktree rows), not enforced here.
   },
   {
     id: "OPT-03",

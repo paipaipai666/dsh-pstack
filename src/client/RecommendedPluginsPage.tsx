@@ -23,6 +23,11 @@ import { messageOf } from "./message.ts";
 import { Toast, type ToastMessage } from "./toast.tsx";
 import { Button, IconButton, Spinner, Status, Switch, type StatusTone } from "./ui.tsx";
 import type { PstackTranslations, PluginsKey } from "./locales/index.ts";
+import {
+  OPTIONAL_PLUGINS,
+  type OptionalPluginDefinition,
+  type OptionalPluginId,
+} from "../optional-plugins.ts";
 
 ensurePstackStyles();
 
@@ -47,75 +52,77 @@ interface PluginGroup {
   readonly plugins: readonly RelatedPlugin[];
 }
 
+/** Presentation metadata per catalogue row; the bundle names and grouping come from OPTIONAL_PLUGINS. */
+const PRESENTATION: Readonly<Record<OptionalPluginId, Omit<RelatedPlugin, "name">>> = {
+  "OPT-02": {
+    titleKey: "recommendedForgeTitle",
+    descriptionKey: "recommendedForgeDescription",
+    icon: IconGitBranch,
+  },
+  "OPT-03": {
+    titleKey: "recommendedBrowserTitle",
+    descriptionKey: "recommendedBrowserDescription",
+    icon: IconBrowser,
+  },
+  "OPT-04": {
+    titleKey: "recommendedCuaTitle",
+    descriptionKey: "recommendedCuaDescription",
+    icon: IconMonitor,
+  },
+  "OPT-05": {
+    titleKey: "recommendedTerminalTitle",
+    descriptionKey: "recommendedTerminalDescription",
+    icon: IconTerminal,
+  },
+  "OPT-06": {
+    titleKey: "recommendedSessionSearchTitle",
+    descriptionKey: "recommendedSessionSearchDescription",
+    icon: IconSearch,
+  },
+  "OPT-07": {
+    titleKey: "recommendedMcpTitle",
+    descriptionKey: "recommendedMcpDescription",
+    icon: IconPlug,
+  },
+  "OPT-08": {
+    titleKey: "recommendedAgentTeamTitle",
+    descriptionKey: "recommendedAgentTeamDescription",
+    icon: IconUsers,
+  },
+  "OPT-09": {
+    titleKey: "recommendedRalphTitle",
+    descriptionKey: "recommendedRalphDescription",
+    icon: IconRepeat,
+  },
+};
+
+function relatedPlugin(plugin: OptionalPluginDefinition): RelatedPlugin {
+  return {
+    name: plugin.bundle ?? plugin.packages[0],
+    ...PRESENTATION[plugin.id],
+  };
+}
+
 const PLUGIN_GROUPS: readonly PluginGroup[] = [
   {
     id: "recommended",
     titleKey: "groupRecommended",
     descriptionKey: "groupRecommendedDescription",
-    plugins: [
-      {
-        name: "@deepseek-ai/dsh-experimental-forge-bundle",
-        titleKey: "recommendedForgeTitle",
-        descriptionKey: "recommendedForgeDescription",
-        icon: IconGitBranch,
-      },
-      {
-        name: "@deepseek-ai/dsh-experimental-session-search",
-        titleKey: "recommendedSessionSearchTitle",
-        descriptionKey: "recommendedSessionSearchDescription",
-        icon: IconSearch,
-      },
-    ],
+    plugins: OPTIONAL_PLUGINS.filter((plugin) => plugin.recommended === true).map(relatedPlugin),
   },
   {
     id: "normal",
     titleKey: "groupNormal",
     descriptionKey: "groupNormalDescription",
-    plugins: [
-      {
-        name: "@deepseek-ai/dsh-browser-use",
-        titleKey: "recommendedBrowserTitle",
-        descriptionKey: "recommendedBrowserDescription",
-        icon: IconBrowser,
-      },
-      {
-        name: "@deepseek-ai/dsh-cua-bundle",
-        titleKey: "recommendedCuaTitle",
-        descriptionKey: "recommendedCuaDescription",
-        icon: IconMonitor,
-      },
-      {
-        name: "@deepseek-ai/dsh-experimental-terminal-bundle",
-        titleKey: "recommendedTerminalTitle",
-        descriptionKey: "recommendedTerminalDescription",
-        icon: IconTerminal,
-      },
-      {
-        name: "@deepseek-ai/dsh-mcp-client",
-        titleKey: "recommendedMcpTitle",
-        descriptionKey: "recommendedMcpDescription",
-        icon: IconPlug,
-      },
-      {
-        name: "@deepseek-ai/dsh-experimental-ralph-bundle",
-        titleKey: "recommendedRalphTitle",
-        descriptionKey: "recommendedRalphDescription",
-        icon: IconRepeat,
-      },
-    ],
+    plugins: OPTIONAL_PLUGINS.filter(
+      (plugin) => plugin.recommended !== true && plugin.conflict !== true,
+    ).map(relatedPlugin),
   },
   {
     id: "conflict",
     titleKey: "groupConflict",
     descriptionKey: "groupConflictDescription",
-    plugins: [
-      {
-        name: "@deepseek-ai/dsh-experimental-agent-team-profile",
-        titleKey: "recommendedAgentTeamTitle",
-        descriptionKey: "recommendedAgentTeamDescription",
-        icon: IconUsers,
-      },
-    ],
+    plugins: OPTIONAL_PLUGINS.filter((plugin) => plugin.conflict === true).map(relatedPlugin),
   },
 ];
 

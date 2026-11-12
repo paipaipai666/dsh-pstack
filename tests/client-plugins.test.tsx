@@ -10,6 +10,7 @@ import {
 } from "../src/client/RecommendedPluginsPage.tsx";
 import { catalogs, type PstackTranslations } from "../src/client/locales/index.ts";
 import { createPluginManagerApi } from "../src/client/index.ts";
+import { OPTIONAL_PLUGINS, recommendedBundleNames } from "../src/optional-plugins.ts";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -253,5 +254,47 @@ describe("enable-all bulk summary", () => {
     expect(toast().textContent).toContain(
       "Changed 0 recommended plugins, 1 require a restart, 1 not applied",
     );
+  });
+});
+
+describe("plugin list derives from the optional-plugin catalogue", () => {
+  const catalogueName = (plugin: (typeof OPTIONAL_PLUGINS)[number]): string =>
+    plugin.bundle ?? plugin.packages[0];
+
+  function allBundlesApi(onEnable?: (name: string) => void): PluginManagerApi {
+    const names = OPTIONAL_PLUGINS.map(catalogueName);
+    return {
+      listBundles: async () => names.map((name) => bundle(name)),
+      setBundleEnabled: async (name, enabled) => {
+        if (enabled) onEnable?.(name);
+        return change("applied");
+      },
+    };
+  }
+
+  it("renders every catalogue bundle once, in recommended/normal/conflict order", async () => {
+    await mount(allBundlesApi());
+    const rendered = Array.from(container.querySelectorAll(".pstack-plugin-id")).map(
+      (element) => element.textContent,
+    );
+    const expected = [
+      ...OPTIONAL_PLUGINS.filter((plugin) => plugin.recommended === true),
+      ...OPTIONAL_PLUGINS.filter(
+        (plugin) => plugin.recommended !== true && plugin.conflict !== true,
+      ),
+      ...OPTIONAL_PLUGINS.filter((plugin) => plugin.conflict === true),
+    ].map(catalogueName);
+    expect(rendered).toEqual(expected);
+    expect(new Set(rendered).size).toBe(rendered.length);
+  });
+
+  it("enable-all switches on exactly the recommended catalogue bundles", async () => {
+    const enabled: string[] = [];
+    await mount(allBundlesApi((name) => enabled.push(name)));
+    const button = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find(
+      (element) => element.textContent?.includes("Enable all"),
+    )!;
+    await click(button);
+    expect(enabled.sort()).toEqual([...recommendedBundleNames()].sort());
   });
 });

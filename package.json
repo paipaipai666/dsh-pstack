@@ -1,6 +1,6 @@
 {
   "name": "@paipaipai666/dsh-pstack",
-  "version": "0.5.0-beta.6",
+  "version": "0.5.0-beta.7",
   "description": "pstack for DeepSeek Harness: rigorous agent workflows ported from cursor/plugins.",
   "keywords": [
     "agent-skills",

@@ -88,13 +88,13 @@
 ## 进度（2026-11-10）
 
 - `FIX-01`..`FIX-09`、`ADD-01` 基本完成；`FIX-03` 的 `maxDepth` 仍为 2，`FIX-08` 的真实 DSH 集成 smoke 尚未做。`0.5.0-beta.6` 已发布，`latest` 与 `beta` 都指向它。
-- 本次质量补丁修掉 6 处用户级技能路径、两条永不命中的 `environment` 规则、缺失的 `generalPurpose`/`readonly: false`/`readonly/Ask mode` 覆盖，生成器新增 `TEXT_REWRITES` 命中守卫，删除无法被 vendor 的 `npm:agent-browser` 声明并补齐锁条目，README 加双语仓库结构表，FORK.md 说明空 submodule。
+- 本次质量补丁修掉 6 处用户级技能路径、两条永不命中的 `environment` 规则、缺失的 `generalPurpose`/`readonly: false`/`readonly/Ask mode` 覆盖，生成器新增 `TEXT_REWRITES` 命中守卫，把 `agent-browser` 定为仓库自用 dev 技能（根 manifest 与根锁保留、同步到 `.agents/skills/`，供 playground 浏览器自动化，不随包发货）并补齐锁条目，README 加双语仓库结构表，FORK.md 说明空 submodule。
 
 后续仍未做（按发现顺序）：
 
 | ID | 内容 | 为什么现在不做 | 何时做 |
 |---|---|---|---|
 | BL-01 | `run_in_background: true` 保持原样，不翻译 | 逐字替换在 `arena`、`poteto-mode`、`swarm` 三处都会破坏句子语法；现有做法是在 `<dsh_adapter>` 与 `dsh.md` 表里说明“省略该字段” | 等 DSH 子代理接口支持后台子代理时再映射 |
-| BL-02 | 两个锁文件的分工需要写进文档 | `skills/skills-lock.json` 记录 vendored 技能的来源与 hash，根 `skills-lock.json` 记录随包发布的全集；两者目前只由 `tests/skill-sources.test.ts` 双向校验 | 下一次改 vendored 技能时同步，避免再出现单边缺条目 |
+| BL-02 | 两个锁文件的分工需要写进文档 | `skills/skills-lock.json` 记录随包发布的 vendored 技能（`skills/.agents/skills/`）的来源与 hash；根 `skills-lock.json` 记录仓库自用技能（`.agents/skills/`，含 `agent-browser`、authored 与 mattpocock 对）；两者由 `tests/skill-sources.test.ts` 双向校验 | 下一次改 vendored 技能时同步，避免再出现单边缺条目 |
 | BL-03 | `computedHash` 的算法没有记录 | 实测既不是 `sha256(原始字节)` 也不是 `sha256(LF 归一)`，只能由 `skills` CLI 生成，手写即伪造 | 重生成锁文件时一并把算法写进本文件 |
 | BL-04 | `typescript-best-practices` 的 `paths` 字段在 DSH 失效 | `dsh-skill-filesystem` 的 frontmatter 只认 `name`、`description` 等字段，`paths` 被忽略；DSH 没有按文件路径自动挂载技能的机制 | 等 DSH 技能清单支持路径条件 |

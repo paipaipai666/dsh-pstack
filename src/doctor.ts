@@ -32,16 +32,7 @@ export const inject = ["tools"];
 export const TOOL_NAME = "pstack_doctor";
 
 /** The external commands the pstack playbooks may call. */
-export const CHECKED_COMMANDS = [
-  "git",
-  "gh",
-  "node",
-  "bun",
-  "ffmpeg",
-  "mise",
-  "java",
-  "jq",
-] as const;
+export const CHECKED_COMMANDS = ["git", "gh", "node", "ffmpeg", "mise", "java"] as const;
 
 export type CheckedCommand = (typeof CHECKED_COMMANDS)[number];
 
@@ -410,13 +401,14 @@ const OUTPUT_SCHEMA: JsonSchemaNode = {
 };
 
 const TOOL_DESCRIPTION = [
-  "Check the local prerequisites pstack playbooks use: git, gh, node, bun, ffmpeg, mise, java,",
-  "jq, the five bundled script artefacts, the role configuration file, the optional plugin",
+  "Check the local prerequisites pstack playbooks use: git, gh, node, ffmpeg, mise, java,",
+  "the five bundled script artefacts, the role configuration file, the optional plugin",
   "state recorded in the current profile manifest, and what the workspace itself expects.",
   "",
   "Read-only. It reports what is present, never installs anything, and never reads model routes.",
   "Missing commands are reported with their name; a missing script lists the expected path.",
-  "`bun` matters to `watch-pr` and `jq` to `worktree-audit`; the other scripts declare the rest.",
+  "The five scripts run on the host's own Node. `gh` matters to `watch-pr`, `mise` and `java`",
+  "to `statechart`'s TLC run, and `git` to `worktree-audit`; no bundled script needs `bun` or `jq`.",
   "Optional plugin status is enabled, installed, partial, missing, or unknown.",
   "",
   "The workspace check names `.cursor/rules/*.mdc` files, because DSH loads `AGENTS.md` and never",

@@ -22,7 +22,7 @@ Everything upstream ships is kept. On top of it the fork carries six additions:
 |---|---|---|
 | Bundled script runner | `src/script.ts` → `pstack_script` | Runs the five scripts that ship inside the generated tree with the host's own Node. A desktop install has no `node` on `PATH`, and the extensionless `watch-pr` entry cannot be spawned directly on Windows. The tool exposes a fixed id list, never a free-form command. |
 | Script approval row | `src/script-policy.ts` → `pstack-script-policy` | A `tools/pre-execute` row asks before every `pstack_script` call, so the approval stays a normal DSH decision instead of something the tool implements. `mode: allow` exists for trusted headless profiles only. |
-| Doctor | `src/doctor.ts` → `pstack_doctor` | Reports the host prerequisites the scripts depend on (`git`, `gh`, `node`, `bun`, `ffmpeg`, `mise`, `java`, `jq`), the resolved role file, the install state of the optional plugins listed in `port/dsh.md`, and any `.cursor/rules/*.mdc` files the workspace carries that DSH never loads. |
+| Doctor | `src/doctor.ts` → `pstack_doctor` | Reports the host prerequisites the scripts depend on (`git`, `gh`, `node`, `ffmpeg`, `mise`, `java`), the resolved role file, the install state of the optional plugins listed in `port/dsh.md`, and any `.cursor/rules/*.mdc` files the workspace carries that DSH never loads. |
 | Runtime translation | `src/native-text.ts`, `src/skill.ts`, `src/poteto-mode.ts` | Rewrites the Cursor vocabulary that survives inside the vendored skill text (`Task`, `subagent_type`, `~/.cursor/...`, model slugs) when a skill is read. The generated tree keeps the upstream bytes so `port/generate.mjs --check` still proves what changed. |
 | Remote dispatch | `src/remote.ts` -> `pstack_remote`, row `pstack-remote` | Dispatches one headless DSH run to a machine the user registers (an SSH host with `dsh` on `PATH`, or an HTTP worker that streams NDJSON) and records its event stream. The package supplies no machine, no cloud SDK, and no dashboard; `docs/remote-worker.md` is the whole contract. |
 | Chart renderer | `src/chart.ts` -> `pstack_chart`, row `pstack-chart` | Renders a statechart `chart.mmd` to a standalone SVG. The statechart script already writes `classDef`/`class` colours into the Mermaid text, but DSH has no renderer; this tool parses the emitted subset, keeps the `breaks`/`mayBreak`/`bugPath`/`repeats` palette, and needs no browser or external binary. Unsupported syntax is reported with its line number. |
@@ -31,17 +31,18 @@ Everything upstream ships is kept. On top of it the fork carries six additions:
 `runtime/dist/`, and `scripts/replace-runtime-scripts.mjs` copies the compiled `.mjs` into the
 shipped tree under `dist/pstack/skills/<skill>/scripts/`, dropping the compiled tests.
 
-Three of those scripts carry small Windows fixes that upstream never needed because it only runs
-them there on macOS and Linux: the statechart janitor and process-group kill avoid `/bin/sh`, and
-the TLC output parser tolerates CRLF. They stay confined to `runtime/`, so re-merging upstream still
-shows as a clean diff.
+The statechart script carries two small Windows fixes that upstream never needed because it only
+runs them there on macOS and Linux: the janitor and process-group kill avoid `/bin/sh`, and the TLC
+output parser tolerates CRLF. They stay confined to `runtime/`, so re-merging upstream still shows
+as a clean diff. The chart renderer in `src/chart.ts` carries a third Windows fix: it accepts the
+front matter block statechart writes.
 
 ## Current status
 
 - GitHub fork created on 2026-11-06: `paipaipai666/dsh-pstack`.
 - `fork/upstream-0.3.1` carries the rebase onto upstream `0.3.1`; `fork/main` is the integration
   branch that gets pushed.
-- The package is named `@paipaipai666/dsh-pstack` and reports version `0.5.0-beta.6`.
+- The package is named `@paipaipai666/dsh-pstack` and reports version `0.5.0-beta.7`.
 - The generated tree is committed at `pstack/` and is rewritten as a whole by
   `vpx port/generate.mjs`. It is generated from `upstream/cursor-plugins` plus the adapter source
   `port/dsh.md`, so the 58 skills are reviewable in the repository instead of being generated during
@@ -102,7 +103,7 @@ pnpm exec vp run playground
 git fetch upstream main --tags
 git switch -c fork/upstream-<version>
 git merge upstream/main
-# resolve conflicts, keeping the four fork additions above
+# resolve conflicts, keeping the six fork additions above
 pnpm install
 pnpm exec vp run typecheck && pnpm exec vp test && pnpm exec vp run build
 ```

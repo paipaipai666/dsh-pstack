@@ -64,7 +64,7 @@ came back as text. The fork renders that one subset itself instead of taking a M
 | CHT-02 layout | Done | Longest-path layering per scope, side-by-side regions, `LR` columns when the chart asks for them, and measured leaf boxes that account for wide characters |
 | CHT-03 palette | Done | `breaks` and `mayBreak` keep the backend's `classDef` colours; `bugPath` and `repeats` get a built-in palette because the backend emits only `class` for them |
 | CHT-04 tool | Done | `pstack_chart` (row `pstack-chart`) takes `chart.mmd` and writes a standalone SVG, defaulting to `<input>.svg`, and refuses any other output extension |
-| CHT-05 tests | Done | `tests/chart.test.ts` covers parsing, grouping, marks, XML escaping, syntax errors, the front matter block statechart writes, and renders every chart in the statechart corpus |
+| CHT-05 tests | Done | `tests/chart.test.ts` covers parsing, grouping, marks, XML escaping, syntax errors, and the front matter block statechart writes, and renders every `chart.mmd` in the statechart corpus to SVG. This is renderer coverage; the upstream TLC model-checking corpus was not ported, so the TLC pipeline has no regression suite here |
 | CHT-06 Windows | Done | An end-to-end run on Windows 11 with TLC 1.7.4 found three defects: the janitor and the process-group kill spawned `/bin/sh`, the TLC output parser dropped CRLF markers, and the renderer rejected the chart's front matter. All three are fixed; the run produced `report.md`, `chart.mmd`, and a 3819-byte `chart.svg` from a 5-state, 6-step spec |
 ## Delegation arguments (0.5.0-beta.6)
 
@@ -79,22 +79,25 @@ and `cwd` default to `null`, and a literal `"null"` or `"undefined"` reads as ab
 
 ## B. Fixes
 
+These `QF` ids are the fork's quality-fix completion record. They are independent of the planning
+`FIX` ids in [BACKLOG.md](BACKLOG.md), which number a different set of items.
+
 | Item | Status | Evidence |
 |---|---|---|
-| FIX-01 headless approval | Done | `pstack-script-policy` supports `ask`, `allow`, and `deny`; unknown fields are rejected |
-| FIX-02 doctor prerequisites | Done | `pstack_doctor` reports the eight commands it probes, the resolved role file, and optional-plugin state |
-| FIX-03 Windows generator | Done | `port/generate.mjs` normalizes CRLF and emits `/` paths; both errors it produced (`has name ""`, `reading 'bytes'`) are fixed |
-| FIX-04 Windows audit scan | Done | `port/scan.mjs` normalizes line endings and relative paths and treats extensionless shebang files as entries; `--check-lock` reports `LOCK OK` |
-| FIX-05 translation coverage | Done | A test translates every shipped Markdown file in `pstack/`, not only the skill bodies |
-| FIX-06 Windows test coverage | Done | The Windows job runs the full suite; four shell-dependent runtime tests skip there and run on Linux |
-| FIX-07 dead translation rules | Done | `environment: "cloud"|"local"` rules lost their trailing `\b`; bare `generalPurpose`, unquoted `subagent_type: generalPurpose`, `readonly: false`, and `readonly/Ask mode` are covered |
-| FIX-08 declared sources vs shipped tree | Done | `tests/skill-sources.test.ts` keeps `.agents/skills`, `skills/.agents/skills`, `skills/authored`, and both lock files in agreement |
-| FIX-09 npm publish | Done | `0.5.0-beta.2` is on npm; staged publish plus browser approval, then `latest` moved; an isolated `dsh plugin add` installs it |
+| QF-01 headless approval | Done | `pstack-script-policy` supports `ask`, `allow`, and `deny`; unknown fields are rejected |
+| QF-02 doctor prerequisites | Done | `pstack_doctor` reports the six commands it probes, the resolved role file, and optional-plugin state |
+| QF-03 Windows generator | Done | `port/generate.mjs` normalizes CRLF and emits `/` paths; both errors it produced (`has name ""`, `reading 'bytes'`) are fixed |
+| QF-04 Windows audit scan | Done | `port/scan.mjs` normalizes line endings and relative paths and treats extensionless shebang files as entries; `--check-lock` reports `LOCK OK` |
+| QF-05 translation coverage | Done | A test translates every shipped Markdown file in `pstack/`, not only the skill bodies |
+| QF-06 Windows test coverage | Done | The Windows job runs the full suite; four shell-dependent runtime tests skip there and run on Linux |
+| QF-07 dead translation rules | Done | `environment: "cloud"|"local"` rules lost their trailing `\b`; bare `generalPurpose`, unquoted `subagent_type: generalPurpose`, `readonly: false`, and `readonly/Ask mode` are covered |
+| QF-08 declared sources vs shipped tree | Done | `tests/skill-sources.test.ts` keeps `.agents/skills`, `skills/.agents/skills`, `skills/authored`, and both lock files in agreement |
+| QF-09 npm publish | Done | `0.5.0-beta.2` is on npm; staged publish plus browser approval, then `latest` moved; an isolated `dsh plugin add` installs it |
 
 ## Quality audit
 
 - Generated tree: 58 skills, 23 playbooks, 24 principles, 2 agent definitions, 11 guide pages.
-- Test suite: 30 files under `tests/` (239 cases) plus 76 runtime cases (4 skipped on Windows); CI runs
+- Test suite: 30 files under `tests/` (244 cases) plus 76 runtime cases (4 skipped on Windows); CI runs
   Linux build/test, the Windows suite, and a real DSH install smoke.
 - Desktop E2E: `pnpm run test:desktop` runs all five `pstack_script` ids under the packaged Electron;
   `scripts/desktop-e2e.mjs` is Windows only.
@@ -104,8 +107,10 @@ and `cwd` default to `null`, and a literal `"null"` or `"undefined"` reads as ab
   playground when `PLAYGROUND_CONFIG_JSON` and `PLAYGROUND_HOME_PATCH_YAML` are configured.
 - Verification matrix: [VERIFICATION.md](VERIFICATION.md) separates ordinary CI, Desktop E2E,
   optional real-model E2E, manual UI checks, and the remote worker contract.
-- Translation coverage: `tests/native-text.test.ts` checks 10 hand-written patterns against representative
-  names. It does not scan every Markdown file for every Cursor name.
+- Translation coverage: `tests/native-text.test.ts` checks hand-written rewrite patterns against
+  representative names, and `port/scan.mjs --check-shipped` gates the shipped skill bytes against a
+  residual-Cursor-vocabulary list. Guide and README prose are not machine-translated; their Cursor
+  residue is fixed with generation-time patches.
 - Coverage gate: none. `vite.config.ts` has no coverage thresholds; CI only runs `vp test`.
 - Port audit: `port/audit.lock.json` covers 68 capabilities; `port/scan.mjs --check port/audit.md`
   verifies every referenced line still exists.
@@ -151,6 +156,9 @@ Both skills were exercised from a fresh session in the packaged app, not only fr
 
 - The optional-plugin checks read the profile manifest only. Verifying that a listed plugin actually
   enables its tools needs a running session.
+- The statechart TLC model-checking corpus (the upstream `.tla`/`.cfg`/golden-output cases) was not
+  ported; only the SVG renderer is regression-tested against the corpus charts. Restoring TLC
+  regression coverage needs that fixture corpus and a Java/TLC runner.
 - Real-model end-to-end sessions are not in CI. CI covers build, catalog translation, all 17
   playground case definitions, the runtime scripts on both platforms, and the real HTTP remote
   worker. A session that proves `/poteto-mode` end to end still needs `DEEPSEEK_API_KEY` or the

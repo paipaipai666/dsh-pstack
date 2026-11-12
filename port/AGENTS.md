@@ -89,11 +89,11 @@
 
 | 入口 | 用途 | 解释器 | 外部命令与运行时 | 重要限制 |
 |:--|:--|:--|:--|:--|
-| `check-plan` | 校验 multi-phase-plan 的计划文件 | `#!/usr/bin/env node` | 无外部命令，Node 运行时 | 无 |
-| `watch-pr` | babysit 与 shipping 轮询 PR 状态 | `#!/usr/bin/env bun` | Bun、网络、`gh`（含登录）、`git`；首次运行 `bun install --frozen-lockfile` 写 `node_modules` | 只支持 GitHub，不支持 Origin；缺 Bun 或未登录 `gh` 时不可用 |
-| `worktree-audit` | worktree-cleanup 的工作树分类审计 | `#!/usr/bin/env bash` | `git`、`gh`（PR 状态，可用 `origin` CLI 替代）、`jq`，以及 `awk`、`sed`、`grep`、`sort`、`head`、`du`、`stat`、`date` 等基础命令 | 只读审计，可能执行 `git fetch`；无 `gh` 或 `origin` 登录时缺少 PR 状态 |
-| `log` | show-me-your-work 追加 TSV 决策日志 | `#!/usr/bin/env bash` | `date`、`mkdir`、`printf`、`tr` | 无 |
-| `statechart` | TLA+ 模型检查与 Mermaid 状态图 | `#!/bin/sh`，按版本依次选择 Node 22.18 至 22.x 或 23.6 以上、Bun 1.1.5 以上、Deno 2.0 以上 | `mise`、`java`、`tlc`；首次 `mise install` 需网络 | 首次运行需网络安装 TLC 与 `java@temurin-25`；缺 TLC 时只输出 Mermaid 文本 |
+| `check-plan` | 校验 multi-phase-plan 的计划文件 | Host Node（经 `pstack_script`） | 无外部命令 | 无 |
+| `watch-pr` | babysit 与 shipping 轮询 PR 状态 | Host Node（经 `pstack_script`） | 网络、`gh`（含登录）；`commander` 由包依赖提供，无需现场安装 | 只支持 GitHub，不支持 Origin；未登录 `gh` 时不可用 |
+| `worktree-audit` | worktree-cleanup 的工作树分类审计 | Host Node（经 `pstack_script`） | `git`、`gh`（PR 状态）；`--sessions` JSON 文件是用量信号的唯一来源 | 只读审计，可能执行 `git fetch`；无 `gh` 登录时缺少 PR 状态；不传 `--sessions` 时全部落 unknown-usage |
+| `log` | show-me-your-work 追加 TSV 决策日志 | Host Node（经 `pstack_script`） | 无外部命令 | 无 |
+| `statechart` | TLA+ 模型检查与 Mermaid 状态图 | Host Node（经 `pstack_script`） | `mise`、`java`、`tla2tools`（TLC）；首次 `mise install` 需网络 | 首次运行需网络安装 TLC 与 `java@temurin-25`；缺 TLC 时只输出 Mermaid 文本 |
 
 ## 从 1 到 100
 

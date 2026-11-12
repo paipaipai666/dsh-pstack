@@ -1,8 +1,8 @@
 # dsh-pstack fork backlog
 
-> 基于 `l246804/dsh-pstack` v0.3.1（pstack 0.15.36），fork 版本 `0.5.0-beta.6`
+> 基于 `l246804/dsh-pstack` v0.3.1（pstack 0.15.36），fork 版本 `0.5.0-beta.7`
 > 目标 DSH：0.2.2-rc.1（本机安装版）
-> 状态：A 全部完成；B 的 FIX-01 至 FIX-09 全部完成（`0.4.0-beta.2` 已发布到 npm）；ADD-01 已提前落地
+> 状态：A 全部完成；B 的 FIX-01 至 FIX-09 基本完成（FIX-03 的 maxDepth 与 FIX-08 的真实集成 smoke 除外）；ADD-01 已提前落地
 > 维护原则：保留 MIT 许可证与原作者署名；优先把通用修复回馈上游，长期分叉只保留 DSH 版本适配和团队特有功能。
 
 ## 进度（2026-11-10，rebase 到上游 0.3.1）

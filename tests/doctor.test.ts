@@ -38,7 +38,7 @@ describe("pstack_doctor", () => {
       signal: new AbortController().signal,
     } as never)) as ReturnType<typeof collectDoctorReport>;
     expect(result.platform).toBe(process.platform);
-    expect(result.commands).toHaveLength(8);
+    expect(result.commands).toHaveLength(6);
     expect(result.scripts).toHaveLength(5);
     expect(result.optionalPlugins).toHaveLength(8);
     expect(result.optionalPlugins.every((plugin) => plugin.status === "unknown")).toBe(true);

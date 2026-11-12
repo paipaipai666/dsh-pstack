@@ -585,3 +585,17 @@ Build a page the user clicks. A server on this computer POSTs JSON to a webhook 
 ```text
 **Match the model to the job.** Before each spawn, start from the role's line or default and pick the reasoning effort the job needs. The `/setup-pstack` budget sets each role's starting effort, xhigh by default. Raise it one step, up to max, for the hardest or subtlest work. Lower it one step for judgment and two or more steps for routine work. Pass the effort as `reasoningEffort` on `pstack_subagent`; DeepSeek Harness has no separate speed or fast-mode parameter. Verification is the exception and stays on the `swarm workers` role. Change only the effort level and keep the family the role names, so a diverse panel stays diverse. A role on `auto` or `inherit-parent` stays on the parent model. If the route rejects the chosen model or effort, do not try another adjusted value. Use the role's line or default and say so. If that is rejected too, continue with the calling skill's fallback, or omit `model` so the subagent runs on the parent model. Say so in both cases.
 ```
+
+## `skills/arena/SKILL.md`
+
+**Find**
+
+```text
+If the Task tool rejects a configured entry, run that seat on its family's default and say so. Families go by prefix: `claude-*`, and `grok-*` with `cursor-grok-*` and `composer-*`. A refused `composer-*` entry runs on `grok-4.7-xhigh-fast`. If the family has no default, or the Task tool rejects that default, use the closest valid slug of the same family from its error message, or drop the seat and say so when there is none.
+```
+
+**Replace**
+
+```text
+If `pstack_subagent` rejects a configured entry, run that seat on its role's default and say so. A role set to `inherit-parent` or `auto` runs on the parent model. If the role has no usable route, omit `model` so the seat runs on the parent model, or drop the seat and say so when there is none.
+```

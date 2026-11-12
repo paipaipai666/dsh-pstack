@@ -22,6 +22,9 @@ const TRANSLATED: readonly (readonly [RegExp, string])[] = [
   [/\b(?:AskQuestion|TodoWrite)\b/, "AskQuestion or TodoWrite"],
   [/readonly\/Ask mode/, "readonly/Ask mode"],
   [CURSOR_SLUG, "a Cursor model slug"],
+  [/reasoning level and fast or standard speed/, "the fast/standard speed phrase"],
+  [/rejects a slug/, "the slug-rejection ladder"],
+  [/\bcursor-team-kit\b/, "cursor-team-kit"],
 ];
 
 function markdownFiles(dir: string, found: string[] = []): string[] {
@@ -39,8 +42,8 @@ describe("native skill text translation", () => {
       'Use `Task` with `subagent_type: "generalPurpose"`, `readonly: true`, and `run_in_background: true`.',
     );
     expect(text).toContain("pstack_subagent");
-    expect(text).toContain('agent: "general"');
-    expect(text).toContain("no file edits");
+    expect(text).toContain('agent: "readonly"');
+    expect(text).not.toContain('agent: "general"');
     expect(text).not.toContain("subagent_type");
   });
 
@@ -68,8 +71,8 @@ describe("native skill text translation", () => {
   it("translates the remaining spawn fields", () => {
     expect(toDshText('environment: "cloud"')).toBe("a pstack_remote target");
     expect(toDshText('environment: "local"')).toBe("current directory");
-    expect(toDshText("readonly: false")).toBe("no read-only restriction");
-    expect(toDshText("readonly: true")).toBe("no file edits");
+    expect(toDshText("readonly: false")).toBe('agent: "general"');
+    expect(toDshText("readonly: true")).toBe('agent: "readonly"');
     expect(toDshText("`readonly/Ask mode`")).toBe("`read-only mode`");
     expect(toDshText("cloud_base_branch")).toBe("cwd");
   });
@@ -77,9 +80,37 @@ describe("native skill text translation", () => {
   it("is idempotent for already translated text", () => {
     const once = toDshText("Use pstack_subagent and $DSH_HOME/pstack-models.mdc");
     expect(toDshText(once)).toBe(once);
-    expect(toDshText('agent: "general" with no read-only restriction')).toBe(
-      'agent: "general" with no read-only restriction',
+    expect(toDshText('spawn with agent: "readonly"')).toBe('spawn with agent: "readonly"');
+  });
+
+  it("collapses a read-only general spawn to the readonly preset", () => {
+    expect(
+      toDshText(
+        "Every spawn is a Task subagent with `subagent_type: generalPurpose` and `readonly: true`.",
+      ),
+    ).toBe('Every spawn is a pstack_subagent subagent with `agent: "readonly"`.');
+  });
+
+  it("translates the recurring speed and slug-rejection prose", () => {
+    expect(
+      toDshText(
+        "Pick each subagent's reasoning level and fast or standard speed for the job, per the Subagents section.",
+      ),
+    ).toBe("Pick each subagent's reasoning effort for the job, per the Subagents section.");
+    expect(
+      toDshText(
+        "If the Task tool rejects a slug, use the default and say so. If it rejects the default, use the closest valid slug of the same family from its error message.",
+      ),
+    ).toBe(
+      "If the pstack_subagent tool rejects the chosen model or effort, use the role's default and say so. If it rejects the default, omit `model` so the subagent runs on the parent model.",
     );
+  });
+
+  it("points the team-kit skills at this package", () => {
+    expect(toDshText("the `deslop` skill from the `cursor-team-kit` plugin")).toBe(
+      "the `deslop` skill from the `dsh-pstack` plugin",
+    );
+    expect(toDshText("`control-ui` from `cursor-team-kit`")).toBe("`control-ui` from `dsh-pstack`");
   });
 
   it("leaves no Cursor name in any shipped skill, playbook, reference, or guide", () => {

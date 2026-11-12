@@ -1,0 +1,47 @@
+name: Optional E2E
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  playground:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PLAYGROUND_CONFIG_JSON: ${{ secrets.PLAYGROUND_CONFIG_JSON }}
+      PLAYGROUND_HOME_PATCH_YAML: ${{ secrets.PLAYGROUND_HOME_PATCH_YAML }}
+      TEMP: ${{ runner.temp }}
+      TMP: ${{ runner.temp }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec vp run build
+      - name: Write playground config
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$PLAYGROUND_CONFIG_JSON"
+          test -n "$PLAYGROUND_HOME_PATCH_YAML"
+          mkdir -p playground
+          printf '%s\n' "$PLAYGROUND_CONFIG_JSON" > playground/config.json
+      - run: pnpm exec vp run playground:prepare
+      - name: Write provider patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p playground/.dsh
+          printf '%s\n' "$PLAYGROUND_HOME_PATCH_YAML" > playground/.dsh/cordis.patch.yml
+      - run: pnpm exec vp run cases:check
+      - run: pnpm exec vp run cases

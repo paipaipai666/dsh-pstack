@@ -79,6 +79,8 @@
     "fork:check": "node scripts/fork-check.mjs",
     "fork:bootstrap": "git submodule update --init --recursive && pnpm install --frozen-lockfile",
     "smoke:install": "node scripts/smoke-install.mjs",
+    "test:desktop": "node scripts/desktop-e2e.mjs",
+    "test:optional-plugins": "node scripts/optional-plugins-e2e.mjs",
     "prepare": "vp config && skills experimental_sync -y -a universal --copy && skills add ./skills/authored -y -a universal",
     "ci": "vp check && vp run typecheck && vp run build && vp test && vp run generate:check && vpx port/scan.mjs --check-lock && vpx port/scan.mjs --check port/audit.md && vp run compatibility:check",
     "prerelease": "vp run ci",

@@ -32,7 +32,10 @@ const HOST = "127.0.0.1";
 const flags = new Set(process.argv.slice(2));
 const reset = flags.has("--reset");
 const reinstall = flags.has("--reinstall");
-const bin = process.platform === "win32" ? "dsh.cmd" : "dsh";
+const prepare = flags.has("--prepare");
+const bin = process.env.DSH_BIN ?? (process.platform === "win32" ? "dsh.cmd" : "dsh");
+const useShell = process.platform === "win32" && /\.cmd$/i.test(bin);
+const launchBin = useShell ? `"${bin}"` : bin;
 const log = (message) => console.log(`[start] ${message}`);
 
 function portState() {
@@ -129,10 +132,11 @@ function ensureInstall() {
     return;
   }
   log("installing dsh-pstack into the playground profile (pnpm store write access required)…");
-  const result = spawnSync(bin, ["plugin", "--profile", PROFILE_NAME, "install"], {
+  const result = spawnSync(launchBin, ["plugin", "--profile", PROFILE_NAME, "install"], {
     cwd: REPO_ROOT,
     env: { ...process.env, DSH_HOME },
     stdio: "inherit",
+    shell: useShell,
   });
   if (result.error) throw new Error(`failed to run dsh: ${result.error.message}; is dsh on PATH?`);
   if (result.status !== 0) {
@@ -142,7 +146,7 @@ function ensureInstall() {
   }
 }
 
-const state = await portState();
+const state = prepare ? "free" : await portState();
 if (state === "busy") {
   console.error(
     `[start] port ${HOST}:${PORT} is already in use; stop the other instance — refusing to fall back to another port.`,
@@ -164,11 +168,16 @@ try {
   process.exit(1);
 }
 
+if (prepare) {
+  log(`prepared playground profile at ${PROFILE_DEST} (DSH_HOME=${DSH_HOME})`);
+  process.exit(0);
+}
+
 log(`launching dsh web on http://${HOST}:${PORT} (DSH_HOME=${DSH_HOME})`);
 const child = spawn(
-  bin,
+  launchBin,
   ["--profile", PROFILE_NAME, "--port", String(PORT), "--host", HOST, "--no-open"],
-  { cwd: process.cwd(), env: { ...process.env, DSH_HOME }, stdio: "inherit" },
+  { cwd: process.cwd(), env: { ...process.env, DSH_HOME }, stdio: "inherit", shell: useShell },
 );
 
 child.on("error", (error) => {

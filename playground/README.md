@@ -6,8 +6,8 @@
 
 1. 在仓库根目录运行 `vp install`。
 2. 按 `port/AGENTS.md` 准备插件源码和生成树，再运行 `vp run build`。
-3. 确认 `dsh` 在 PATH 中。
-4. 运行 `vp run playground`，启动 `127.0.0.1:17353` 上的 Web 环境。
+3. 确认 `dsh` 在 PATH 中，或把 `DSH_BIN` 指向可执行的 `dsh.cmd`。
+4. 运行 `vp run playground`，启动 `127.0.0.1:17353` 上的 Web 环境。CI 只准备 profile 时用 `vp run playground:prepare`，它不检查端口也不启动 Web。
 
 启动器每次同步 `playground/profile/`、宿主凭据和模型配置。运行期文件、依赖、会话和凭据保存在已忽略的 `playground/.dsh/`。
 

@@ -113,6 +113,10 @@ export default defineConfig({
         command: "vpx playground/start.mjs",
         cache: false,
       },
+      "playground:prepare": {
+        command: "vpx playground/start.mjs --prepare",
+        cache: false,
+      },
       "playground:reset": {
         command: "vpx playground/start.mjs --reset",
         cache: false,

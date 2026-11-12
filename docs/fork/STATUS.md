@@ -96,6 +96,14 @@ and `cwd` default to `null`, and a literal `"null"` or `"undefined"` reads as ab
 - Generated tree: 58 skills, 23 playbooks, 24 principles, 2 agent definitions, 11 guide pages.
 - Test suite: 30 files under `tests/` (239 cases) plus 76 runtime cases (4 skipped on Windows); CI runs
   Linux build/test, the Windows suite, and a real DSH install smoke.
+- Desktop E2E: `pnpm run test:desktop` runs all five `pstack_script` ids under the packaged Electron;
+  `scripts/desktop-e2e.mjs` is Windows only.
+- Optional plugin load: `pnpm run test:optional-plugins` installs session-search into a throwaway
+  headless profile and checks that its rows appear in `dsh --dump-config`.
+- Real-model E2E: `.github/workflows/e2e.yml` is manual (`workflow_dispatch`) and runs the 18-case
+  playground when `PLAYGROUND_CONFIG_JSON` and `PLAYGROUND_HOME_PATCH_YAML` are configured.
+- Verification matrix: [VERIFICATION.md](VERIFICATION.md) separates ordinary CI, Desktop E2E,
+  optional real-model E2E, manual UI checks, and the remote worker contract.
 - Translation coverage: `tests/native-text.test.ts` checks 10 hand-written patterns against representative
   names. It does not scan every Markdown file for every Cursor name.
 - Coverage gate: none. `vite.config.ts` has no coverage thresholds; CI only runs `vp test`.

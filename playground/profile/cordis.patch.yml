@@ -16,3 +16,9 @@
 - id: locale
   config:
     preference: zh
+
+# Headless cases have no approval answerer. Allow the bundled pstack scripts so
+# a case can exercise `pstack_script` without a UI prompt.
+- id: pstack-script-policy
+  config:
+    mode: allow

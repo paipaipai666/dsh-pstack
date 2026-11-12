@@ -26,7 +26,7 @@ describe("playground effort selection", () => {
 });
 
 describe("playground case definitions", () => {
-  it("loads all 17 case files and every case can build a runnable assertion", async () => {
+  it("loads all 18 case files and every case can build a runnable assertion", async () => {
     const files = readdirSync(casesDir)
       .filter((name) => name.endsWith(".case.mjs"))
       .sort();
@@ -49,6 +49,6 @@ describe("playground case definitions", () => {
       cases.push(definition.id);
     }
     expect(new Set(cases).size).toBe(cases.length);
-    expect(cases.length).toBe(17);
+    expect(cases.length).toBe(18);
   });
 });

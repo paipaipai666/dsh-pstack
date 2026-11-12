@@ -185,7 +185,7 @@ run `scripts/worktree-audit.sh [-b <pr-base-ref>] [repo-path]`
 **Replace**
 
 ```text
-run `pstack_script` with `id: "worktree-audit"` and `args: ["-b", "<pr-base-ref>", "<repo-path>"]`
+run `pstack_script` with `id: "worktree-audit"` and `args: ["-b", "<pr-base-ref>", "--sessions", "<sessions.json>", "<repo-path>"]`, where `<sessions.json>` is a file you write holding a JSON array of `{"sessionId","cwd","lastEventTime"}` objects built from DSH session-search results
 ```
 
 ## `skills/poteto-mode/playbooks/babysit.md`
@@ -598,4 +598,74 @@ If the Task tool rejects a configured entry, run that seat on its family's defau
 
 ```text
 If `pstack_subagent` rejects a configured entry, run that seat on its role's default and say so. A role set to `inherit-parent` or `auto` runs on the parent model. If the role has no usable route, omit `model` so the seat runs on the parent model, or drop the seat and say so when there is none.
+```
+
+## `skills/poteto-mode/playbooks/worktree-cleanup.md`
+
+**Find**
+
+```text
+It classifies each worktree by size, age, merge state, uncommitted work, PR state, and the newest chat that touched it, then suggests a bucket. The transcript scan is slow, so background it.
+```
+
+**Replace**
+
+```text
+It classifies each worktree by size, age, merge state, uncommitted work, PR state, and the newest supplied session that touched it, then suggests a bucket. The script never reads the session store: `--sessions` is the only usage signal, and without it every row lands in `unknown-usage`. When the session-search bundle is absent, say so and lean on the user's pinned and active set instead of guessing.
+```
+
+## `skills/poteto-mode/playbooks/worktree-cleanup.md`
+
+**Find**
+
+```text
+since a hand-typed `myrepo-worktrees/x` misses one that lives at `.cursor/worktrees/myrepo/x`
+```
+
+**Replace**
+
+```text
+since a hand-typed `myrepo-worktrees/x` misses one that lives at a hidden path such as `.worktrees/myrepo/x`
+```
+
+## `skills/poteto-mode/playbooks/worktree-cleanup.md`
+
+**Find**
+
+```text
+3. Verify usage before deleting. For every `verify-recent-chat` row, or anything you doubt, fan subagents out to read the transcripts and report whether the chat is pinned or ongoing and which worktrees it touches (principle-guard-the-context-window, transcripts are bulk). A pinned chat spawns arena and repro trees into sibling worktrees via background subagents, and those are in use even when their names never hit the sidebar.
+```
+
+**Replace**
+
+```text
+3. Verify usage before deleting. For every `verify-recent-chat` row, or anything you doubt, check whether the session is pinned or ongoing and which worktrees it touches. When the session-search bundle is installed, fan subagents out to inspect the matching Sessions with `session_event_search` / `session_event_read` (principle-guard-the-context-window, history is bulk); without it, ask the user. A pinned session spawns arena and repro trees into sibling worktrees via subagents, and those are in use even when their names never surface.
+```
+
+## `skills/poteto-mode/playbooks/worktree-cleanup.md`
+
+**Find**
+
+```text
+6. Simulators and other reclaimers. Simulators are usually the next-biggest win. `xcrun simctl --set testing delete all` (XCTestDevices clones), `xcrun simctl delete unavailable`, and `xcrun simctl runtime list` then `runtime delete <id>` for old runtimes. More when needed: Xcode `DerivedData` and `iOS DeviceSupport`, `~/Library/Application Support/Cursor` (`state.vscdb.backup`, and `snapshots/roots/<root>` where a `<root>` named for a folder you opened as a workspace balloons), package caches (pnpm, uv, brew, yarn). Clear only caches the user has not said to keep.
+```
+
+**Replace**
+
+```text
+6. Simulators and other reclaimers. On macOS, simulators are usually the next-biggest win: `xcrun simctl --set testing delete all` (XCTestDevices clones), `xcrun simctl delete unavailable`, and `xcrun simctl runtime list` then `runtime delete <id>` for old runtimes, plus Xcode `DerivedData` and `iOS DeviceSupport`. On any platform, package caches (pnpm, uv, brew, yarn) and old build artifacts are safe reclaimers. Skip the simulator and Xcode steps off macOS. Clear only caches the user has not said to keep.
+```
+
+## `skills/poteto-mode/playbooks/worktree-cleanup.md`
+
+**Find**
+
+```text
+Get that set from the user or sidebar and cross-check every candidate.
+```
+
+**Replace**
+
+```text
+Get that set from the user and cross-check every candidate.
 ```

@@ -59,7 +59,7 @@ const TERMS = [
 ];
 const ROUTE_KEY = "Run another pstack skill";
 /** Skills whose DSH mapping is not detected by TERMS but still needs the adapter pointer. */
-const EXTRA_ADAPTER_SKILLS = new Set(["ketchup", "statechart"]);
+const EXTRA_ADAPTER_SKILLS = new Set(["ketchup", "ketchup-video", "statechart"]);
 
 function walk(dir) {
   return readdirSync(dir).flatMap((name) => {

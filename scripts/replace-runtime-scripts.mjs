@@ -62,7 +62,13 @@ let replaced = 0;
 /**
  * Copy the compiled scripts, leaving the compiled tests behind: they are useful in
  * `runtime/dist` where `test:runtime` runs them, and dead weight in an installed package.
+ * Test artefacts are the `*.test.mjs` / `*.test-helper.mjs` files plus the node:test
+ * assertion shims (`expect.mjs`, `support.mjs`) that only those tests import. The shims
+ * must stay listed here (or be renamed to `*.test-helper.mjs`): statechart spawns
+ * `worker.mjs` by a computed path rather than an import, so a reachability walk from the
+ * entry points would drop the worker and is not a safe copy rule.
  */
+const TEST_ARTEFACT = /\.test(-helper)?\.mjs$|^(expect|support)\.mjs$/;
 function copyRunnable(from, to) {
   mkdirSync(to, { recursive: true });
   for (const entry of readdirSync(from, { withFileTypes: true })) {
@@ -70,7 +76,7 @@ function copyRunnable(from, to) {
     const target = join(to, entry.name);
     if (entry.isDirectory()) {
       copyRunnable(source, target);
-    } else if (!/\.test(-helper)?\.mjs$/.test(entry.name)) {
+    } else if (!TEST_ARTEFACT.test(entry.name)) {
       copyFileSync(source, target);
     }
   }

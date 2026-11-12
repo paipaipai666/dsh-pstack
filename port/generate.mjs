@@ -148,15 +148,17 @@ function readPatches() {
     const text = readText(path);
     for (const section of text.split(/^## /m).slice(1)) {
       const file = section.match(/^`([^`]+)`/)?.[1];
-      const find = section.match(/\*\*Find\*\*\n\n```text\n([\s\S]*?)\n```/)?.[1];
-      const replace = section.match(/\*\*Replace\*\*\n\n```text\n([\s\S]*?)\n```/)?.[1];
-      if (!file || find === undefined || replace === undefined) {
+      const finds = [...section.matchAll(/\*\*Find\*\*\n\n```text\n([\s\S]*?)\n```/g)];
+      const replaces = [...section.matchAll(/\*\*Replace\*\*\n\n```text\n([\s\S]*?)\n```/g)];
+      if (!file || finds.length === 0 || finds.length !== replaces.length) {
         console.log(
           `FAIL ${rel(ROOT, path)} has an invalid patch section: ${section.split("\n")[0]}`,
         );
         process.exit(1);
       }
-      patches.push({ file, find, replace });
+      for (let i = 0; i < finds.length; i++) {
+        patches.push({ file, find: finds[i][1], replace: replaces[i][1] });
+      }
     }
   }
   return patches;

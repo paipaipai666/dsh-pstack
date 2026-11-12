@@ -34,7 +34,7 @@ Before spawning investigators, build the seed context inline: file paths and lin
 
 ### Discovery
 
-Before spawning investigators, list the available MCPs from the Cursor environment. Use the available-tools map when present. Otherwise inspect the `mcps/` directory Cursor exposes for enabled MCP servers.
+Before spawning investigators, list the MCP tools the current profile exposes. In DeepSeek Harness, MCP servers are configured through `@deepseek-ai/dsh-mcp-client`; inspect the tools available to this session or the profile's MCP config. Do not look for a Cursor `mcps/` directory.
 
 Map each available MCP to one evidence category:
 
@@ -46,7 +46,7 @@ Map each available MCP to one evidence category:
 6. Error / exception tracking
 7. Product analytics warehouse
 
-Source control is always available through git and `gh`. For the other six, classify using the MCP name, server instructions, tool names, and resource descriptors. If an MCP could fit more than one category, choose the one matching its primary evidence. Record ambiguous cases in the coverage map.
+Source control is always available through git and `gh`. For the other six, classify using the MCP name, server instructions, tool names, and resource descriptors. If an MCP could fit more than one category, choose the one matching its primary evidence. Record ambiguous cases in the coverage map. If the profile has no MCP client or no configured servers, say so in the coverage map and use `git`, `gh`, the local repository, and documents the user supplies; mark the other six categories unavailable instead of guessing.
 
 Spawn one investigator per category that has a matching MCP, all in a single message so they run concurrently, each owning exactly one tool or MCP. Don't ask one agent to cover multiple MCPs. `model`: the `why investigators` line, default `grok-4.7-xhigh-fast`.
 

@@ -1,7 +1,7 @@
 # Fork status
 
-Updated 2026-11-10. Base: upstream `dsh-pstack 0.3.1` (`2d577b1`). Package: `@paipaipai666/dsh-pstack`
-`0.5.0-beta.6`.
+Updated 2026-11-12. Base: upstream `dsh-pstack 0.3.1` (`2d577b1`). Package: `@paipaipai666/dsh-pstack`
+`0.5.0-beta.7`.
 
 ## A. Fork foundation
 
@@ -105,14 +105,15 @@ and `cwd` default to `null`, and a literal `"null"` or `"undefined"` reads as ab
 
 ## Publishing
 
-- `@paipaipai666/dsh-pstack@0.5.0-beta.6` is live. `latest` and `beta` both point at it, and an
+- `@paipaipai666/dsh-pstack@0.5.0-beta.7` is live. `latest` and `beta` both point at it, and an
   isolated `dsh plugin --profile web add @paipaipai666/dsh-pstack` installs it from the registry.
 - `0.5.0-beta.2` exists only because the `0.5.0-beta.1` tarball left out `docs/remote-worker.md`;
   `package.json#files` now lists that document.
   The later betas followed the same staged flow: beta.3 added the doctor workspace check and
   `docs/automations.md`, beta.4 added `pstack_chart`, beta.5 the Windows fixes that an
-  end-to-end `/statechart` run on Windows found, and beta.6 the delegation arguments that the
-  first `/poteto-mode` run from a fresh session broke.
+  end-to-end `/statechart` run on Windows found, beta.6 the delegation arguments that the
+  first `/poteto-mode` run from a fresh session broke, and beta.7 the GAP audit fixes and the
+  DSH-native setup, role, audit, catalog, and skill-text changes.
 - The account signs in with a passkey rather than a TOTP authenticator, so `--otp` can never be
   supplied. What works instead:
   1. `npm stage publish <tarball> --tag beta --force` — staging itself needs no 2FA; `--force` only

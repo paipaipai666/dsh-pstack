@@ -377,3 +377,211 @@ One `Task` call, `subagent_type: generalPurpose`, `model` from the `reflect judg
 ```text
 One `Task` call, `agent: "general"`, `model` from the `reflect judgment, divergent, synthesizer` line (default `claude-opus-5-5-xhigh`). It spot-verifies citations through MCP when the profile configures an MCP client, and otherwise checks them against the transcript digest, repository files, `git`, and `gh`.
 ```
+
+## `skills/poteto-help/SKILL.md`
+
+**Find**
+
+```text
+mention once that a Custom Mode keeps it on.
+```
+
+**Replace**
+
+```text
+mention once that the poteto-mode preset keeps it on.
+```
+
+## `skills/poteto-help/SKILL.md`
+
+**Find**
+
+```text
+1. Install with `/add-plugin pstack` in chat, or from Customize in the sidebar.
+```
+
+**Replace**
+
+```text
+1. Install the plugin into a DSH profile: `dsh plugin --profile web add @paipaipai666/dsh-pstack`.
+```
+
+## `skills/poteto-help/SKILL.md`
+
+**Find**
+
+```text
+pstack is built for Cursor, and it also installs in Claude Code with `/plugin marketplace add cursor/plugins`, then `/plugin install pstack@cursor-plugins`. There, each command takes a `pstack:` prefix, such as `/pstack:poteto-mode`. The [Claude Code adapter](../../docs/harness/claude-code.md) maps the Cursor names, and a step that needs a Cursor-only feature, such as Bugbot or Automations, is skipped with a one-line note.
+```
+
+**Replace**
+
+```text
+This is the DeepSeek Harness port of pstack. The [DSH adapter](../../docs/harness/dsh.md) maps the Cursor names to DSH tools, and a step that needs a Cursor-only feature, such as Bugbot or Automations, is skipped with a one-line note.
+```
+
+## `skills/poteto-help/SKILL.md`
+
+**Find**
+
+```text
+spawn Cursor subagents with per-role models, and Custom Modes and `/loop` are Cursor features, so those parts may not work there.
+```
+
+**Replace**
+
+```text
+spawn subagents with per-role models through `pstack_subagent`, and the poteto-mode preset and the goal/schedule follow-ups are DSH features, so those parts may not work there.
+```
+
+## `skills/poteto-help/SKILL.md`
+
+**Find**
+
+```text
+Whether `/poteto-mode` stays on depends on how the user starts it:
+
+- Enter on `/poteto-mode` attaches the skill to one message. It fades as the chat moves on.
+- Option+Enter on Mac or Alt+Enter on Windows, or Use as Mode from the skill entry, makes it a Custom Mode. It stays in context every turn until the user exits the mode, and it stays out of casual turns.
+- Cursor's docs list Custom Modes in the Agents Window and the CLI. Elsewhere, start each new task with `/poteto-mode`.
+```
+
+**Replace**
+
+```text
+Whether `/poteto-mode` stays on depends on how the user starts it:
+
+- Invoking `/poteto-mode` in a message attaches the skill to that turn. It fades as the chat moves on.
+- Running the session under the `poteto-mode` agent preset keeps the skill in context every turn until the user switches presets, and it stays out of casual turns.
+- Without the preset, start each new task with `/poteto-mode`.
+```
+
+## `skills/poteto-help/SKILL.md`
+
+**Find**
+
+```text
+Link [Cursor's skills docs](https://cursor.com/docs/skills) when this comes up. Mid-chat,
+```
+
+**Replace**
+
+```text
+Mid-chat,
+```
+
+## `skills/poteto-help/SKILL.md`
+
+**Find**
+
+```text
+- `/deslop`, `control-cli`, and `control-ui` ship in the `cursor-team-kit` plugin.
+- `/loop` and `/create-skill` are Cursor built-ins.
+```
+
+**Replace**
+
+```text
+- `/deslop`, `control-cli`, and `control-ui` are vendored with this plugin and load through `pstack_skill`.
+- `/loop` maps to `create_goal` / `schedule_create`; authoring a skill uses the `writing-for-agents` skill.
+```
+
+## `skills/poteto-help/SKILL.md`
+
+**Find**
+
+```text
+It was started with Enter. Start it as a Custom Mode, or start each task with `/poteto-mode`.
+```
+
+**Replace**
+
+```text
+It was started as a one-off invocation. Run the session under the `poteto-mode` preset, or start each task with `/poteto-mode`.
+```
+
+## `skills/poteto-help/SKILL.md`
+
+**Find**
+
+```text
+or run them as cloud agents, which each get their own machine.
+```
+
+**Replace**
+
+```text
+or run them on a `pstack_remote` target, which each get their own machine.
+```
+
+## `skills/poteto-help/SKILL.md`
+
+**Find**
+
+```text
+`/loop` needs a check that can pass or fail, not a duration.
+```
+
+**Replace**
+
+```text
+A `create_goal` run needs a check that can pass or fail, not a duration.
+```
+
+## `skills/make-bot-ui/SKILL.md`
+
+**Find**
+
+```text
+Build a page the user clicks. A server on this computer POSTs JSON to a webhook routine. The bot wakes with that JSON. Keep the sender key on the server. Do not put the sender key in the browser, in chat, or in this skill.
+```
+
+**Replace**
+
+```text
+In DeepSeek Harness there is no Cursor routine object: `update_state` routine calls, the `api2.cursor.sh/automations` webhook, routine wakes, and `SendToUser` secret requests are Cursor-only. Skip those steps with the adapter's one-line note. The inbound seam is `@deepseek-ai/dsh-webhook` plus a provider adapter (only GitHub ships one); the recipe is in `docs/automations.md`. The local-server hosting and Tailscale steps below still apply. Never ask for a webhook sender key in chat.
+
+Build a page the user clicks. A server on this computer POSTs JSON to a webhook endpoint. The bot wakes with that JSON. Keep the sender key on the server. Do not put the sender key in the browser, in chat, or in this skill.
+```
+
+## `skills/poteto-mode/playbooks/eval.md`
+
+**Find**
+
+```text
+6. **Verify the chain from transcripts, not self-report.** Read each candidate's local transcript under the active workspace's `agent-transcripts/` directory (the system prompt names this path). Do not glob across `~/.cursor/projects/*/`. That crosses workspace boundaries and reads private chats from unrelated projects. Look at which files each candidate actually opened. Grade chain-following from the files it really read plus the shape of the code, never from the candidate's own claims.
+```
+
+**Replace**
+
+```text
+6. **Verify the chain from evidence, not self-report.** In DeepSeek Harness, `agent-transcripts/` is not a real path; never read a Cursor transcript directory. When the optional `@deepseek-ai/dsh-experimental-session-search` bundle is installed, use `session_event_search` / `session_event_read` for each candidate's Session. Without it, grade from the files each candidate actually opened and the artifacts it left. Look at which files each candidate actually opened. Grade chain-following from the files it really read plus the shape of the code, never from the candidate's own claims.
+```
+
+## `skills/poteto-mode/playbooks/session-pickup.md`
+
+**Find**
+
+```text
+1. Locate the prior trail. A local transcript under the active workspace's `agent-transcripts/` directory (the system prompt names the path. Do not glob across `~/.cursor/projects/*/`, that crosses workspace boundaries and reads private chats from unrelated projects), a cloud-agent URL, or a pushed branch.
+```
+
+**Replace**
+
+```text
+1. Locate the prior trail. In DeepSeek Harness, `agent-transcripts/` is not a real path; never read a Cursor transcript directory. When the optional `@deepseek-ai/dsh-experimental-session-search` bundle is installed, use `session_search` / `session_event_search` to find the prior Session for this workspace; without it, use the artifacts the user supplies and the current Session. A `pstack_remote` job record or a pushed branch also works.
+```
+
+## `skills/poteto-mode/SKILL.md`
+
+**Find**
+
+```text
+**Match the model to the job.** Before each spawn, start from the role's line or default and pick the reasoning level and speed the job needs. The `/setup-pstack` budget sets each role's starting level, xhigh by default. Raise it one step, up to max, for the hardest or subtlest work. Lower it one step for judgment and two or more steps for routine work. Use fast mode only when the job is urgent, meaning CI or trunk is red or a person is blocked on the result right now. Otherwise use standard speed, the same slug without `-fast`. Verification is the exception and stays on the `swarm workers` model and speed (`grok-4.7-xhigh-fast` by default). Change only the effort level and whether the slug is fast, and keep the family the role names, so a diverse panel stays diverse. If the family has no slug at that level and speed, use its nearest slug. A role on `auto` or `inherit-parent` stays on the parent model. If the Task tool rejects the adjusted slug, do not try another adjusted slug. Use the role's line or default and say so. If the Task tool rejects that too, continue with the calling skill's fallback. A slug counts as rejected once a Task error says that the model is not valid, or leaves the slug out of its list of valid slugs. Never pass a rejected slug, and skip any fallback whose slug is already rejected. When the calling skill has no fallback, use the closest valid slug of the role's family from the error's list of valid slugs, or omit `model` so the subagent runs on the parent model when the list has none. When the calling skill's fallback runs out of slugs without saying what to do next, omit `model` too. Say so in both cases.
+```
+
+**Replace**
+
+```text
+**Match the model to the job.** Before each spawn, start from the role's line or default and pick the reasoning effort the job needs. The `/setup-pstack` budget sets each role's starting effort, xhigh by default. Raise it one step, up to max, for the hardest or subtlest work. Lower it one step for judgment and two or more steps for routine work. Pass the effort as `reasoningEffort` on `pstack_subagent`; DeepSeek Harness has no separate speed or fast-mode parameter. Verification is the exception and stays on the `swarm workers` role. Change only the effort level and keep the family the role names, so a diverse panel stays diverse. A role on `auto` or `inherit-parent` stays on the parent model. If the route rejects the chosen model or effort, do not try another adjusted value. Use the role's line or default and say so. If that is rejected too, continue with the calling skill's fallback, or omit `model` so the subagent runs on the parent model. Say so in both cases.
+```

@@ -10,7 +10,9 @@ disable-model-invocation: true
 
 In DeepSeek Harness, read [the DSH adapter](../../docs/harness/dsh.md) once per session before you follow this skill. It maps the Cursor names in pstack skills to DeepSeek Harness.
 
-Build a page the user clicks. A server on this computer POSTs JSON to a webhook routine. The bot wakes with that JSON. Keep the sender key on the server. Do not put the sender key in the browser, in chat, or in this skill.
+In DeepSeek Harness there is no Cursor routine object: `update_state` routine calls, the `api2.cursor.sh/automations` webhook, routine wakes, and `SendToUser` secret requests are Cursor-only. Skip those steps with the adapter's one-line note. The inbound seam is `@deepseek-ai/dsh-webhook` plus a provider adapter (only GitHub ships one); the recipe is in `docs/automations.md`. The local-server hosting and Tailscale steps below still apply. Never ask for a webhook sender key in chat.
+
+Build a page the user clicks. A server on this computer POSTs JSON to a webhook endpoint. The bot wakes with that JSON. Keep the sender key on the server. Do not put the sender key in the browser, in chat, or in this skill.
 
 ## Create the webhook routine
 

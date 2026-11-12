@@ -18,5 +18,12 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true
   },
-  "include": ["src", "tests", "vite.config.ts", "bump.config.ts", "port/release-compatibility.ts"]
+  "include": [
+    "src",
+    "tests",
+    "runtime",
+    "vite.config.ts",
+    "bump.config.ts",
+    "port/release-compatibility.ts"
+  ]
 }

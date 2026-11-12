@@ -237,6 +237,51 @@ if (argv.includes("--check")) {
   process.exit(stale.length ? 1 : 0);
 }
 
+// toDshText 必须从发布技能目录里清除的 Cursor 词汇。对构建产物而非源树检查，
+// 这样新增一条未被转译规则覆盖的 Cursor 指令会让 CI 失败，而不是静默发布。
+const SHIPPED_RESIDUAL = [
+  ["subagent_type", /subagent_type/],
+  ["generalPurpose", /generalPurpose/],
+  ["AskQuestion", /AskQuestion/],
+  ["TodoWrite", /\bTodoWrite\b/],
+  ["run_in_background", /run_in_background/],
+  ["cloud_base_branch", /cloud_base_branch/],
+  ["~/.cursor/", /~\/\.cursor\//],
+  [".cursor/ 路径", /\.cursor\/(skills|rules|plugins|projects|settings)/],
+  [".cursor-plugin", /\.cursor-plugin/],
+  ["cursor-team-kit", /cursor-team-kit/],
+  ["slug 拒绝回退梯", /rejects a slug/],
+  ["speed/slug 散文", /reasoning level and fast or standard speed/],
+  ["readonly 字段", /readonly: (true|false)/],
+  ["Cursor 模型 slug", /grok-4\.7|claude-opus-5|gpt-5\.6|composer-\d/],
+];
+
+if (argv.includes("--check-shipped")) {
+  const shipped = join(ROOT, "dist/pstack/skills");
+  if (!existsSync(shipped)) {
+    console.error("usage: vpx port/scan.mjs --check-shipped（缺少 dist，先运行 vp run build）");
+    process.exit(2);
+  }
+  const hits = [];
+  for (const path of walk(shipped).filter((p) => p.endsWith(".md"))) {
+    const rel = relPath(shipped, path);
+    readText(path)
+      .split("\n")
+      .forEach((line, index) => {
+        for (const [key, re] of SHIPPED_RESIDUAL) {
+          if (re.test(line)) hits.push(`${key}\t${rel}:${index + 1}\t${line.trim().slice(0, 120)}`);
+        }
+      });
+  }
+  if (hits.length) {
+    for (const hit of hits) console.log(`RESIDUAL ${hit}`);
+    console.log(`${hits.length} 处残留 Cursor 词汇未被 toDshText 转译。`);
+    process.exit(1);
+  }
+  console.log("SHIPPED OK 技能目录无残留 Cursor 词汇。");
+  process.exit(0);
+}
+
 mkdirSync(dirname(TSV), { recursive: true });
 writeFileSync(TSV, `${rows.join("\n")}\n`);
 console.log(

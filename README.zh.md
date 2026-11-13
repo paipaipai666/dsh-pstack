@@ -192,7 +192,7 @@ vendored 技能的来源与哈希记录在 [`skills/skills-lock.json`](./skills/
 | 持久终端 | `@deepseek-ai/dsh-experimental-terminal-bundle` | 为 CLI 和 TUI 验证提供持久 shell 与 REPL 会话。 |
 | MCP 集成 | `@deepseek-ai/dsh-mcp-client` | 使用显式配置的 MCP server 工具；默认不配置 server。 |
 | 自主循环 | `@deepseek-ai/dsh-experimental-ralph-bundle` | 每轮启动新子代理的前台循环，不是同一 Session 的常驻循环或事件 watcher。 |
-| Agent Teams（不兼容） | `@deepseek-ai/dsh-experimental-agent-team-profile` | 提供 lead/teammate 角色与共享任务板。不要在提供 pstack 根预设的 profile 中启用；两者都承担委派与协调，启用 Agent Teams 时 pstack 根预设会在启动时报错。 |
+| Agent Teams（不兼容） | `@deepseek-ai/dsh-experimental-agent-team-profile` | 提供 lead/teammate 角色与共享任务板。不要在提供 pstack 根预设的 profile 中启用；两者都承担委派与协调。检测到 Agent Teams 服务时，pstack 根预设会跳过持久 workflow section，改为显示冲突提示。 |
 
 浏览器验证从以下 provider 中选择一个：
 
@@ -203,7 +203,20 @@ vendored 技能的来源与哈希记录在 [`skills/skills-lock.json`](./skills/
 通过 **插件 → 添加插件** 启用对应包，必要时重启 profile。多数包随 DSH 提供，`@deepseek-ai/dsh-cua-bundle` 按需安装。除 MCP client 外，以上插件均为实验性插件。
 
 > [!WARNING]
-> **Agent Teams 与 pstack 根预设冲突。** Agent Teams 与 `pstack_subagent` 只能二选一。启用 Agent Teams 会导致 pstack 根预设启动失败，并禁用 DSH 原生子代理工具。
+> **Agent Teams 与 pstack 根预设冲突。** 不要在同一个 profile 中同时启用。pstack 根预设仍会加载，但会丢掉持久的 `poteto-mode` section 并显示冲突提示；Agent Teams 还会禁用 pstack 的 `send_message`、`interrupt_agent` 和 `list_agents` 控制工具。
+
+### Agent Teams 冲突
+
+`@deepseek-ai/dsh-experimental-agent-team-profile` 与 pstack 根预设都拥有派发和任务协调能力。在同一个 profile 中同时启用，会让模型收到两套互相竞争的派发路径：
+
+- **委派入口。** 两个 pstack 根预设都只有 `pstack_subagent` 这一个直接派发工具。Agent Teams 加入 `spawn_teammate` 作为第二个派发入口，而 `spawn_teammate` 不能启动 `poteto-agent`，也不能携带 pstack 的 `role`。
+- **控制工具。** pstack 的 `tool-subagent-control` 注册 `send_message`、`interrupt_agent` 和 `list_agents`。Agent Teams 注册同名的三个工具，并禁用 pstack 这一行，所以 pstack 子代理仍能启动，但父级失去 pstack 的控制面。
+- **任务状态。** pstack 把计划放在 `todo_write` 和当前 playbook 里，Agent Teams 维护持久的 `team_task_*` 任务板。两者都会声称自己是“谁负责什么、还剩什么”的事实来源。
+- **容量。** pstack `swarm` 启动 N 个一次性 worker，通过完成通知回收；Agent Teams 在随包 profile 中最多保留 8 个长期 teammate。
+
+检测到 Agent Teams 服务时，`src/poteto-mode.ts` 会跳过持久的 `pstack:poteto-mode` section，改为注册冲突提示。根 preset 仍会加载 persona 和工具面，但它的 workflow 不再持久。这是有意降级，不是崩溃：同时挂载两套 section 会给模型两套互相竞争的派发与任务跟踪指令。
+
+需要 Agent Teams 时，单独使用一个 profile。如果确实要在同一个会话里同时使用两者，受支持的混合方式是把 `pstack_subagent`、`pstack_skill`、`pstack_script`、`pstack_remote` 和 `pstack_chart` 当作工具箱，每个任务手动加载 `/poteto-mode`，并接受 pstack 失去 `send_message`/`interrupt_agent`/`list_agents` 控制面。
 
 依赖未启用插件的步骤会标记为 skipped 或 blocked，不会标记为通过。安装与回退说明见 [DSH 适配文档](./port/dsh.zh.md#可选插件)。
 

@@ -192,7 +192,7 @@ Install dsh-pstack without these plugins, then enable only the capabilities you 
 | Persistent terminals | `@deepseek-ai/dsh-experimental-terminal-bundle` | Persistent shell and REPL sessions for CLI and TUI verification. |
 | MCP integrations | `@deepseek-ai/dsh-mcp-client` | Tools from explicitly configured MCP servers; no server is configured by default. |
 | Autonomous loops | `@deepseek-ai/dsh-experimental-ralph-bundle` | A foreground loop that starts a fresh child each round, rather than a persistent Session loop or event watcher. |
-| Agent Teams (incompatible) | `@deepseek-ai/dsh-experimental-agent-team-profile` | Lead and teammate roles and a shared task board. Do not enable it in a profile that offers the pstack root presets; both own delegation and coordination, and the pstack root preset fails at startup while the Agent Teams service is present. |
+| Agent Teams (incompatible) | `@deepseek-ai/dsh-experimental-agent-team-profile` | Lead and teammate roles and a shared task board. Do not enable it in a profile that offers the pstack root presets; both own delegation and coordination. When the service is present, the pstack root preset loads without its persistent workflow section and shows a conflict notice instead. |
 
 For browser verification, choose one provider:
 
@@ -203,7 +203,20 @@ For browser verification, choose one provider:
 Enable packages through **Plugins → Add plugin**, then restart the profile when required. Most packages ship with DSH; `@deepseek-ai/dsh-cua-bundle` installs on demand. All except the MCP client are experimental.
 
 > [!WARNING]
-> **Agent Teams conflicts with the pstack root presets.** Use either Agent Teams or `pstack_subagent`, not both. Enabling Agent Teams makes the pstack root preset fail at startup and disables DSH native subagent tools.
+> **Agent Teams conflicts with the pstack root presets.** Do not enable both in one profile. The pstack root preset still loads, but it drops the persistent `poteto-mode` section and shows a conflict notice; Agent Teams also disables pstack's `send_message`, `interrupt_agent`, and `list_agents` control tools.
+
+### Agent Teams conflict
+
+`@deepseek-ai/dsh-experimental-agent-team-profile` and the pstack root presets both own delegation and task coordination. Enabling both in one profile gives the model two competing dispatch paths:
+
+- **Delegation.** `pstack_subagent` is the only direct dispatch tool in both pstack root presets. Agent Teams adds `spawn_teammate` as a second dispatch tool, and `spawn_teammate` cannot start a `poteto-agent` or carry a pstack `role`.
+- **Control tools.** pstack's `tool-subagent-control` registers `send_message`, `interrupt_agent`, and `list_agents`. Agent Teams registers the same three tool names and disables the pstack row, so a pstack child can start but the parent loses the pstack control surface.
+- **Task state.** pstack keeps its plan in `todo_write` and the active playbook. Agent Teams keeps a persistent `team_task_*` board. Both claim to be the source of truth for what is assigned and what remains.
+- **Capacity.** pstack `swarm` starts N one-shot workers and collects completion notices. Agent Teams keeps at most 8 long-lived teammates in its shipped profile.
+
+When the Agent Teams service is present, `src/poteto-mode.ts` skips the persistent `pstack:poteto-mode` section and registers a conflict notice instead. The root preset still loads with its persona and tool surface, but its workflow is no longer persistent. This is a deliberate degradation, not a crash: mounting both sections would give the model two competing sets of delegation and task-tracking instructions.
+
+Use a separate profile for Agent Teams. If you need both capabilities in one session, the supported hybrid is to keep `pstack_subagent`, `pstack_skill`, `pstack_script`, `pstack_remote`, and `pstack_chart` as a tool box, load `/poteto-mode` manually for each task, and accept that pstack loses its `send_message`/`interrupt_agent`/`list_agents` control plane.
 
 Steps that depend on a disabled plugin report skipped or blocked, never passed. See the [DSH adaptation guide](./pstack/docs/harness/dsh.md#optional-plugins) for setup and fallbacks.
 

@@ -70,7 +70,7 @@ jobs:
           draft pull request, and report the result here. Review the upstream changes at
           https://github.com/cursor/plugins/commits/main/pstack.
 
-          <!-- dsh-pstack-sync {"current":"${CURRENT}","latest":"${LATEST}","commit":"${LATEST_COMMIT}"} -->
+          <!-- dsh-task {"current":"${CURRENT}","latest":"${LATEST}","commit":"${LATEST_COMMIT}"} -->
           EOF
           )"
           url="$(gh issue create \

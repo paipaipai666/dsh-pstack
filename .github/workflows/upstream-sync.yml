@@ -5,6 +5,10 @@ on:
     - cron: "0 2 * * *"
   workflow_dispatch:
 
+concurrency:
+  group: upstream-sync
+  cancel-in-progress: false
+
 permissions:
   contents: read
   issues: write
@@ -22,6 +26,16 @@ jobs:
         with:
           node-version: 24.22.1
 
+      - name: Ensure sync labels
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create pstack-update --color 1D76DB --description "Upstream pstack update pending" --force
+          gh label create auto-sync-running --color FBCA04 --description "pstack auto-sync running" --force
+          gh label create auto-sync-done --color 0E8A16 --description "pstack auto-sync completed" --force
+          gh label create auto-sync-failed --color D93F0B --description "pstack auto-sync failed" --force
+          gh label create needs-human --color B60205 --description "Needs maintainer decision" --force
+
       - name: Compare upstream pstack
         id: pstack
         env:
@@ -29,27 +43,55 @@ jobs:
         run: node scripts/check-upstream.mjs --github-output --no-fail
 
       - name: Open pstack sync issue
+        id: pstack_issue
         if: steps.pstack.outputs.up_to_date == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
           REPO_OWNER: ${{ github.repository_owner }}
           LATEST: ${{ steps.pstack.outputs.latest }}
+          LATEST_COMMIT: ${{ steps.pstack.outputs.latest_commit }}
           CURRENT: ${{ steps.pstack.outputs.current }}
         run: |
-          existing="$(gh issue list --state open --search 'Upstream pstack in:title' --json number --jq 'length')"
-          if [ "$existing" != "0" ]; then
+          existing="$(gh issue list --state open --search 'Upstream pstack in:title' --json number --jq '.[0].number // empty')"
+          if [ -n "$existing" ]; then
             echo "An open upstream pstack issue already exists."
+            gh issue edit "$existing" --add-label pstack-update
+            echo "created=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          gh issue create \
+          body="$(cat <<EOF
+          Upstream cursor/plugins pstack has a newer version.
+
+          - Current generated pstack: \`${CURRENT}\`
+          - Upstream pstack: \`${LATEST}\`
+          - Upstream commit: \`${LATEST_COMMIT}\`
+
+          This issue is the sync queue item. The VPS auto-sync worker will pick it up, create a
+          draft pull request, and report the result here. Review the upstream changes at
+          https://github.com/cursor/plugins/commits/main/pstack.
+
+          <!-- dsh-pstack-sync {"current":"${CURRENT}","latest":"${LATEST}","commit":"${LATEST_COMMIT}"} -->
+          EOF
+          )"
+          url="$(gh issue create \
             --title "Upstream pstack: ${LATEST}" \
             --assignee "$REPO_OWNER" \
-            --body "Upstream cursor/plugins pstack has a newer version.
+            --label pstack-update \
+            --body "$body")"
+          echo "created=true" >> "$GITHUB_OUTPUT"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
 
-            - Current generated pstack: \`${CURRENT}\`
-            - Upstream pstack: \`${LATEST}\`
-
-            Review https://github.com/cursor/plugins/commits/main/pstack, update \`upstream/cursor-plugins\`, regenerate \`pstack/\`, refresh the audit baseline and compatibility tables, and run \`pnpm exec vp run ci\`."
+      - name: Close stale pstack sync issues
+        if: steps.pstack.outputs.up_to_date == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CURRENT: ${{ steps.pstack.outputs.current }}
+        run: |
+          numbers="$(gh issue list --state open --label pstack-update --json number --jq '.[].number')"
+          for number in $numbers; do
+            gh issue comment "$number" --body "Local pstack is now \`${CURRENT}\`; this sync issue is no longer needed."
+            gh issue close "$number"
+          done
 
       - name: Compare upstream release
         id: upstream

@@ -44,6 +44,7 @@ function gh(args) {
 
 let current;
 let latest;
+let latestCommit = "";
 
 if (target === "release") {
   current = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).version;
@@ -63,18 +64,29 @@ if (target === "release") {
       "Accept: application/vnd.github.raw",
     ]),
   ).version;
+  if (compareVersions(latest, current) > 0) {
+    latestCommit = gh([
+      "api",
+      "repos/cursor/plugins/commits?path=pstack&per_page=1",
+      "--jq",
+      ".[0].sha",
+    ]);
+  }
 } else {
   throw new Error(`Unknown --target=${target}; use pstack or release`);
 }
 
 const upToDate = compareVersions(current, latest) >= 0;
 const result = { up_to_date: upToDate, current, latest };
+if (target === "pstack") result.latest_commit = latestCommit;
 console.log(JSON.stringify(result, null, 2));
 
 if (process.argv.includes("--github-output")) {
   const outputPath = process.env.GITHUB_OUTPUT;
   if (!outputPath) throw new Error("GITHUB_OUTPUT is required with --github-output");
-  appendFileSync(outputPath, `up_to_date=${upToDate}\ncurrent=${current}\nlatest=${latest}\n`);
+  const lines = [`up_to_date=${upToDate}`, `current=${current}`, `latest=${latest}`];
+  if (target === "pstack") lines.push(`latest_commit=${latestCommit}`);
+  appendFileSync(outputPath, `${lines.join("\n")}\n`);
 }
 if (!upToDate && !process.argv.includes("--no-fail")) {
   process.exitCode = 1;

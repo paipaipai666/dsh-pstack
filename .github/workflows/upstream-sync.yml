@@ -2,7 +2,7 @@ name: Upstream sync check
 
 on:
   schedule:
-    - cron: "0 2 * * 1"
+    - cron: "0 2 * * *"
   workflow_dispatch:
 
 permissions:
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   check:
-    name: Check upstream dsh-pstack
+    name: Check upstream pstack and dsh-pstack
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,6 +21,35 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24.22.1
+
+      - name: Compare upstream pstack
+        id: pstack
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/check-upstream.mjs --github-output --no-fail
+
+      - name: Open pstack sync issue
+        if: steps.pstack.outputs.up_to_date == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          LATEST: ${{ steps.pstack.outputs.latest }}
+          CURRENT: ${{ steps.pstack.outputs.current }}
+        run: |
+          existing="$(gh issue list --state open --search 'Upstream pstack in:title' --json number --jq 'length')"
+          if [ "$existing" != "0" ]; then
+            echo "An open upstream pstack issue already exists."
+            exit 0
+          fi
+          gh issue create \
+            --title "Upstream pstack: ${LATEST}" \
+            --assignee "$REPO_OWNER" \
+            --body "Upstream cursor/plugins pstack has a newer version.
+
+            - Current generated pstack: \`${CURRENT}\`
+            - Upstream pstack: \`${LATEST}\`
+
+            Review https://github.com/cursor/plugins/commits/main/pstack, update \`upstream/cursor-plugins\`, regenerate \`pstack/\`, refresh the audit baseline and compatibility tables, and run \`pnpm exec vp run ci\`."
 
       - name: Compare upstream release
         id: upstream
@@ -42,6 +71,7 @@ jobs:
         if: steps.upstream.outputs.up_to_date == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
+          REPO_OWNER: ${{ github.repository_owner }}
           LATEST: ${{ steps.upstream.outputs.latest }}
           CURRENT: ${{ steps.upstream.outputs.current }}
         run: |
@@ -52,6 +82,7 @@ jobs:
           fi
           gh issue create \
             --title "Upstream release: ${LATEST}" \
+            --assignee "$REPO_OWNER" \
             --body "Upstream l246804/dsh-pstack has a newer release.
 
             - Current fork version: \`${CURRENT}\`

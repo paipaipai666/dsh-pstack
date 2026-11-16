@@ -99,6 +99,16 @@ pnpm exec vp run playground
 
 ## Syncing upstream
 
+`.github/workflows/upstream-sync.yml` checks daily for a newer `cursor/plugins` pstack version and
+opens a GitHub issue when the checked-in tree is behind. Run the same check locally before starting
+a sync:
+
+```bash
+pnpm run upstream:check
+```
+
+Then update the fork:
+
 ```bash
 git fetch upstream main --tags
 git switch -c fork/upstream-<version>

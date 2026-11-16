@@ -40,6 +40,7 @@ export function renderBaselineRoleFile(): string {
   return [
     "# pstack model configuration. One line per role. Delete a line to inherit the parent route.",
     "# `inherit-parent` or `auto` as a value: the role runs on the parent chat model.",
+    "# defaults: 2",
     ...ROLE_MANIFEST.map((role) => `${role.key}: inherit-parent`),
     "",
   ].join("\n");

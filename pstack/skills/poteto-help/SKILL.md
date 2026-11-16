@@ -47,7 +47,7 @@ If cost is the worry, say where the tokens go and how to spend fewer. pstack spe
 
 This is the DeepSeek Harness port of pstack. The [DSH adapter](../../docs/harness/dsh.md) maps the Cursor names to DSH tools, and a step that needs a Cursor-only feature, such as Bugbot or Automations, is skipped with a one-line note.
 
-Other tools can read the skills, because they use the Agent Skills format. But most workflow skills, including `/poteto-mode`, `/how`, `/why`, and `/teach`, spawn subagents with per-role models through `pstack_subagent`, and the poteto-mode preset and the goal/schedule follow-ups are DSH features, so those parts may not work there.
+Other tools can read the skills, because they use the Agent Skills format. But most workflow skills, including `/poteto-mode`, `/how`, and `/teach`, spawn subagents with per-role models through `pstack_subagent`, and the poteto-mode preset and the goal/schedule follow-ups are DSH features, so those parts may not work there.
 
 ## Start a task with `/poteto-mode`
 

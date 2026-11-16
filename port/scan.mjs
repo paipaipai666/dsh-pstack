@@ -203,7 +203,9 @@ if (argv.includes("--check")) {
   let checked = 0;
   let current = null;
   const unmatched = [];
-  for (const line of readFileSync(resolve(ROOT, doc), "utf8").split("\n")) {
+  for (const line of readFileSync(resolve(ROOT, doc), "utf8")
+    .split("\n")
+    .map((line) => line.replace(/\r$/, ""))) {
     const header = line.match(/^### (CAP-\d+) (.+)$/);
     if (header) {
       const title = header[2].split("　")[0].replace(/`/g, "").toLowerCase();

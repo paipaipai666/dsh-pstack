@@ -8,7 +8,7 @@ const TREE_ROOT = resolve(import.meta.dirname, "../pstack");
 const ADAPTER = resolve(import.meta.dirname, "../port/dsh.md");
 
 const CURSOR_SLUG =
-  /\b(?:claude-opus-5-5-(?:xhigh|medium|max)|grok-4\.7-(?:xhigh|medium)-fast|gpt-5\.6-sol-max|cursor-grok-\*|composer-\*|claude-\*|grok-\*)\b/;
+  /\b(?:claude-opus-5-5-(?:xhigh|medium|max|high-fast)|claude-fable-5-2-(?:high|max)|gemini-4-carbon-high|grok-4\.7-(?:xhigh|medium)-fast|gpt-5\.6-sol-max|cursor-grok-\*|composer-\*|claude-fable-\*|claude-\*|grok-\*)\b/;
 
 /** Cursor names that a shipped skill body must not carry once `toDshText` has run. */
 const TRANSLATED: readonly (readonly [RegExp, string])[] = [
@@ -65,6 +65,11 @@ describe("native skill text translation", () => {
     );
     expect(toDshText("grok-4.7-xhigh-fast and claude-opus-5-5-xhigh")).toBe(
       "the configured code role and the configured judgment role",
+    );
+    expect(
+      toDshText("claude-opus-5-5-high-fast, claude-fable-5-2-high, and gemini-4-carbon-high"),
+    ).toBe(
+      "the configured worker role, the configured judgment role, and the configured cross-check role",
     );
   });
 

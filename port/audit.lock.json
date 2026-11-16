@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "baseline": {
-    "id": "dsh-0.2.2-rc.1@pstack-ae5650febf4320793844c12c4adaa937f417f8da",
+    "id": "dsh-0.2.2-rc.1@pstack-bf0c7cd80abdbf7fe47b634978a7d1b4071f71a7",
     "compatibilityKey": "dsh-0.2.2-rc.1+port-v1",
-    "previous": null,
-    "transition": "initial"
+    "previous": "dsh-0.2.2-rc.1@pstack-ae5650febf4320793844c12c4adaa937f417f8da",
+    "transition": "normal"
   },
   "items": {
     "CAP-001": {
@@ -15,7 +15,7 @@
       "requirement": "插件提供 `pstack_subagent`，字段至少包含 `agent`、`role`、`reasoningEffort`、`cwd`、`maxDepth`。验收：一次调用启动 poteto-agent 与 comment-sicko 各一个，返回子会话 id，完成后收到两份结果。",
       "conflict": "DSH 有三套多代理入口，标准 `subagent`、官方智能体团队、插件 `pstack_subagent`。智能体团队有具名队友和共享任务板，pstack 需要临时子代理、角色预设和按角色选模型。两者同时启用会出现两条派发路径和两套任务视图。pstack 主路径应选 `pstack_subagent`，智能体团队不作为 pstack 的派发层。",
       "residual": "即使插件提供 `pstack_subagent`，子代理仍不是智能体团队的具名队友，不会出现在团队任务板。只读、附件和恢复语义依赖提示或 DSH 本地后端。",
-      "sourceDigest": "sha256:bdde11965716c8ec54a976fccf224511db12df22b0593b352e7c7171e4d36c1d"
+      "sourceDigest": "sha256:81c0b05a6a8f945ee67f0ac914285c15721876c1b4f8ce30dd52a39a47bf0f6c"
     },
     "CAP-002": {
       "key": "AskQuestion",
@@ -43,7 +43,7 @@
       "requirement": "插件提供 `pstack_skill` 按名称加载隐藏技能，支持 `resource` 子路径。验收：加载 `poteto-mode` 的 `playbooks/babysit.md` 并返回正文。",
       "conflict": "`skill` 工具与插件提供的 `pstack_skill` 是两套加载入口。同名技能同时存在时模型可能选错。约定 `skill` 只加载模型目录内的技能，隐藏技能用 `pstack_skill` 或直接读文件。",
       "residual": "被 `disable-model-invocation` 隐藏的技能不会出现在模型目录，模型不能自动发现，只能靠技能正文点名或用户显式调用。",
-      "sourceDigest": "sha256:6aa2e2d682e88974540f1570a8088e7e03893062b3dabd4b529052dc9513cdc0"
+      "sourceDigest": "sha256:7b1a75a67acae7a790a9605cb9d33a5c90466e8234d8b69c4f8a8654e26b49fe"
     },
     "CAP-005": {
       "key": "Read",
@@ -52,7 +52,7 @@
       "recommendation": "🟢 直接映射。标准模式覆盖，无剩余缺口。",
       "conflict": "无。",
       "residual": "无。",
-      "sourceDigest": "sha256:66fa9e5fb22da8d097fd6123b791aa7500df43503d29f69d77079766d7dcf537"
+      "sourceDigest": "sha256:3683f0ada5a2a5d39071f52865035964c8e7b0aa39414e5de514334398322fec"
     },
     "CAP-006": {
       "key": "Write",
@@ -126,7 +126,7 @@
       "requirement": "插件提供 `pstack_subagent`，`agent` 字段接受 `poteto-agent`、`comment-sicko`、`general` 三种值。验收：三种类型各派生一次，子会话返回各自的预设版本。",
       "conflict": "标准 `subagent` 没有类型字段，官方智能体团队按具名队友组织，插件的 `pstack_subagent` 才按预设路由。三者混用会出现同一份角色指令被不同入口解释。",
       "residual": "预设路由只在 `pstack_subagent` 内生效，标准 `subagent` 看不到这些预设。",
-      "sourceDigest": "sha256:6f33cf7631b6a9ac537cfa39a5cd23c15fb9668c54d8e1edd9797089bf38c9db"
+      "sourceDigest": "sha256:ca953f21da35cd6f85bbc02c45b970c83f6068ed1dc9967b17f5762ef06feb3d"
     },
     "CAP-014": {
       "key": "generalPurpose",
@@ -135,7 +135,7 @@
       "recommendation": "🟢 直接映射。标准模式覆盖，无剩余缺口。",
       "conflict": "无。",
       "residual": "无。",
-      "sourceDigest": "sha256:4c2cebbe7c75ed5329723ee766ab1f2028e55ce8e993cea2c587f430442d2a61"
+      "sourceDigest": "sha256:086678e43b84471b47e02dbeae6493a84f2e14b2a653ee7bcdc57b153c153dc4"
     },
     "CAP-015": {
       "key": "poteto-agent",
@@ -165,7 +165,7 @@
       "requirement": "插件提供只读子代理预设，子代理会话以 `read-only` 沙箱模式启动，保留 `bash` 读取与查询能力。验收：子代理尝试写文件被拒绝，`git status` 无改动。",
       "conflict": "DSH 沙箱有 `read-only` 模式，但标准 `subagent` 没有直接暴露这个设置。官方插件也没有只读角色，需要插件在派生时指定沙箱模式。",
       "residual": "只读子代理需要独立会话策略。`read-only` 沙箱能拒绝写入，但仍允许读取可读范围内的内容。",
-      "sourceDigest": "sha256:e6cdf14e1461aab928a338b6921697d74fab1d2fc6fc853302c043ef0ebe0b4c"
+      "sourceDigest": "sha256:8faaf94e579d748af9fd0f14db46f2ceeaebdef3ac25ca2650fe0e410c1faa07"
     },
     "CAP-018": {
       "key": "environment",
@@ -223,7 +223,7 @@
       "requirement": "插件提供 `pstack_models` 工具枚举完整 provider、model 与 effort。角色配置把 Cursor `claude-*` slug 映射到实际路由；未配置映射时报错，不照抄 slug。验收：`pstack_models` 返回完整列表，角色配置解析出实际 `provider`、`model`、`reasoning_effort`。",
       "conflict": "DSH 的模型选择设置会记录会话路由，插件角色配置（见 CAP-028）又会覆盖每个角色的路由。两个来源同时生效时以插件角色配置为准，但用户在界面改的模型可能被静默覆盖。",
       "residual": "Cursor slug 与实际路由之间需要维护映射表，DSH 升级或供应商变化后要重新映射。",
-      "sourceDigest": "sha256:0abaf3bd09bf03a5346c9827b406b216257ba866165912e5e6a8d4ea379da833"
+      "sourceDigest": "sha256:ccc3bbb10d8639cfe580b0c61851b3be752e7413823f828d7462f39c0adceeca"
     },
     "CAP-024": {
       "key": "grok-slug",
@@ -233,7 +233,7 @@
       "requirement": "插件提供 `pstack_models` 工具枚举完整路由。角色配置把 `grok-*` slug 映射到实际路由；没有对应路由时报错并记录替代关系。验收：角色配置解析出实际路由。",
       "conflict": "同 CAP-023，插件角色配置与 DSH 会话模型设置是两个来源。",
       "residual": "本部署不提供 Grok 命名路由时必须改用实际路由，映射表同样需要维护。",
-      "sourceDigest": "sha256:08135d9ac68f468d16458fc9a5a1250c0236fdb5f652a20d1e553939cb23349d"
+      "sourceDigest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     "CAP-025": {
       "key": "gpt-slug",
@@ -243,7 +243,7 @@
       "requirement": "插件提供 `pstack_models` 工具枚举完整路由。角色配置把 `gpt-*` slug 映射到实际路由，不按名字猜测。验收：角色配置解析出实际路由。",
       "conflict": "同 CAP-023，插件角色配置与 DSH 会话模型设置是两个来源。",
       "residual": "GPT 命名路由不存在时只能按实际路由映射。",
-      "sourceDigest": "sha256:63e1d5a22acf4c6f9ee7e1096561da9aec7e4c0a3c0726f5d1e321b4d7c6d8a1"
+      "sourceDigest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     "CAP-026": {
       "key": "inherit-parent",
@@ -252,7 +252,7 @@
       "recommendation": "🟢 直接映射。标准模式覆盖，无剩余缺口。",
       "conflict": "无。",
       "residual": "无。",
-      "sourceDigest": "sha256:185309312f6cfed75add29fa42805f428498dda8d1d43d289defcc31e404971c"
+      "sourceDigest": "sha256:4db071ca5dd7443f0636b218fe2cf2d261fbf9d5bc619dc7445f74acc5b7c638"
     },
     "CAP-027": {
       "key": "auto-model",
@@ -261,7 +261,7 @@
       "recommendation": "🟢 直接映射。标准模式覆盖，无剩余缺口。",
       "conflict": "无。",
       "residual": "无。",
-      "sourceDigest": "sha256:98f7105fc6b93937ecc0fcf9de12c0fd1072863944b165004b839c883cc884b3"
+      "sourceDigest": "sha256:1cf320c39f29c633d83172a434eddfae6caf8fe7a32961c17ef2f16386987998"
     },
     "CAP-028": {
       "key": "pstack-models.mdc",
@@ -271,7 +271,7 @@
       "requirement": "插件提供角色配置读取与校验，文件位置与格式在 `dsh.md` 声明。验收：修改一个角色路由后，下一次 `pstack_subagent` 调用使用新路由。",
       "conflict": "角色配置文件和 DSH 的模型选择设置是两套来源。插件读取自己的文件，界面设置不会自动同步。",
       "residual": "需要插件提供配置入口与校验。文件丢失时回退到技能默认值，用户看不到差异。",
-      "sourceDigest": "sha256:c05ae0f23fd1135b2a1013ed62b2884571ccc9fccbf6d4664cb8995b8fe605d1"
+      "sourceDigest": "sha256:2f54ab35e54e17f74b1b98b352e19ea20cdc4584f7e5d9192d6c53ebbc9d4986"
     },
     "CAP-029": {
       "key": "setup-pstack",
@@ -281,7 +281,7 @@
       "requirement": "插件提供 `pstack_models` 工具，枚举 LLM 服务注册的全部 provider、model 与 effort，不依赖 `list_subagent_models` 或 `modelDiscovery`。插件提供角色配置页或配置命令，列出角色、当前路由、可选路由与预算，写回角色配置文件。验收：在 `modelDiscovery` 关闭的 profile 中 `pstack_models` 仍返回完整路由；Web UI 修改一个角色并保存，重启后仍生效。",
       "conflict": "无。`setup-pstack` 和设置页都写同一份角色配置文件，以最后写入的值为准。",
       "residual": "同一角色的路由没有版本历史，后写覆盖先写。",
-      "sourceDigest": "sha256:8b60d701d0fd14ac29e82f78c2aa101f7989afdb1e13e4f8f6aa795210ce519f"
+      "sourceDigest": "sha256:67ed55ccd312afb10417e63d3f94366ee5468a364a593f72ae22d43e7ef7060a"
     },
     "CAP-030": {
       "key": ".cursor/skills",
@@ -299,7 +299,7 @@
       "recommendation": "🟢 直接映射。规则内容改写进 `AGENTS.md`。角色模型规则走 CAP-028 的插件配置文件，不写进 `AGENTS.md`。",
       "conflict": "`AGENTS.md` 与插件内的角色规则都会进入上下文，内容冲突时模型无法判断优先级。",
       "residual": "DSH 没有 `.mdc` 的 glob 作用域与 alwaysApply 语义，规则对所有会话生效。",
-      "sourceDigest": "sha256:c977332e6ad6b5e440013a68c0fe90c437edd8acd1235b6b21a44ccd375f4ad2"
+      "sourceDigest": "sha256:40ba286fa2a355ba6ed16bfa270ee55ffb652d5dc84c445a1f992af4997815bd"
     },
     "CAP-032": {
       "key": ".cursor/plugins",
@@ -317,7 +317,7 @@
       "recommendation": "🔴 舍弃。项目级设置只服务 automations/benny，随 Automations 一起舍弃。",
       "conflict": "无。",
       "residual": "该配置入口不实现。",
-      "sourceDigest": "sha256:f03113b8006e7bf3ea763100ddb4ce4f418814759a38d595b40e6aeda80f89ad"
+      "sourceDigest": "sha256:04acc193e7cd286de055559ccf76807c4987635cfe2956ac9e070f002c71d211"
     },
     "CAP-034": {
       "key": "agent-transcripts",
@@ -353,7 +353,7 @@
       "recommendation": "🟢 直接映射。Slack 只在用户配置 Slack MCP 后可用。未配置时 `why` 按来源缺失报告，不编造内容。",
       "conflict": "Slack 只能通过用户配置的 MCP 服务器接入，DSH 没有内置 Slack。多个 Slack MCP 同时配置会造成工具重名或权限冲突。",
       "residual": "未配置 MCP 时 Slack 来源不可用，`why` 必须报告缺失。",
-      "sourceDigest": "sha256:d9926beecee768073d430ce7c2f3ea77594732f1d77add705adc1d2b3ac7d978"
+      "sourceDigest": "sha256:c3d8c20a219f39c9464b1c8bdaee5d68c6fd053919affa68fb83f527ef9b4e95"
     },
     "CAP-038": {
       "key": "Bugbot",
@@ -389,7 +389,7 @@
       "recommendation": "🔵 官方插件。Ralph 循环（`@deepseek-ai/dsh-experimental-ralph-bundle`）每轮启动新代理推进同一目标，直到达成、报告阻塞或达到轮次上限。",
       "conflict": "有三套循环。DSH 的 `create_goal` 跨轮次继续同一会话，官方 Ralph 每轮新代理，Cursor `/loop` 是外部命令。同时用 goal 与 Ralph 会重复驱动同一目标。约定需要新代理时用 Ralph，需要同一会话续跑时用 goal。",
       "residual": "`/loop` 的精确时间语义与动态唤醒无法完全复现，PR 监视器的重新布防行为需要重写。",
-      "sourceDigest": "sha256:f3e29cd9d699ed21cf28207239532f9340a2a3ccaa1c3fd8c30d862855191e6d"
+      "sourceDigest": "sha256:ccd9553564fa52d0c8337b114f1490384ab0c18c55e11dee335d305dbef9b59b"
     },
     "CAP-042": {
       "key": "/plugin",
@@ -425,7 +425,7 @@
       "recommendation": "🟢 直接映射。MCP 服务器由用户在 profile 配置，工具按 `mcp__<server>__<tool>` 调用。未配置的来源报告不可用。",
       "conflict": "MCP 工具可能与原生工具重名，例如 GitHub MCP 与 `gh`。模型会看到两套入口。",
       "residual": "每个服务器都要用户提供配置与凭证，未配置时相关来源不可用。",
-      "sourceDigest": "sha256:c9e74936d7149c61e3a52df42520a5fbac99746864024d6dde3ee3386522dd13"
+      "sourceDigest": "sha256:af4305b5a29f5b61803230dc8b3e322ab5bcd67d0e28d9dbeb34f5964d44c361"
     },
     "CAP-046": {
       "key": "webhook",
@@ -453,7 +453,7 @@
       "requirement": "插件提供两个根 preset：`poteto-mode` 保留标准通用工具，`poteto-mode-creator` 保留创造模式工具并加入 `tool-cordis` 与 agent-preset 技能目录。两者都保留 `tool-subagent-control`，但直接派发只保留 `pstack_subagent`，不放官方 `tool-subagent` 与 `subagent_fork`。两者都由 `pstack-poteto-mode` 行以 `systemPrompt` section 注入完整 `SKILL.md` 正文（去掉 frontmatter）与 agent harness 适配文档的绝对路径，并告诉模型每会话读一次 `docs/harness/dsh.md`；section 用 `interpolate: false` 保留正文里的 `{{...}}`。检测到 `agentTeams` 服务时，`pstack-poteto-mode` 让两个根 preset 启动失败并给出错误。`poteto-agent` 仍是只给委派子代理的 preset，三者分开。验收：新会话选择任一 `poteto-mode` 根 preset，系统提示包含 `# Poteto mode` 与 `Non-negotiables`；第二轮仍在模式内且不需要再次加载 `pstack-skill`；询问当前持久模式时回答对应 preset 名称；工具列表只有 `pstack_subagent` 作为直接派发工具，没有 `subagent`、`subagent_fork` 或 `list_subagent_models`。",
       "conflict": "`poteto-agent` preset 也注入 `poteto-mode` 指令路径，但只用于子代理；两个根 preset 与它同名概念不同，不能互相替代。Agent Teams 的 `spawn_teammate`、`send_message`、`list_agents`、`interrupt_agent` 和共享任务板会与 pstack 的子代理控制和 todo/playbook 形成两套派发路径；根 preset 必须拒绝该组合。",
       "residual": "只有选择两个根 preset 之一的新会话才有持久技能；已有会话或其它 preset 需要每个任务调用 `/poteto-mode`。headless 一次性 runner 不组合 agent preset，验证必须在 Web 会话进行。",
-      "sourceDigest": "sha256:b73bf188aa66996b03fb84f85098b46e49894ae01e270522e7a8ff47451a481a"
+      "sourceDigest": "sha256:fb0f5d9f2ac61f5ec048dd6af7fed601fe8b836b158d520be25422f795b743f9"
     },
     "CAP-048": {
       "key": "cursor-team-kit",
@@ -557,7 +557,7 @@
       "recommendation": "🟢 直接映射。PR 相关步骤先检查 `gh auth status`。未登录时停止并报告需要凭证，不降级为假成功。",
       "conflict": "`gh` 与官方变更请求与工作树插件共用登录状态。",
       "residual": "无 gh 凭证时 PR 步骤不可用。",
-      "sourceDigest": "sha256:b15a5a58d6e5f999d34f66fc980fea5485db582fa6e75d7b3c02e14cfa6b4691"
+      "sourceDigest": "sha256:cfdd982f41f3a60017520810ba26c241c9d515833251c69e54ca27ab9cdb4d3c"
     },
     "CAP-059": {
       "key": "check-plan.mjs",
@@ -646,7 +646,7 @@
       "recommendation": "🟢 直接映射。性能测量全部走 `bash`。缺少 `py-spy` 时先说明并询问是否安装；不安装时改用 `perf`、`strace` 或 `node --cpu-prof`，都没有就在报告中写明限制，不猜数字。",
       "conflict": "无。",
       "residual": "缺少 `py-spy`，Python 性能剖析只能换工具或跳过。",
-      "sourceDigest": "sha256:1d432e7d98fa8b45c5c6e2fd3ae8041766bfdac6a3fd847f92301a551c02f769"
+      "sourceDigest": "sha256:bffd54dae1b59c8e73c32c16d536d4d550033326f4bb6640d4adedd3f64860c7"
     }
   }
 }

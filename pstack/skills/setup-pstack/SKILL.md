@@ -19,6 +19,8 @@ Run `pstack_models`. It reports the live providers, models, and the reasoning-ef
 
 The default role-to-route mapping is the shape shown in step 5. If `$DSH_HOME/pstack-models.mdc` already exists, read it and treat its `# budget` line and its role values as the current choices. Otherwise start from the baseline in step 5. Role names come from the `pstack_roles` manifest. A line whose role is not in that manifest is retired. Report it by line number, drop it from the new file, and tell the user.
 
+A file without the `# defaults: 2` line comes from an older setup. This DSH port writes `inherit-parent` for every role by default, so keep every real route the user chose and only drop retired role lines. Add the marker on the next write and tell the user what changed.
+
 ### 3. Budget, map, and confirm
 
 **(a) Ask for a budget.** Prefer `ask_user_question` over free text. Offer these four options with these exact labels, and name the current budget when the file records one. With no file, say that `large` matches the skill defaults.
@@ -38,11 +40,12 @@ Every real route written must be in the `pstack_models` output, and every bracke
 
 ### 5. Write the file
 
-Write `$DSH_HOME/pstack-models.mdc` with no frontmatter. Start with the comment lines and the `# budget:` line, then one line per role, using the role keys from the `pstack_roles` manifest. Overwrite the whole file so reruns stay idempotent. Shape:
+Write `$DSH_HOME/pstack-models.mdc` with no frontmatter. Start with the comment lines, the `# defaults: 2` line, and the `# budget:` line, then one line per role, using the role keys from the `pstack_roles` manifest. Overwrite the whole file so reruns stay idempotent. Shape:
 
 ```text
 # pstack model configuration. One line per role. Delete a line to inherit the parent route.
 # `inherit-parent` or `auto` as a value: the role runs on the parent chat model.
+# defaults: 2
 # budget: large (xhigh)
 feature, refactoring: inherit-parent
 bug-fix: inherit-parent
@@ -50,10 +53,6 @@ perf-issue: inherit-parent
 hillclimb: inherit-parent
 judgment and prose: inherit-parent
 hardest tasks: inherit-parent
-how explorer: inherit-parent
-how explainer: inherit-parent
-why investigators: inherit-parent
-why synthesizer: inherit-parent
 reflect tooling: inherit-parent
 reflect judgment, divergent, synthesizer: inherit-parent
 arena runners: inherit-parent

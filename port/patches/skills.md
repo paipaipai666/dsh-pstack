@@ -9,15 +9,13 @@ A missing target or a non-matching Find block fails generation.
 **Find**
 
 ```text
-Pick each subagent's reasoning level and fast or standard speed for the job, per the Subagents section of the **poteto-mode** skill.
+Spawn one Task subagent with `subagent_type: generalPurpose` and `readonly: true` that explores and explains in one pass.
 ```
 
 **Replace**
 
 ```text
-Pick each subagent's reasoning level and fast or standard speed for the job, per the Subagents section of the **poteto-mode** skill.
-
-A delegation call returns as soon as the children start. Their reports arrive later as completion notices. Do not expect a report in the tool response and do not poll.
+Spawn one `pstack_subagent` with `agent: "readonly"` that explores and explains in one pass. A delegation call returns as soon as the child starts. Its report arrives later as a completion notice. Do not expect a report in the tool response and do not poll.
 ```
 
 ## `skills/arena/SKILL.md`
@@ -314,44 +312,6 @@ At the end of the run, before handing back, check the log told the truth. Read t
 At the end of the run, before handing back, check the log told the truth. In DeepSeek Harness, `agent-transcripts/` is not a real path; never read a Cursor transcript directory. When the optional `@deepseek-ai/dsh-experimental-session-search` bundle is installed, use `session_event_search` / `session_event_read` for this Session. Without it, audit against the run's `log` rows, command output, and artifacts the user has, and mark transcript-only checks unavailable. Walk this run's rows against what actually happened.
 ```
 
-## `skills/why/SKILL.md`
-
-**Find**
-
-```text
-Every spawn is `generalPurpose` with `readonly: false` (agent mode). **Do not use readonly/Ask mode.** It strips MCP access, which disables the MCP-backed investigators and the synthesizer's citation spot-checks. Investigators still shouldn't write anything.
-```
-
-**Replace**
-
-```text
-Every spawn uses `agent: "general"`. Do not pass a `readonly` field; DSH has no such field, and read-only mode does not control MCP access. Tell every investigator and the synthesizer not to edit files. MCP tools come from the profile's configured MCP servers.
-```
-
-**Find**
-
-```text
-Before spawning investigators, list the available MCPs from the Cursor environment. Use the available-tools map when present. Otherwise inspect the `mcps/` directory Cursor exposes for enabled MCP servers.
-```
-
-**Replace**
-
-```text
-Before spawning investigators, list the MCP tools the current profile exposes. In DeepSeek Harness, MCP servers are configured through `@deepseek-ai/dsh-mcp-client`; inspect the tools available to this session or the profile's MCP config. Do not look for a Cursor `mcps/` directory.
-```
-
-**Find**
-
-```text
-Record ambiguous cases in the coverage map.
-```
-
-**Replace**
-
-```text
-Record ambiguous cases in the coverage map. If the profile has no MCP client or no configured servers, say so in the coverage map and use `git`, `gh`, the local repository, and documents the user supplies; mark the other six categories unavailable instead of guessing.
-```
-
 ## `skills/reflect/SKILL.md`
 
 **Find**
@@ -425,13 +385,13 @@ This is the DeepSeek Harness port of pstack. The [DSH adapter](../../docs/harnes
 **Find**
 
 ```text
-spawn Cursor subagents with per-role models, and Custom Modes and `/loop` are Cursor features, so those parts may not work there.
+Other tools can read the skills, because they use the Agent Skills format. But most workflow skills, including `/poteto-mode`, `/how`, and `/teach`, spawn Cursor subagents, some with per-role models, and Custom Modes and `/loop` are Cursor features, so those parts may not work there.
 ```
 
 **Replace**
 
 ```text
-spawn subagents with per-role models through `pstack_subagent`, and the poteto-mode preset and the goal/schedule follow-ups are DSH features, so those parts may not work there.
+Other tools can read the skills, because they use the Agent Skills format. But most workflow skills, including `/poteto-mode`, `/how`, and `/teach`, spawn subagents with per-role models through `pstack_subagent`, and the poteto-mode preset and the goal/schedule follow-ups are DSH features, so those parts may not work there.
 ```
 
 ## `skills/poteto-help/SKILL.md`
@@ -577,7 +537,7 @@ Build a page the user clicks. A server on this computer POSTs JSON to a webhook 
 **Find**
 
 ```text
-**Match the model to the job.** Before each spawn, start from the role's line or default and pick the reasoning level and speed the job needs. The `/setup-pstack` budget sets each role's starting level, xhigh by default. Raise it one step, up to max, for the hardest or subtlest work. Lower it one step for judgment and two or more steps for routine work. Use fast mode only when the job is urgent, meaning CI or trunk is red or a person is blocked on the result right now. Otherwise use standard speed, the same slug without `-fast`. Verification is the exception and stays on the `swarm workers` model and speed (`grok-4.7-xhigh-fast` by default). Change only the effort level and whether the slug is fast, and keep the family the role names, so a diverse panel stays diverse. If the family has no slug at that level and speed, use its nearest slug. A role on `auto` or `inherit-parent` stays on the parent model. If the Task tool rejects the adjusted slug, do not try another adjusted slug. Use the role's line or default and say so. If the Task tool rejects that too, continue with the calling skill's fallback. A slug counts as rejected once a Task error says that the model is not valid, or leaves the slug out of its list of valid slugs. Never pass a rejected slug, and skip any fallback whose slug is already rejected. When the calling skill has no fallback, use the closest valid slug of the role's family from the error's list of valid slugs, or omit `model` so the subagent runs on the parent model when the list has none. When the calling skill's fallback runs out of slugs without saying what to do next, omit `model` too. Say so in both cases.
+**Match the model to the job.** Before each spawn, start from the role's line or default and pick the reasoning level and speed the job needs. The `/setup-pstack` budget sets each role's starting level, xhigh or high by default, and max for `hardest tasks`. Raise it one step, up to max, for the hardest or subtlest work. Lower it one step for judgment and two or more steps for routine work. Use fast mode only when the job is urgent, meaning CI or trunk is red or a person is blocked on the result right now. Otherwise use standard speed, the same slug without `-fast`. Verification is the exception and stays on the `swarm workers` model and speed (`claude-opus-5-5-high-fast` by default). Change only the effort level and whether the slug is fast, and keep the family the role names, so a diverse panel stays diverse. Fable (`claude-fable-*`) is its own family, apart from the other Claude models. If the family has no slug at that level and speed, use its nearest slug. Gemini has no xhigh, max, or fast slug, so a Gemini subagent runs at high, such as `gemini-4-carbon-high`, whenever the job calls for high or above. Fable 5.2 has no fast slug, so an urgent Fable 5.2 subagent runs at standard speed and keeps its level. A role on `auto` or `inherit-parent` stays on the parent model. If the Task tool rejects the adjusted slug, do not try another adjusted slug. Use the role's line or default and say so. If the Task tool rejects that too, continue with the calling skill's fallback. A slug counts as rejected once a Task error says that the model is not valid, or leaves the slug out of its list of valid slugs. Never pass a rejected slug, and skip any fallback whose slug is already rejected. When the calling skill has no fallback, use the closest valid slug of the role's family from the error's list of valid slugs, or omit `model` so the subagent runs on the parent model when the list has none. When the calling skill's fallback runs out of slugs without saying what to do next, omit `model` too. Say so in both cases.
 ```
 
 **Replace**
@@ -591,13 +551,27 @@ Build a page the user clicks. A server on this computer POSTs JSON to a webhook 
 **Find**
 
 ```text
-If the Task tool rejects a configured entry, run that seat on its family's default and say so. Families go by prefix: `claude-*`, and `grok-*` with `cursor-grok-*` and `composer-*`. A refused `composer-*` entry runs on `grok-4.7-xhigh-fast`. If the family has no default, or the Task tool rejects that default, use the closest valid slug of the same family from its error message, or drop the seat and say so when there is none.
+If the Task tool rejects a configured entry, run that seat on its family's default and say so. Families go by prefix, and the longest matching prefix wins: `claude-fable-*`, `claude-*`, and `gemini-*`. Drop a leading `cursor-` before you compare. Any other slug's family is its text before the first hyphen. A family's default is its entry in the default list above. If the family has no default, or the Task tool rejects that default, use the closest valid slug of the same family from its error message, or drop the seat and say so when there is none. If dropped seats leave fewer than two runners, add runners until there are two, or one when the line has one entry. Run each added runner on a remaining runner's model, or omit `model` so it runs on the parent model when none remain, and say so.
 ```
 
 **Replace**
 
 ```text
 If `pstack_subagent` rejects a configured entry, run that seat on its role's default and say so. A role set to `inherit-parent` or `auto` runs on the parent model. If the role has no usable route, omit `model` so the seat runs on the parent model, or drop the seat and say so when there is none.
+```
+
+## `skills/arena/SKILL.md`
+
+**Find**
+
+```text
+Pick each subagent's reasoning level and fast or standard speed for the job, per the Subagents section of the **poteto-mode** skill.
+```
+
+**Replace**
+
+```text
+Pick each subagent's reasoning effort for the job, per the Subagents section of the **poteto-mode** skill.
 ```
 
 ## `skills/poteto-mode/playbooks/worktree-cleanup.md`

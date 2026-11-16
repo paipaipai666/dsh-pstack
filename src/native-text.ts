@@ -47,8 +47,13 @@ const REPLACEMENTS: readonly (readonly [RegExp, string])[] = [
   [/\bclaude-opus-5-5-xhigh\b/g, "the configured judgment role"],
   [/\bclaude-opus-5-5-medium\b/g, "the configured judgment role"],
   [/\bclaude-opus-5-5-max\b/g, "the configured judgment role"],
+  [/\bclaude-opus-5-5-high-fast\b/g, "the configured worker role"],
+  [/\bclaude-fable-5-2-max\b/g, "the hardest tasks role"],
+  [/\bclaude-fable-5-2-high\b/g, "the configured judgment role"],
+  [/\bgemini-4-carbon-high\b/g, "the configured cross-check role"],
   [/\bgpt-5\.6-sol-max\b/g, "the configured judgment role"],
   [/\b(?:cursor-grok|composer)-\*/g, "the configured code role family"],
+  [/\bclaude-fable-\*/g, "the configured judgment role family"],
   [/\bclaude-\*/g, "the configured judgment role family"],
   [/\bgrok-\*/g, "the configured code role family"],
   // DSH has no speed parameter; the recurring spawn instruction becomes a reasoning-effort pick.

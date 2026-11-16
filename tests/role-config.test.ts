@@ -93,7 +93,7 @@ describe("role manifest and parser", () => {
     expect(parsed.status).toBe("loaded");
     if (parsed.status !== "loaded") return;
     expect(parsed.issues).toEqual([]);
-    expect(parsed.roles.size).toBe(17);
+    expect(parsed.roles.size).toBe(13);
     expect([...parsed.roles.values()].every((role) => role.routes[0]?.kind === "inherit")).toBe(
       true,
     );

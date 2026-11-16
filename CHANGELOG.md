@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0-beta.9
+
+Synchronizes the port with upstream pstack 0.15.42 (commit `bf0c7cd`).
+
+### Changed
+
+- Regenerated `pstack/` from upstream 0.15.42, including the one-file `how` and `why` skills, the `# defaults: 2` setup marker, the 13-role default model set, and the statechart renderer and SANY fixes.
+- Removed the retired `how explorer`, `how explainer`, `why investigators`, and `why synthesizer` roles from the DSH role manifest, client copy, and setup baseline.
+- Extended native-text translation for the new upstream model slugs, and refreshed the audit baseline and bilingual compatibility tables.
+
 ## 0.5.0-beta.6
 
 Fixes the delegation tool so a model no longer has to fill every optional field.

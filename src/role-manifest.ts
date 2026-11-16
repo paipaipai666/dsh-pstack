@@ -26,7 +26,7 @@ export const PSTACK_MODELS_FILENAME = "pstack-models.mdc";
 export const INHERIT_ALIASES = ["inherit-parent", "auto"] as const;
 export type InheritAlias = (typeof INHERIT_ALIASES)[number];
 
-/** The 17 roles, in the order `setup-pstack` documents them. */
+/** The 13 roles, in the order `setup-pstack` documents them. */
 export const ROLE_MANIFEST = [
   { key: "feature, refactoring", shape: "single", autoPanel: false },
   { key: "bug-fix", shape: "single", autoPanel: false },
@@ -34,10 +34,6 @@ export const ROLE_MANIFEST = [
   { key: "hillclimb", shape: "single", autoPanel: false },
   { key: "judgment and prose", shape: "single", autoPanel: false },
   { key: "hardest tasks", shape: "single", autoPanel: false },
-  { key: "how explorer", shape: "single", autoPanel: false },
-  { key: "how explainer", shape: "single", autoPanel: false },
-  { key: "why investigators", shape: "single", autoPanel: false },
-  { key: "why synthesizer", shape: "single", autoPanel: false },
   { key: "reflect tooling", shape: "single", autoPanel: false },
   { key: "reflect judgment, divergent, synthesizer", shape: "single", autoPanel: false },
   { key: "arena runners", shape: "list", autoPanel: true },

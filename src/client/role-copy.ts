@@ -21,22 +21,6 @@ export const ROLE_COPY: Record<RoleKey, RoleCopy> = {
     descriptionKey: "roleJudgmentDescription",
   },
   "hardest tasks": { nameKey: "roleHardestName", descriptionKey: "roleHardestDescription" },
-  "how explorer": {
-    nameKey: "roleHowExplorerName",
-    descriptionKey: "roleHowExplorerDescription",
-  },
-  "how explainer": {
-    nameKey: "roleHowExplainerName",
-    descriptionKey: "roleHowExplainerDescription",
-  },
-  "why investigators": {
-    nameKey: "roleWhyInvestigatorsName",
-    descriptionKey: "roleWhyInvestigatorsDescription",
-  },
-  "why synthesizer": {
-    nameKey: "roleWhySynthesizerName",
-    descriptionKey: "roleWhySynthesizerDescription",
-  },
   "reflect tooling": {
     nameKey: "roleReflectToolingName",
     descriptionKey: "roleReflectToolingDescription",

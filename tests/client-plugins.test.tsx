@@ -47,7 +47,6 @@ function bundle(name: string, enabled = false): BundleInfo {
     installed: true,
     optional: false,
     removable: true,
-    updatable: false,
     rows: [],
     overrides: [],
   };

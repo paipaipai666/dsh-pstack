@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "baseline": {
-    "id": "dsh-0.2.2-rc.1@pstack-2f87c854fe3e2fcda44ca86b46ede35aad3c46b7",
-    "compatibilityKey": "dsh-0.2.2-rc.1+port-v1",
-    "previous": "dsh-0.2.2-rc.1@pstack-bf0c7cd80abdbf7fe47b634978a7d1b4071f71a7",
-    "transition": "normal"
+    "id": "dsh-0.2.2-rc.2@pstack-2f87c854fe3e2fcda44ca86b46ede35aad3c46b7",
+    "compatibilityKey": "dsh-0.2.2-rc.2+port-v1",
+    "previous": "dsh-0.2.2-rc.1@pstack-2f87c854fe3e2fcda44ca86b46ede35aad3c46b7",
+    "transition": "breaking"
   },
   "items": {
     "CAP-001": {

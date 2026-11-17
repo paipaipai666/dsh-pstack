@@ -11,7 +11,7 @@
 
   <p>
     <a href="https://npmx.dev/package/@paipaipai666/dsh-pstack"><img src="https://img.shields.io/npm/v/@paipaipai666/dsh-pstack?style=flat-square&colorA=080f12&colorB=1fa669" alt="npm version" /></a>
-    <a href="https://github.com/deepseek-ai/deepseek-harness"><img src="https://img.shields.io/badge/dsh-%3E%3D0.2.2--rc.1-1f6feb?style=flat-square" alt="dsh >=0.2.2-rc.1" /></a>
+    <a href="https://github.com/deepseek-ai/deepseek-harness"><img src="https://img.shields.io/badge/dsh-%3E%3D0.2.2--rc.2-1f6feb?style=flat-square" alt="dsh >=0.2.2-rc.2" /></a>
     <a href="https://github.com/cursor/plugins/tree/main/pstack"><img src="https://img.shields.io/badge/pstack-0.15.43-d97706?style=flat-square" alt="pstack 0.15.43" /></a>
     <a href="https://github.com/paipaipai666/dsh-pstack/blob/fork/main/LICENSE"><img src="https://img.shields.io/github/license/paipaipai666/dsh-pstack?style=flat-square&colorA=080f12&colorB=1fa669" alt="license" /></a>
     <a href="https://github.com/paipaipai666/dsh-pstack"><img src="https://img.shields.io/badge/fork-of_l246804%2Fdsh--pstack-8957e5?style=flat-square&colorA=080f12&colorB=8957e5" alt="fork of l246804/dsh-pstack" /></a>
@@ -49,7 +49,7 @@ See the [capability audit (in Chinese)](./port/audit.md) and [runtime mapping](.
 The current review covers 68 Cursor-facing capabilities: 39 direct mappings, 2 official plugins, 16 plugin implementations, and 11 deliberate omissions.
 
 > [!IMPORTANT]
-> Requires DSH `>=0.2.2-rc.1` and Node.js `>=24.21.0`. See the [script registry (in Chinese)](./port/AGENTS.md#脚本登记) for the extra runtime requirements of bundled workflows.
+> Requires DSH `>=0.2.2-rc.2` and Node.js `>=24.21.0`. See the [script registry (in Chinese)](./port/AGENTS.md#脚本登记) for the extra runtime requirements of bundled workflows.
 
 <a id="quick-start"></a>
 
@@ -266,10 +266,11 @@ These limitations remain even after all optional plugins that can coexist with p
 
 Choose a release by its declared DSH range. Within each compatibility range, every `x.y` keeps only its latest release. The pstack column records the current port baseline, not a per-release history.
 
-<!-- compatibility-keys: ["dsh-0.2.2-rc.1+port-v1","dsh-0.2.1-rc.5+legacy-v1","dsh-0.2.0-0.3.0+legacy-v1"] -->
+<!-- compatibility-keys: ["dsh-0.2.2-rc.2+port-v1","dsh-0.2.2-rc.1+port-v1","dsh-0.2.1-rc.5+legacy-v1","dsh-0.2.0-0.3.0+legacy-v1"] -->
 | DSH version | dsh-pstack release | Included pstack version |
 |---|---|---|
-| `>=0.2.2-rc.1` | `0.4.0-beta.2`、`0.5.0-beta.10` | `0.15.43` |
+| `>=0.2.2-rc.2` | `0.5.0-beta.10` | `0.15.43` |
+| `>=0.2.2-rc.1` | `0.4.0-beta.2` | `0.15.43` |
 | `>=0.2.1-rc.5` | `0.2.2` | `0.15.36` |
 | `>=0.2.0 < 0.3.0` | `0.1.0` | `0.15.29` |
 

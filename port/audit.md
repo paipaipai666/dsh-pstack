@@ -4,9 +4,9 @@
 
 ## 本轮基线
 
-- DSH：`@deepseek-ai/dsh` 0.2.2-rc.1。
+- DSH：`@deepseek-ai/dsh` 0.2.2-rc.2。
 - 能力基线：DSH Web profile 的标准模式。headless 只用于 playground 自动化，不参与能力判定。
-- pstack：`upstream/cursor-plugins` 提交 `2f87c854fe3e2fcda44ca86b46ede35aad3c46b7`，插件版本 0.15.43。上一个基线为 `bf0c7cd80abdbf7fe47b634978a7d1b4071f71a7`（0.15.42），本轮为普通更新（`normal`）。
+- pstack：`upstream/cursor-plugins` 提交 `2f87c854fe3e2fcda44ca86b46ede35aad3c46b7`，插件版本 0.15.43。上一个基线为 `bf0c7cd80abdbf7fe47b634978a7d1b4071f71a7`（0.15.42），本轮为破坏性更新（`breaking`）。
 - 审核日期：2026-11-17。
 - 工具清单取自运行时 `Tool.listTools`。官方插件状态取自当前 Web profile 的 `dsh.profile.bundles`。
 - `list_subagent_models` 由 `@deepseek-ai/dsh-tool-subagent` 的 `modelDiscovery` 注册。`modelDiscovery` 为 false 时工具根本不注册，不是隐藏或空列表。默认 false，Web 与 Desktop 标准预设设为 true，headless、SDK、ACP 不包含。

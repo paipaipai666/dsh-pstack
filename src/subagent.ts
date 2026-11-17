@@ -360,14 +360,12 @@ export async function startPlannedChildren(
       const activation = await runtime.subagents.startActivation({
         provider: plan.provider,
         label: child.label,
-        request: {
-          prompt: [{ type: "text", text: plan.prompt }],
-          parent,
-          ...(child.agentPreset === undefined ? {} : { agentPreset: child.agentPreset }),
-          ...(child.cwd === undefined ? {} : { cwd: child.cwd }),
-          ...(child.agentOptions === undefined ? {} : { agentOptions: child.agentOptions }),
-          ...(child.maxDepth === undefined ? {} : { maxDepth: child.maxDepth }),
-        },
+        prompt: [{ type: "text", text: plan.prompt }],
+        parent,
+        ...(child.agentPreset === undefined ? {} : { agentPreset: child.agentPreset }),
+        ...(child.cwd === undefined ? {} : { cwd: child.cwd }),
+        ...(child.agentOptions === undefined ? {} : { agentOptions: child.agentOptions }),
+        ...(child.maxDepth === undefined ? {} : { maxDepth: child.maxDepth }),
         signal,
         delivery: "parent",
       });

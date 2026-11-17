@@ -48,7 +48,6 @@ function fakeRuntime(dshHome: string): DelegationRuntime {
         capabilities: { agentOptions: true, agentPreset: true, depthLimit: true },
         inheritsParentContext: false,
       }),
-      list: () => ["spawn"],
       resolveMaxDepth: () => 2,
       startActivation: async () => ({ childId: "child-1" }),
     },
@@ -151,13 +150,37 @@ describe("pstack_subagent arguments and planning", () => {
     ).rejects.toThrow('subagent provider "spawn" is not registered');
   });
 
+  it("passes a flattened activation spec to DSH rc.2", async () => {
+    const base = fakeRuntime(home());
+    let captured: Record<string, unknown> | undefined;
+    const subagents = {
+      ...base.subagents,
+      startActivation: async (spec: Record<string, unknown>) => {
+        captured = spec;
+        return { childId: "child-1" };
+      },
+    };
+    const runtime = { ...base, subagents } as unknown as DelegationRuntime;
+    const plan = planDelegation(args(), runtime);
+
+    await startPlannedChildren(
+      { options: {} } as unknown as Agent,
+      plan,
+      runtime,
+      new AbortController().signal,
+    );
+
+    expect(captured).toHaveProperty("prompt");
+    expect(captured).toHaveProperty("parent");
+    expect(captured).not.toHaveProperty("request");
+  });
+
   it("keeps started child ids when a later activation fails", async () => {
     const dshHome = home("arena runners: cpa/model-a, cpa/model-b\n");
     let starts = 0;
     const base = fakeRuntime(dshHome);
     const subagents = {
       getProvider: base.subagents.getProvider.bind(base.subagents),
-      list: base.subagents.list.bind(base.subagents),
       resolveMaxDepth: base.subagents.resolveMaxDepth.bind(base.subagents),
       startActivation: async () => {
         starts += 1;
@@ -229,7 +252,6 @@ describe("pstack_subagent arguments and planning", () => {
       ...base,
       subagents: {
         getProvider: base.subagents.getProvider.bind(base.subagents),
-        list: base.subagents.list.bind(base.subagents),
         resolveMaxDepth: () => undefined,
         startActivation: base.subagents.startActivation.bind(base.subagents),
       },

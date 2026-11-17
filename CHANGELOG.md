@@ -10,6 +10,7 @@ Synchronizes the port with upstream pstack 0.15.43 (commit `2f87c85`).
 - The role set drops to nine. `hardest tasks`, `reflect tooling`, `reflect judgment, divergent, synthesizer`, and `architect runners` are retired, so an old role file reports those lines as unknown and `/setup-pstack` drops them. `arena cross-judge pool` and `arena runners` keep their panel shape.
 - The budget drops `unlimited`, because no role runs above `xhigh`. `large`, `medium`, and `small` target `xhigh`, `high`, and `medium`; a stored `unlimited` label reads as unset instead of becoming a tier.
 - `pstack_script` exposes four ids. Upstream deleted `check-plan.mjs` and nothing calls it any more, so the `check-plan` entry, its runtime source and test, and the desktop smoke check are gone.
+- Requires DSH `>=0.2.2-rc.2`. The port now sends the flat `SubagentActivationSpec` expected by rc.2 and no longer calls the removed `SubagentRuntime.list()`.
 
 ### Fixed
 

@@ -17,46 +17,41 @@ Run `pstack_models`. It reports the live providers, models, and the reasoning-ef
 
 The default role-to-route mapping is the shape shown in step 5. If `$DSH_HOME/pstack-models.mdc` already exists, read it and treat its `# budget` line and its role values as the current choices. Otherwise start from the baseline in step 5. Role names come from the `pstack_roles` manifest. A line whose role is not in that manifest is retired. Report it by line number, drop it from the new file, and tell the user.
 
-A file without the `# defaults: 2` line comes from an older setup. This DSH port writes `inherit-parent` for every role by default, so keep every real route the user chose and only drop retired role lines. Add the marker on the next write and tell the user what changed.
+A file without the `# defaults: 3` line comes from an older setup, because this DSH port writes `inherit-parent` for every role. Retired keys the earlier manifest still wrote, such as `hardest tasks`, `reflect tooling`, `reflect judgment, divergent, synthesizer`, and `architect runners`, no longer parse, so drop those lines and keep every other real route, `inherit-parent`, and `auto`. A `# budget: unlimited` line becomes `large`, because no role runs above `xhigh`. Add the marker on the next write and tell the user what changed.
 
 ### 3. Budget, map, and confirm
 
-**(a) Ask for a budget.** Prefer `ask_user_question` over free text. Offer these four options with these exact labels, and name the current budget when the file records one. With no file, say that `large` matches the skill defaults.
+**(a) Ask for a budget.** Prefer `ask_user_question` over free text. Offer these three options with these exact labels, and name the current budget when the file records one. With no file, say that `large` matches the skill defaults.
 
-- `unlimited — max reasoning`
 - `large — xhigh reasoning`
 - `medium — high reasoning`
 - `small — medium reasoning`
 
-**(b) Apply it.** Build the working table from the defaults. For each role, keep `inherit-parent` and `auto` unchanged. For every real route, move its effort token to the tier target on the ladder `max` > `xhigh` > `high` > `medium` > `low`. If the route does not advertise the target, use the highest advertised effort at or below the target, and say so. If every advertised effort is above the target, ask the user to choose. If the route advertises no effort, keep it without a bracketed effort and say so. `unlimited`, `large`, `medium`, and `small` target `max`, `xhigh`, `high`, and `medium`. For panel roles (arena runners, architect runners, interrogate reviewers), the value is a list and one child runs per entry, so the list length sets the count. `arena cross-judge pool` is a list too, but one judge is chosen. Order it by preference and prefer a family other than the parent's. `swarm workers` is the default route for every worker unless a race assigns another route per arm.
+**(b) Apply it.** Build the working table from the defaults. For each role, keep `inherit-parent` and `auto` unchanged. For every real route, move its effort token to the tier target on the ladder `max` > `xhigh` > `high` > `medium` > `low`. If the route does not advertise the target, use the highest advertised effort at or below the target, and say so. If every advertised effort is above the target, ask the user to choose. If the route advertises no effort, keep it without a bracketed effort and say so. `large`, `medium`, and `small` target `xhigh`, `high`, and `medium`, and no route above `xhigh` is a valid target. For panel roles (arena runners, interrogate reviewers), the value is a list and one child runs per entry, so the list length sets the count. `arena cross-judge pool` is a list too, but one judge is chosen. Order it by preference and prefer a family other than the parent's. `swarm workers` is the default route for every worker unless a race assigns another route per arm.
 
 **(c) Show the roles and confirm.** Show every role with its route, marking any route the user must choose. Also list each line step 2 dropped. Ask whether to accept as-is or change specific roles, offering the routes `pstack_models` returned plus `inherit-parent` and `auto` (both mean the role runs on the parent chat model). Prefer `ask_user_question`.
 
 ### 4. Validate
 
-Every real route written must be in the `pstack_models` output, and every bracketed effort must be advertised by that route. `inherit-parent` and `auto` always pass. If a chosen route is not available, stop and ask again.
+Every real route written must be in the `pstack_models` output, and every bracketed effort must be advertised by that route and be at or below `xhigh`. `inherit-parent` and `auto` always pass. If a chosen route is not available, stop and ask again.
 
 ### 5. Write the file
 
-Write `$DSH_HOME/pstack-models.mdc` with no frontmatter. Start with the comment lines, the `# defaults: 2` line, and the `# budget:` line, then one line per role, using the role keys from the `pstack_roles` manifest. Overwrite the whole file so reruns stay idempotent. Shape:
+Write `$DSH_HOME/pstack-models.mdc` with no frontmatter. Start with the comment lines, the `# defaults: 3` line, and the `# budget:` line, then one line per role, using the role keys from the `pstack_roles` manifest. Overwrite the whole file so reruns stay idempotent. Shape:
 
 ```text
 # pstack model configuration. One line per role. Delete a line to inherit the parent route.
 # `inherit-parent` or `auto` as a value: the role runs on the parent chat model.
-# defaults: 2
+# defaults: 3
 # budget: large (xhigh)
 feature, refactoring: inherit-parent
 bug-fix: inherit-parent
 perf-issue: inherit-parent
 hillclimb: inherit-parent
 judgment and prose: inherit-parent
-hardest tasks: inherit-parent
-reflect tooling: inherit-parent
-reflect judgment, divergent, synthesizer: inherit-parent
 arena runners: inherit-parent
 arena cross-judge pool: inherit-parent
 swarm workers: inherit-parent
-architect runners: inherit-parent
 interrogate reviewers: inherit-parent
 ```
 

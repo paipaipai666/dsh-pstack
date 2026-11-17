@@ -142,7 +142,7 @@ Use pstack skills when you want to start workflows directly from a Session.
 | `pstack_models` | Lists available providers, models, and reasoning efforts. |
 | `pstack_roles` | Shows each role's type and whether it is an automatic panel, so delegation uses the correct parameters. |
 | `pstack_subagent` | Applies role routing and agent presets. Supports parallel subagents. |
-| `pstack_script` | Runs one of the five bundled workflows (`check-plan`, `watch-pr`, `worktree-audit`, `log`, `statechart`) under the Host's own Node runtime. The `pstack-script-policy` row asks before every call; `background: true` hands a long run to the job system. |
+| `pstack_script` | Runs one of the four bundled workflows (`watch-pr`, `worktree-audit`, `log`, `statechart`) under the Host's own Node runtime. The `pstack-script-policy` row asks before every call; `background: true` hands a long run to the job system. |
 | `pstack_doctor` | Reports the local prerequisites the bundled workflows need (`git`, `gh`, `node`, `bun`, `ffmpeg`, `mise`, `java`, `jq`), the configured model roles, the optional plugins the current profile has, and the `.cursor/rules/*.mdc` files in the workspace that DSH will never load. |
 | `pstack_remote` | Dispatches one task to a machine you registered, reads its event stream, and stops it. This package supplies no machine: a target is an SSH host with `dsh` on `PATH` or an HTTP worker that streams NDJSON. |
 | `pstack_chart` | Renders a statechart `chart.mmd` to a standalone SVG, colours included. It draws the Mermaid subset the statechart script emits, needs no browser or external binary, and refuses syntax it does not understand instead of guessing. |
@@ -269,7 +269,7 @@ Choose a release by its declared DSH range. Within each compatibility range, eve
 <!-- compatibility-keys: ["dsh-0.2.2-rc.1+port-v1","dsh-0.2.1-rc.5+legacy-v1","dsh-0.2.0-0.3.0+legacy-v1"] -->
 | DSH version | dsh-pstack release | Included pstack version |
 |---|---|---|
-| `>=0.2.2-rc.1` | `0.4.0-beta.2`、`0.5.0-beta.9` | `0.15.42` |
+| `>=0.2.2-rc.1` | `0.4.0-beta.2`、`0.5.0-beta.10` | `0.15.43` |
 | `>=0.2.1-rc.5` | `0.2.2` | `0.15.36` |
 | `>=0.2.0 < 0.3.0` | `0.1.0` | `0.15.29` |
 

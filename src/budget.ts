@@ -5,11 +5,13 @@ import type { RoleShape } from "./role-manifest.ts";
 import { renderRouteValue, type Route } from "./route.ts";
 import { WireTypeError } from "./wire-error.ts";
 
-export const BUDGET_TIERS = ["unlimited", "large", "medium", "small"] as const;
+export const BUDGET_TIERS = ["large", "medium", "small"] as const;
 export type BudgetTier = (typeof BUDGET_TIERS)[number];
 
+/** Upstream retired `unlimited`; an older role file may still record it. */
+export const RETIRED_BUDGET_TIERS = ["unlimited"] as const;
+
 export const BUDGET_TARGETS: Record<BudgetTier, string> = {
-  unlimited: "max",
   large: "xhigh",
   medium: "high",
   small: "medium",
@@ -103,10 +105,15 @@ export interface BudgetPlan {
   readonly warnings: readonly BudgetWarning[];
 }
 
-/** Read a tier from the existing `# budget: <tier> (<target>)` line. */
+/**
+ * Read a tier from the existing `# budget: <tier> (<target>)` line.
+ *
+ * Upstream retired `unlimited` in 0.15.43 because no role runs above `xhigh`, so an
+ * older file's `unlimited` is not a tier and reads as unset.
+ */
 export function budgetTierFromLabel(raw: string | undefined): BudgetTier | undefined {
   if (raw === undefined) return undefined;
-  const match = /^\s*(unlimited|large|medium|small)\b/i.exec(raw);
+  const match = /^\s*(large|medium|small)\b/i.exec(raw);
   return match?.[1]?.toLowerCase() as BudgetTier | undefined;
 }
 

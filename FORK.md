@@ -20,14 +20,14 @@ Everything upstream ships is kept. On top of it the fork carries six additions:
 
 | Addition | Entry | Why |
 |---|---|---|
-| Bundled script runner | `src/script.ts` → `pstack_script` | Runs the five scripts that ship inside the generated tree with the host's own Node. A desktop install has no `node` on `PATH`, and the extensionless `watch-pr` entry cannot be spawned directly on Windows. The tool exposes a fixed id list, never a free-form command. |
+| Bundled script runner | `src/script.ts` → `pstack_script` | Runs the four scripts that ship inside the generated tree with the host's own Node. A desktop install has no `node` on `PATH`, and the extensionless `watch-pr` entry cannot be spawned directly on Windows. The tool exposes a fixed id list, never a free-form command. |
 | Script approval row | `src/script-policy.ts` → `pstack-script-policy` | A `tools/pre-execute` row asks before every `pstack_script` call, so the approval stays a normal DSH decision instead of something the tool implements. `mode: allow` exists for trusted headless profiles only. |
 | Doctor | `src/doctor.ts` → `pstack_doctor` | Reports the host prerequisites the scripts depend on (`git`, `gh`, `node`, `ffmpeg`, `mise`, `java`), the resolved role file, the install state of the optional plugins listed in `port/dsh.md`, and any `.cursor/rules/*.mdc` files the workspace carries that DSH never loads. |
 | Runtime translation | `src/native-text.ts`, `src/skill.ts`, `src/poteto-mode.ts` | Rewrites the Cursor vocabulary that survives inside the vendored skill text (`Task`, `subagent_type`, `~/.cursor/...`, model slugs) when a skill is read. The generated tree keeps the upstream bytes so `port/generate.mjs --check` still proves what changed. |
 | Remote dispatch | `src/remote.ts` -> `pstack_remote`, row `pstack-remote` | Dispatches one headless DSH run to a machine the user registers (an SSH host with `dsh` on `PATH`, or an HTTP worker that streams NDJSON) and records its event stream. The package supplies no machine, no cloud SDK, and no dashboard; `docs/remote-worker.md` is the whole contract. |
 | Chart renderer | `src/chart.ts` -> `pstack_chart`, row `pstack-chart` | Renders a statechart `chart.mmd` to a standalone SVG. The statechart script already writes `classDef`/`class` colours into the Mermaid text, but DSH has no renderer; this tool parses the emitted subset, keeps the `breaks`/`mayBreak`/`bugPath`/`repeats` palette, and needs no browser or external binary. Unsupported syntax is reported with its line number. |
 
-`runtime/` holds the TypeScript sources for those five scripts. `vite.config.ts` builds them into
+`runtime/` holds the TypeScript sources for those four scripts. `vite.config.ts` builds them into
 `runtime/dist/`, and `scripts/replace-runtime-scripts.mjs` copies the compiled `.mjs` into the
 shipped tree under `dist/pstack/skills/<skill>/scripts/`, dropping the compiled tests.
 

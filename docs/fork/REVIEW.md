@@ -22,7 +22,7 @@
 - 运行时适配层 `src/internal/native-text.ts` 在 skill provider 返回内容时翻译 Cursor 名称。
 - `pstack_skill` 是隐藏技能加载器，负责按名称加载 `SKILL.md` 和相对资源。
 - `pstack_subagent` 负责角色路由、子代理 preset 和并行委派。
-- `pstack_script` 负责五个随包脚本，并在运行前请求 Host 审批。
+- `pstack_script` 负责四个随包脚本，并在运行前请求 Host 审批。
 - `pstack` preset 是常驻 `poteto-mode`，`poteto-agent` 和 `comment-sicko` 是委派 preset。
 
 #> 说明：本文件记录的是 rebase 到上游 0.3.1 之前的审查结论，其中的 `pstack/pstack/`、`src/internal/` 与测试数量已随合并变化，当前状态见 [STATUS.md](STATUS.md)。
@@ -33,7 +33,7 @@
 2. 用户输入 `/poteto-mode` 或选择 `pstack` preset，模型读取 `poteto-mode` 技能。
 3. `poteto-mode` 通过 `pstack_skill` 加载 `how`、`why`、`architect` 等隐藏技能，或通过 `pstack_subagent` 派发子代理。
 4. `pstack_subagent` 按 `$DSH_HOME/pstack-models.mdc` 解析角色，启动子代理并转发完成通知。
-5. `pstack_script` 在执行 `check-plan`、`watch-pr`、`worktree-audit`、`log`、`statechart` 前请求审批。
+5. `pstack_script` 在执行 `watch-pr`、`worktree-audit`、`log`、`statechart` 前请求审批。
 6. `pstack_doctor` 检查外部命令、随包脚本和角色文件。
 
 #> 说明：本文件记录的是 rebase 到上游 0.3.1 之前的审查结论，其中的 `pstack/pstack/`、`src/internal/` 与测试数量已随合并变化，当前状态见 [STATUS.md](STATUS.md)。

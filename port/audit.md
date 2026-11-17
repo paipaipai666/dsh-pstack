@@ -6,16 +6,16 @@
 
 - DSH：`@deepseek-ai/dsh` 0.2.2-rc.1。
 - 能力基线：DSH Web profile 的标准模式。headless 只用于 playground 自动化，不参与能力判定。
-- pstack：`upstream/cursor-plugins` 提交 `bf0c7cd80abdbf7fe47b634978a7d1b4071f71a7`，插件版本 0.15.42。
-- 审核日期：2026-11-16。
+- pstack：`upstream/cursor-plugins` 提交 `2f87c854fe3e2fcda44ca86b46ede35aad3c46b7`，插件版本 0.15.43。上一个基线为 `bf0c7cd80abdbf7fe47b634978a7d1b4071f71a7`（0.15.42），本轮为普通更新（`normal`）。
+- 审核日期：2026-11-17。
 - 工具清单取自运行时 `Tool.listTools`。官方插件状态取自当前 Web profile 的 `dsh.profile.bundles`。
 - `list_subagent_models` 由 `@deepseek-ai/dsh-tool-subagent` 的 `modelDiscovery` 注册。`modelDiscovery` 为 false 时工具根本不注册，不是隐藏或空列表。默认 false，Web 与 Desktop 标准预设设为 true，headless、SDK、ACP 不包含。
 - `subagent` 的 `agent_preset` 由 `allowedAgentPresets` 开启。预设是 Cordis 插件组合，子代理启动时按所选预设挂载，系统提示与工具随组合加载。
-- 扫描器：`vpx port/scan.mjs` 输出 `.audit/scan/capability-scan.tsv`，覆盖 122 个 Markdown 文件与 50 个脚本或配置文件。`vpx port/scan.mjs --check port/audit.md` 校验本文件引用的行号。
+- 扫描器：`vpx port/scan.mjs` 输出 `.audit/scan/capability-scan.tsv`，覆盖 115 个 Markdown 文件与 48 个脚本或配置文件。`vpx port/scan.mjs --check port/audit.md` 校验本文件引用的行号。
 
 ## 处置状态
 
-本轮已确认处置 68 项。
+本轮已确认处置 67 项。上游在普通更新中删除了 `check-plan`，对应 CAP-059 标为已移除并从活动 lock 删除，历史只留在 Git 提交里。
 
 - `直接映射`：DSH 标准模式已经提供。
 - `官方插件`：启用 DSH 随附的官方插件即可。
@@ -28,18 +28,18 @@
 
 | 指标 | 数值 |
 |:--|--:|
-| 能力总数 | 68 |
-| 已确认处置 | 68 |
+| 能力总数 | 67 |
+| 已确认处置 | 67 |
 | 待确认处置 | 0 |
 | 技能 | 58 |
-| 脚本入口 | 5 |
-| 引用校验 | 234 |
-| 🟢 直接映射 | 37 |
+| 脚本入口 | 4 |
+| 引用校验 | 217 |
+| 🟢 直接映射 | 36 |
 | 🔵 官方插件 | 3 |
 | 🟠 插件实现 | 21 |
 | 🔴 舍弃 | 8 |
 
-`脚本入口` 只统计随包可执行入口（check-plan、watch-pr、worktree-audit、log、statechart），不含 Java 测试辅助、Cursor Automations 等运行时能力项。
+`脚本入口` 只统计随包可执行入口（watch-pr、worktree-audit、log、statechart），不含 Java 测试辅助、Cursor Automations 等运行时能力项。
 
 | 分类 | 能力 | 推荐分布 |
 |:--|--:|:--|
@@ -49,13 +49,13 @@
 | [D 路径与历史](#cat-d) | 5 | 🟢 直接映射 4 · 🔴 舍弃 1 |
 | [E Cursor 平台](#cat-e) | 14 | 🟢 直接映射 8 · 🔵 官方插件 2 · 🟠 插件实现 3 · 🔴 舍弃 1 |
 | [F 其他 Cursor 插件](#cat-f) | 6 | 🔵 官方插件 1 · 🟠 插件实现 3 · 🔴 舍弃 2 |
-| [G 运行时与脚本](#cat-g) | 14 | 🟢 直接映射 9 · 🟠 插件实现 2 · 🔴 舍弃 3 |
+| [G 运行时与脚本](#cat-g) | 13 | 🟢 直接映射 8 · 🟠 插件实现 2 · 🔴 舍弃 3 |
 
 ## 按推荐分组
 
 | 推荐 | 数量 | 编号 |
 |:--|--:|:--|
-| 🟢 直接映射 | 37 | [CAP-002](#cap-002) [CAP-003](#cap-003) [CAP-005](#cap-005) [CAP-006](#cap-006) [CAP-007](#cap-007) [CAP-008](#cap-008) [CAP-009](#cap-009) [CAP-010](#cap-010) [CAP-014](#cap-014) [CAP-018](#cap-018) [CAP-019](#cap-019) [CAP-021](#cap-021) [CAP-022](#cap-022) [CAP-026](#cap-026) [CAP-027](#cap-027) [CAP-030](#cap-030) [CAP-031](#cap-031) [CAP-032](#cap-032) [CAP-034](#cap-034) [CAP-037](#cap-037) [CAP-038](#cap-038) [CAP-040](#cap-040) [CAP-042](#cap-042) [CAP-043](#cap-043) [CAP-044](#cap-044) [CAP-045](#cap-045) [CAP-047](#cap-047) [CAP-055](#cap-055) [CAP-056](#cap-056) [CAP-057](#cap-057) [CAP-058](#cap-058) [CAP-059](#cap-059) [CAP-060](#cap-060) [CAP-061](#cap-061) [CAP-063](#cap-063) [CAP-067](#cap-067) |
+| 🟢 直接映射 | 36 | [CAP-002](#cap-002) [CAP-003](#cap-003) [CAP-005](#cap-005) [CAP-006](#cap-006) [CAP-007](#cap-007) [CAP-008](#cap-008) [CAP-009](#cap-009) [CAP-010](#cap-010) [CAP-014](#cap-014) [CAP-018](#cap-018) [CAP-019](#cap-019) [CAP-021](#cap-021) [CAP-022](#cap-022) [CAP-026](#cap-026) [CAP-027](#cap-027) [CAP-030](#cap-030) [CAP-031](#cap-031) [CAP-032](#cap-032) [CAP-034](#cap-034) [CAP-037](#cap-037) [CAP-038](#cap-038) [CAP-040](#cap-040) [CAP-042](#cap-042) [CAP-043](#cap-043) [CAP-044](#cap-044) [CAP-045](#cap-045) [CAP-047](#cap-047) [CAP-055](#cap-055) [CAP-056](#cap-056) [CAP-057](#cap-057) [CAP-058](#cap-058) [CAP-060](#cap-060) [CAP-061](#cap-061) [CAP-063](#cap-063) [CAP-067](#cap-067) |
 | 🔵 官方插件 | 3 | [CAP-041](#cap-041) [CAP-046](#cap-046) [CAP-050](#cap-050) |
 | 🟠 插件实现 | 21 | [CAP-001](#cap-001) [CAP-004](#cap-004) [CAP-011](#cap-011) [CAP-013](#cap-013) [CAP-015](#cap-015) [CAP-016](#cap-016) [CAP-017](#cap-017) [CAP-020](#cap-020) [CAP-023](#cap-023) [CAP-024](#cap-024) [CAP-025](#cap-025) [CAP-028](#cap-028) [CAP-029](#cap-029) [CAP-035](#cap-035) [CAP-039](#cap-039) [CAP-048](#cap-048) [CAP-049](#cap-049) [CAP-051](#cap-051) [CAP-062](#cap-062) [CAP-065](#cap-065) [CAP-068](#cap-068) |
 | 🔴 舍弃 | 8 | [CAP-012](#cap-012) [CAP-033](#cap-033) [CAP-036](#cap-036) [CAP-052](#cap-052) [CAP-053](#cap-053) [CAP-054](#cap-054) [CAP-064](#cap-064) [CAP-066](#cap-066) |
@@ -147,7 +147,6 @@
 | [CAP-056](#cap-056) | TLC 模型检查器 | 🟢 直接映射 | 需要网络与 mise | 直接映射 | |
 | [CAP-057](#cap-057) | Java 运行时 | 🟢 直接映射 | 需要网络与 mise 才能安装首选版本 | 直接映射 | |
 | [CAP-058](#cap-058) | GitHub CLI | 🟢 直接映射 | 无 gh 凭证时 PR 步骤不可用 | 直接映射 | |
-| [CAP-059](#cap-059) | 计划文件校验脚本 | 🟢 直接映射 | 无 | 直接映射 | |
 | [CAP-060](#cap-060) | watch-pr 脚本 | 🟢 直接映射 | 需要 Bun、网络与 gh 登录 | 直接映射 | |
 | [CAP-061](#cap-061) | worktree-audit 脚本 | 🟢 直接映射 | 无 | 直接映射 | |
 | [CAP-062](#cap-062) | 决策日志脚本 | 🟠 插件实现 | 只出货 `log.mjs`，经 `pstack_script` 的 `log` 入口调用 | 插件实现 | |
@@ -180,6 +179,23 @@
 
 本仓库采用同样的边界。DSH 有对应能力的，按标准模式或官方插件映射。DSH 没有的，按舍弃处理并写入 `dsh.md`。不为 Cursor 云服务或平台能力编造等价物。
 
+## 本轮变化（0.15.42 → 0.15.43）
+
+普通更新。上游提交 `2f87c854fe3e2fcda44ca86b46ede35aad3c46b7` 做了三件事：把大量技能正文缩短、删除几项能力、调整默认模型路由。按 `port/AGENTS.md` 的审核继承规则，39 项源变化重新比对，其余 29 项源未变直接沿用。
+
+| 变化 | 观察 | 处置影响 |
+|:--|:--|:--|
+| `check-plan.mjs` 及其测试删除 | multi-phase-plan 改为五步、不再运行脚本，上游其他文件也不再引用它 | CAP-059 标为已移除并从活动 lock 删除；`pstack_script` 入口由五个减为四个 |
+| `reflect` 去掉三个评审者与 synthesizer | `skills/reflect/SKILL.md` 变为单文件、无子代理 | CAP-001、CAP-014 等派发能力的 `使用位置` 更新；不再有 reflect 专属角色 |
+| `architect` 缩短为一段 brief 加 arena 路由 | `skills/architect/SKILL.md` 删除 runner prompt、红旗清单与 rationale 模板 | CAP-015 等位置更新；不再有 `architect runners` 角色 |
+| `orchestrate` playbook 删除 | 编程规模的工作改走 figure-it-out | CAP-039 与 playbook 索引更新，无新增能力 |
+| `worker.md` 新增 | 启动子代理时首行要求读该文件 | 走现有 `pstack_skill` 资源读取，CAP-004 覆盖 |
+| 默认路由改为 Opus 优先，上限 `xhigh` | `hardest tasks`、`reflect tooling`、`reflect judgment, divergent, synthesizer`、`architect runners` 四个角色退休；`# defaults: 3`；`unlimited` 预算撤销；`arena cross-judge pool` 去掉 Fable 位 | CAP-029 的推荐与要求按新角色集更新；`# defaults: 2` 的旧文件按迁移规则处理 |
+| 技能正文缩短 | 多处 `rejects a slug` 回退梯缩短，`# defaults: 2` 出现于 `poteto-mode` | CAP-023 的位置与 native-text 转译规则同步更新 |
+
+其余 39 项源变化的共同原因是正文缩短导致行号移动或段落删除，能力本身与处置不变，`port/audit.md` 的引用行号已按新基线重新校验。
+
+
 ---
 
 <a id="cat-a"></a>
@@ -192,7 +208,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/arena/SKILL.md:17`、`skills/how/SKILL.md:15`、`skills/no-comments/SKILL.md:19`、`skills/poteto-mode/playbooks/opening-a-pr.md:5` |
+| 📍 使用位置 | `skills/arena/SKILL.md:17`、`skills/how/SKILL.md:15`、`skills/no-comments/SKILL.md:19`、`skills/arena/SKILL.md:17` |
 | 🖱️ Cursor 行为 | pstack 的并行、评审和探索都通过 `Task` 派生子代理。技能里写明 `subagent_type`、`readonly`、`environment`、`run_in_background`、`resume`、`file_attachments` 等字段。 |
 | 🧰 标准模式 | `subagent`、`subagent_fork`、`workflow` 三个工具。子代理默认后台运行，返回子会话 id，完成后以通知交付结果；`send_message` 可继续对话。 |
 | 🧩 官方插件 | 智能体团队（`@deepseek-ai/dsh-experimental-agent-team-profile`）提供具名队友与共享任务板，不是匿名子代理的直接替代。 |
@@ -229,7 +245,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/architect/SKILL.md:13`、`skills/arena/SKILL.md:9`、`skills/figure-it-out/SKILL.md:13`、`skills/poteto-help/SKILL.md:52` |
+| 📍 使用位置 | `skills/poteto-mode/SKILL.md:108`、`skills/arena/SKILL.md:9`、`skills/figure-it-out/SKILL.md:13`、`skills/poteto-help/SKILL.md:52` |
 | 🖱️ Cursor 行为 | 每个多阶段技能开头要求打开 todolist，并在阶段结束时更新。被跳过的步骤留在列表里，写成 `skip: <reason>`。Cursor 的 `TodoWrite` 支持 `merge` 增量更新。 |
 | 🧰 标准模式 | `todo_write` 接收完整列表，状态只有 `pending`、`in_progress`、`completed` 三种。没有 `merge`，每次调用替换整个列表。 |
 | 🧩 官方插件 | 无。 |
@@ -247,7 +263,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/architect/references/runner-prompt.md:5`、`skills/arena/SKILL.md:17`、`skills/automate-me/SKILL.md:11`、`skills/create-formal-verification-skill/SKILL.md:35` |
+| 📍 使用位置 | `skills/architect/SKILL.md:11`、`skills/arena/SKILL.md:17`、`skills/automate-me/SKILL.md:11`、`skills/create-formal-verification-skill/SKILL.md:35` |
 | 🖱️ Cursor 行为 | 技能之间用 `the **name** skill` 或 `/name` 互相路由。 |
 | 🧰 标准模式 | `skill` 工具加载会话技能目录中的技能。`dsh-skill-filesystem` 支持 `disable-model-invocation: true` 的技能不进入模型目录，`user-invocable: true` 的技能仍可作为用户命令。`read` 可以读取任意 `SKILL.md`。 |
 | 🧩 官方插件 | 无。 |
@@ -266,7 +282,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/automate-me/SKILL.md:63`、`skills/poteto-help/SKILL.md:13`、`skills/poteto-mode/playbooks/hillclimb.md:9`、`skills/reflect/references/divergent-reviewer.md:21` |
+| 📍 使用位置 | `skills/automate-me/SKILL.md:63`、`skills/poteto-help/SKILL.md:13`、`skills/poteto-mode/playbooks/hillclimb.md:9`、`skills/automate-me/SKILL.md:63` |
 | 🖱️ Cursor 行为 | 读取技能文件、源码、配置和证据文件，也读取截图等图像证据。 |
 | 🧰 标准模式 | `read` 返回带行号的 UTF-8 内容，支持 `offset`、`limit`，默认 2000 行，单次 50KB 上限。`read_image` 读取 PNG、JPEG、WebP、GIF。 |
 | 🧩 官方插件 | 无。 |
@@ -356,7 +372,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `docs/harness/claude-code.md:13`、`docs/harness/claude-code.md:21` |
+| 📍 使用位置 | `docs/harness/claude-code.md:13`、`docs/harness/claude-code.md:13` |
 | 🖱️ Cursor 行为 | 技能用 shell 跑 `git`、`gh`、`rg`、测试、构建和脚本。 |
 | 🧰 标准模式 | `bash` 每次调用是新 shell，支持 `workdir`、超时与 `run_in_background`，后台作业用 `job_output` 读取。沙箱与审批策略生效。 |
 | 🧩 官方插件 | 持久终端（`@deepseek-ai/dsh-experimental-terminal-bundle`）提供跨调用存活的进程，适合 REPL 与长驻开发服务器。 |
@@ -374,7 +390,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/automate-me/SKILL.md:3`、`skills/poteto-help/SKILL.md:117`、`skills/poteto-mode/playbooks/authoring-a-skill.md:5`、`skills/reflect/references/synthesizer.md:17` |
+| 📍 使用位置 | `skills/automate-me/SKILL.md:3`、`skills/automate-me/SKILL.md:3`、`skills/poteto-mode/playbooks/authoring-a-skill.md:5`、`skills/automate-me/SKILL.md:3` |
 | 🖱️ Cursor 行为 | automate-me 和 reflect 把技能创建交给 Cursor 内置的 `create-skill`，包括描述优化循环。poteto-help 明确说它是 Cursor 内置能力。 |
 | 🧰 标准模式 | DSH 标准模式没有与 `create-skill` 同名的内置技能。技能本身是 `SKILL.md` 文件，可以用 `write` 创建，但创作规则与描述优化循环没有内置替代。 |
 | 🧩 官方插件 | 无。 |
@@ -417,7 +433,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/how/SKILL.md:15`、`skills/no-comments/SKILL.md:19`、`skills/poteto-help/SKILL.md:60`、`skills/poteto-mode/playbooks/multi-phase-plan.md:7` |
+| 📍 使用位置 | `skills/how/SKILL.md:15`、`skills/no-comments/SKILL.md:19`、`skills/poteto-help/SKILL.md:60`、`skills/how/SKILL.md:15` |
 | 🖱️ Cursor 行为 | `Task` 调用通过 `subagent_type` 选择 `generalPurpose`、`poteto-agent`、`comment-sicko` 或 `Explore`。 |
 | 🧰 标准模式 | `subagent` 没有类型字段。若挂载时配置 `allowedAgentPresets`，模型可选 `agent_preset`。 |
 | 🧩 官方插件 | 智能体团队用具名队友，不按类型路由。 |
@@ -436,7 +452,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/how/SKILL.md:15`、`skills/interrogate/SKILL.md:17`、`skills/reflect/SKILL.md:25`、`skills/swarm/SKILL.md:27` |
+| 📍 使用位置 | `skills/how/SKILL.md:15`、`skills/interrogate/SKILL.md:17`、`skills/how/SKILL.md:15`、`skills/swarm/SKILL.md:27` |
 | 🖱️ Cursor 行为 | 多数探索、评审和并行工作派生 `generalPurpose` 子代理。 |
 | 🧰 标准模式 | 不传预设的 `subagent` 即为通用子代理，继承父会话工具与模型。 |
 | 🧩 官方插件 | 无。 |
@@ -454,7 +470,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/poteto-help/SKILL.md:60`、`skills/poteto-mode/playbooks/multi-phase-plan.md:7`、`agents/poteto-agent.md:2`、`docs/harness/claude-code.md:20` |
+| 📍 使用位置 | `skills/poteto-help/SKILL.md:60`、`skills/poteto-help/SKILL.md:60`、`agents/poteto-agent.md:2`、`docs/harness/claude-code.md:20` |
 | 🖱️ Cursor 行为 | pstack 的 `agents/poteto-agent.md` 是代码实现代理，接收 poteto-mode 指令路径。 |
 | 🧰 标准模式 | DSH 有 `@deepseek-ai/dsh-agent-preset` 预设机制。预设是 Cordis 插件组合，`subagent` 配置 `allowedAgentPresets` 后暴露 `agent_preset`，子代理启动时按 `agentPreset` 挂载组合，系统提示与工具随组合加载。 |
 | 🧩 官方插件 | 无。 |
@@ -473,7 +489,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/no-comments/SKILL.md:19`、`agents/comment-sicko.md:2`、`docs/guide/05-build-and-clean.md:77`、`README.md:221` |
+| 📍 使用位置 | `skills/no-comments/SKILL.md:19`、`agents/comment-sicko.md:2`、`docs/guide/05-build-and-clean.md:77`、`skills/no-comments/SKILL.md:19` |
 | 🖱️ Cursor 行为 | `agents/comment-sicko.md` 是只读评论评审代理，`no-comments` 技能派生它。 |
 | 🧰 标准模式 | 用 `subagent` 派生普通子代理并提示不得编辑。没有只读强制。 |
 | 🧩 官方插件 | 无。 |
@@ -492,7 +508,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/how/SKILL.md:15`、`skills/reflect/SKILL.md:25`、`docs/harness/claude-code.md:21` |
+| 📍 使用位置 | `skills/how/SKILL.md:15`、`skills/how/SKILL.md:15`、`skills/how/SKILL.md:15` |
 | 🖱️ Cursor 行为 | `readonly: true` 要求子代理只读。 |
 | 🧰 标准模式 | `subagent` 没有只读参数。子代理继承父会话的沙箱策略，可以写工作区。 |
 | 🧩 官方插件 | 无。 |
@@ -511,7 +527,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/poteto-mode/playbooks/orchestrate.md:10`、`skills/swarm/SKILL.md:27`、`docs/harness/claude-code.md:23`、`docs/harness/claude-code.md:24` |
+| 📍 使用位置 | `skills/swarm/SKILL.md:27`、`docs/harness/claude-code.md:24`、`docs/harness/claude-code.md:25`、`docs/harness/claude-code.md:67` |
 | 🖱️ Cursor 行为 | `environment: "cloud"` 表示 Cursor 云代理，`"local"` 表示本机。 |
 | 🧰 标准模式 | `create_worktree` 创建独立工作树并切换会话目录；`subagent` 的 `cwd` 可指向工作树。 |
 | 🧩 官方插件 | Git 工作树（`@deepseek-ai/dsh-experimental-tool-worktree`）提供同类能力。 |
@@ -529,7 +545,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/swarm/SKILL.md:29`、`docs/harness/claude-code.md:25` |
+| 📍 使用位置 | `skills/swarm/SKILL.md:29`、`skills/swarm/SKILL.md:29` |
 | 🖱️ Cursor 行为 | `cloud_base_branch` 指定云代理检出的基线分支。 |
 | 🧰 标准模式 | `create_worktree` 的 `from` 接受本地提交、分支或标签。 |
 | 🧩 官方插件 | Git 工作树插件。 |
@@ -547,7 +563,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/arena/SKILL.md:22`、`skills/poteto-mode/SKILL.md:95`、`skills/swarm/SKILL.md:27`、`docs/harness/claude-code.md:26` |
+| 📍 使用位置 | `skills/arena/SKILL.md:22`、`skills/arena/SKILL.md:22`、`skills/swarm/SKILL.md:27`、`skills/arena/SKILL.md:22` |
 | 🖱️ Cursor 行为 | `run_in_background: true` 让派生立即返回。 |
 | 🧰 标准模式 | `subagent` 立即返回子会话 id，完成后通知父会话。 |
 | 🧩 官方插件 | 无。 |
@@ -567,7 +583,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `docs/harness/claude-code.md:27` |
+| 📍 使用位置 | `docs/harness/claude-code.md:28` |
 | 🖱️ Cursor 行为 | `resume` 继续已存在的子代理。 |
 | 🧰 标准模式 | `send_message` 给已结算的本地子代理发消息会开启新一轮。 |
 | 🧩 官方插件 | 无。 |
@@ -585,7 +601,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `docs/harness/claude-code.md:28` |
+| 📍 使用位置 | `docs/harness/claude-code.md:29` |
 | 🖱️ Cursor 行为 | `file_attachments` 把文件交给子代理。 |
 | 🧰 标准模式 | 在 `subagent` 提示中写文件路径，子代理用 `read` 读取。 |
 | 🧩 官方插件 | 无。 |
@@ -609,7 +625,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/architect/SKILL.md:31`、`skills/arena/SKILL.md:17`、`skills/poteto-mode/SKILL.md:95` |
+| 📍 使用位置 | `skills/poteto-mode/SKILL.md:90`、`skills/arena/SKILL.md:17`、`agents/poteto-agent.md:5` |
 | 🖱️ Cursor 行为 | 技能默认使用 `claude-opus-5-5-xhigh` 等 Cursor 模型 slug，并带 `-fast` 后缀与推理档位。 |
 | 🧰 标准模式 | `list_subagent_models` 只在 `modelDiscovery: true` 的 `dsh-tool-subagent` 实例上注册，Web 标准预设已开启；关闭时工具不存在。没有记录模型选择策略时只返回父会话当前路由；开启子代理模型选择后按 Session 记录的路由列表返回。`subagent` 接受 `provider`、`model`、`reasoning_effort`。 |
 | 🧩 官方插件 | 无。 |
@@ -666,7 +682,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/arena/SKILL.md:17`、`skills/setup-pstack/SKILL.md:14`、`skills/poteto-help/SKILL.md:44`、`skills/poteto-mode/SKILL.md:95` |
+| 📍 使用位置 | `skills/arena/SKILL.md:17`、`skills/setup-pstack/SKILL.md:14`、`skills/poteto-help/SKILL.md:44`、`skills/arena/SKILL.md:17` |
 | 🖱️ Cursor 行为 | 角色值写 `inherit-parent` 时子代理使用父会话模型。 |
 | 🧰 标准模式 | `subagent` 省略 `provider` 与 `model` 即继承父路由。 |
 | 🧩 官方插件 | 无。 |
@@ -684,7 +700,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/arena/SKILL.md:17`、`skills/setup-pstack/SKILL.md:14`、`skills/poteto-help/SKILL.md:44`、`skills/poteto-mode/SKILL.md:95` |
+| 📍 使用位置 | `skills/arena/SKILL.md:17`、`skills/setup-pstack/SKILL.md:14`、`skills/poteto-help/SKILL.md:44`、`skills/arena/SKILL.md:17` |
 | 🖱️ Cursor 行为 | 角色值写 `auto` 时使用父会话模型。 |
 | 🧰 标准模式 | 省略路由字段，或由 `agentPreset` 决定。 |
 | 🧩 官方插件 | 无。 |
@@ -702,7 +718,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/architect/SKILL.md:31`、`skills/arena/SKILL.md:17`、`skills/setup-pstack/SKILL.md:8`、`skills/poteto-help/SKILL.md:27` |
+| 📍 使用位置 | `skills/poteto-mode/SKILL.md:88`、`skills/arena/SKILL.md:17`、`skills/swarm/SKILL.md:22`、`skills/poteto-help/SKILL.md:27` |
 | 🖱️ Cursor 行为 | `~/.cursor/rules/pstack-models.mdc` 是 always-applied 规则，保存每个角色的模型与预算。 |
 | 🧰 标准模式 | DSH 没有等价的全局 `.mdc` 规则目录。工作区指令走 `AGENTS.md`，会话预设走 agent preset。 |
 | 🧩 官方插件 | 无。 |
@@ -721,7 +737,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/poteto-help/SKILL.md:27`、`skills/poteto-mode/SKILL.md:95`、`skills/setup-pstack/SKILL.md:2`、`docs/guide/01-setup.md:15` |
+| 📍 使用位置 | `skills/poteto-help/SKILL.md:27`、`skills/poteto-help/SKILL.md:27`、`skills/setup-pstack/SKILL.md:2`、`docs/guide/01-setup.md:15` |
 | 🖱️ Cursor 行为 | `setup-pstack` 检测可用模型，按预算把每个角色映射到模型，写入 always-applied 规则。 |
 | 🧰 标准模式 | `list_subagent_models` 只在 `modelDiscovery: true` 的 `dsh-tool-subagent` 实例上注册，Web 标准预设已开启；关闭时工具不存在。没有记录模型选择策略时只列父路由。没有配置界面与预算映射。 |
 | 🧩 官方插件 | 无。 |
@@ -746,7 +762,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/automate-me/SKILL.md:17`、`skills/create-verification-skill/SKILL.md:9`、`skills/maintain-verification-skill/SKILL.md:25`、`skills/reflect/references/divergent-reviewer.md:21` |
+| 📍 使用位置 | `skills/automate-me/SKILL.md:17`、`skills/create-verification-skill/SKILL.md:9`、`skills/maintain-verification-skill/SKILL.md:25`、`skills/automate-me/SKILL.md:17` |
 | 🖱️ Cursor 行为 | 项目技能放 `.cursor/skills/`，个人技能放 `~/.cursor/skills/`。create-verification-skill 与 automate-me 会写这个目录。 |
 | 🧰 标准模式 | `dsh-skill-filesystem` 扫描 `<project>/.dsh/skills`、`<project>/.agents/skills`、`<dshHome>/skills`、`<agentsHome>/skills`，支持目录包与扁平文件。 |
 | 🧩 官方插件 | 无。 |
@@ -764,7 +780,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/architect/SKILL.md:31`、`skills/arena/SKILL.md:17`、`skills/setup-pstack/SKILL.md:8`、`skills/poteto-help/SKILL.md:27` |
+| 📍 使用位置 | `skills/poteto-mode/SKILL.md:88`、`skills/arena/SKILL.md:17`、`skills/swarm/SKILL.md:22`、`skills/poteto-help/SKILL.md:27` |
 | 🖱️ Cursor 行为 | `.cursor/rules/*.mdc` 是 always-applied 规则。 |
 | 🧰 标准模式 | 工作区指令用 `AGENTS.md`。DSH 没有 `.mdc` 目录。 |
 | 🧩 官方插件 | 无。 |
@@ -782,7 +798,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/reflect/references/divergent-reviewer.md:21`、`agents/poteto-agent.md:9`、`docs/harness/claude-code.md:53`、`skills/reflect/references/judgment-reviewer.md:20` |
+| 📍 使用位置 | `agents/poteto-agent.md:10`、`docs/harness/claude-code.md:54`、`agents/poteto-agent.md:10` |
 | 🖱️ Cursor 行为 | Cursor 插件安装目录与 `.cursor-plugin/plugin.json` 清单。 |
 | 🧰 标准模式 | DSH 用 profile 的 `dsh.profile.bundles` 与 `plugin_manager` 管理插件。清单是 `package.json` 与 `cordis.patch.yml`。 |
 | 🧩 官方插件 | 无。 |
@@ -818,7 +834,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/automate-me/SKILL.md:29`、`skills/poteto-mode/playbooks/eval.md:22`、`skills/recall/SKILL.md:15`、`skills/reflect/SKILL.md:15` |
+| 📍 使用位置 | `skills/automate-me/SKILL.md:29`、`skills/poteto-mode/playbooks/eval.md:22`、`skills/recall/SKILL.md:15`、`skills/automate-me/SKILL.md:29` |
 | 🖱️ Cursor 行为 | Cursor 把会话写成 `~/.cursor/projects/<slug>/agent-transcripts/<uuid>.jsonl`。recall 与 automate-me 直接读这些文件。 |
 | 🧰 标准模式 | DSH 持久化会话并提供 `session_search`、`session_event_search`、`session_event_read`、`session_trace`。 |
 | 🧩 官方插件 | 会话搜索（`@deepseek-ai/dsh-experimental-session-search`）已启用。 |
@@ -842,7 +858,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/make-bot-ui/SKILL.md:37`、`automations/benny/FOR_AGENTS.md:31`、`docs/harness/claude-code.md:60`、`README.md:287` |
+| 📍 使用位置 | `skills/make-bot-ui/SKILL.md:37`、`automations/benny/FOR_AGENTS.md:31`、`skills/make-bot-ui/SKILL.md:37`、`skills/make-bot-ui/SKILL.md:37` |
 | 🖱️ Cursor 行为 | Benny 自动化、routine 创建、`api2.cursor.sh/automations` webhook 与 routine 唤醒。 |
 | 🧰 标准模式 | 定时跟进有 `schedule_create`；已验证的入站事件有官方 `@deepseek-ai/dsh-webhook` 接缝。两者都不是 automation 对象。 |
 | 🧩 官方插件 | `@deepseek-ai/dsh-webhook` 与 `@deepseek-ai/dsh-webhook-github`，见 CAP-046。 |
@@ -860,7 +876,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/make-bot-ui/SKILL.md:11`、`skills/poteto-mode/SKILL.md:97`、`automations/benny/skills/reproduce-and-fix-issues/SKILL.md:39`、`docs/guide/09-make-it-yours.md:96` |
+| 📍 使用位置 | `skills/make-bot-ui/SKILL.md:11`、`skills/make-bot-ui/SKILL.md:11`、`automations/benny/skills/reproduce-and-fix-issues/SKILL.md:39`、`docs/guide/09-make-it-yours.md:96` |
 | 🖱️ Cursor 行为 | `update_state` 的 routine 创建、webhook 触发与 `SendToUser` 密钥请求。多数正文里的 routine 是普通词，真正依赖集中在 make-bot-ui 与 automations。 |
 | 🧰 标准模式 | 没有等价物。DSH 有定时任务（`schedule_create`）但不接收外部 webhook。 |
 | 🧩 官方插件 | 无。 |
@@ -896,7 +912,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/poteto-help/SKILL.md:46`、`skills/poteto-mode/playbooks/babysit.md:20`、`skills/reflect/references/synthesizer.md:27`、`docs/harness/claude-code.md:60` |
+| 📍 使用位置 | `skills/poteto-help/SKILL.md:46`、`skills/poteto-help/SKILL.md:46`、`skills/poteto-help/SKILL.md:46`、`skills/poteto-help/SKILL.md:46` |
 | 🖱️ Cursor 行为 | Bugbot 在 GitHub PR 上留评论。 |
 | 🧰 标准模式 | `gh` 命令读取与回复评审线程。 |
 | 🧩 官方插件 | 无。 |
@@ -914,7 +930,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/poteto-help/SKILL.md:80`、`skills/poteto-mode/playbooks/autopilot-full.md:8`、`docs/guide/07-overnight.md:3`、`skills/poteto-help/SKILL.md:146` |
+| 📍 使用位置 | `skills/poteto-help/SKILL.md:80`、`skills/poteto-mode/playbooks/autopilot-full.md:8`、`docs/guide/07-overnight.md:3`、`skills/poteto-help/SKILL.md:80` |
 | 🖱️ Cursor 行为 | `environment: "cloud"` 把子代理放到 Cursor 提供的云端 VM 上执行，附带仪表盘状态、镜像与计费。 |
 | 🧰 标准模式 | 本地 `create_worktree` 能做隔离，但机器必须开着；`dsh --profile headless` 是现成的一次性远程执行入口。 |
 | 🧩 官方插件 | `fs-ssh` / `subprocess-ssh` / `sandbox-ssh`（`ctx.ssh`）可让远端机器充当文件、进程与沙箱提供方，属于自定义 profile 的组装级选择。 |
@@ -933,7 +949,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/poteto-mode/playbooks/multi-phase-plan.md:57`、`docs/harness/claude-code.md:60`、`skills/poteto-mode/playbooks/opening-a-pr.md:26`、`skills/poteto-mode/playbooks/opening-a-pr.md:28` |
+| 📍 使用位置 | `docs/harness/claude-code.md:61`、`docs/harness/claude-code.md:68` |
 | 🖱️ Cursor 行为 | Cursor 内置 PR 面板。 |
 | 🧰 标准模式 | `bash` 调 `gh`。 |
 | 🧩 官方插件 | 变更请求与工作树（`@deepseek-ai/dsh-experimental-forge-bundle`）提供 PR 跟踪，已启用。 |
@@ -969,7 +985,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/poteto-help/SKILL.md:38`、`agents/poteto-agent.md:9`、`docs/guide/01-setup.md:10`、`plugin.json:2` |
+| 📍 使用位置 | `skills/poteto-help/SKILL.md:38`、`skills/poteto-help/SKILL.md:38`、`docs/guide/01-setup.md:10`、`plugin.json:2` |
 | 🖱️ Cursor 行为 | poteto-help 让用户用 `/add-plugin pstack` 安装，或用侧栏 Customize。 |
 | 🧰 标准模式 | `plugin_manager` 与 `plugin_market` 工具，以及 Web UI 的插件页。 |
 | 🧩 官方插件 | 自定义插件索引（`@deepseek-ai/dsh-experimental-plugin-market-bundle`）已启用。 |
@@ -1005,7 +1021,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `README.md:271` |
+| 📍 使用位置 | `README.md:270` |
 | 🖱️ Cursor 行为 | README 提到 plan mode。Cursor 计划模式先出方案再执行。 |
 | 🧰 标准模式 | `exit_plan_mode` 工具存在，计划模式可用。 |
 | 🧩 官方插件 | 无。 |
@@ -1023,7 +1039,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/automate-me/SKILL.md:55`、`skills/poteto-mode/SKILL.md:83`、`skills/recall/SKILL.md:20`、`skills/reflect/references/divergent-reviewer.md:5` |
+| 📍 使用位置 | `skills/automate-me/SKILL.md:55`、`skills/automate-me/SKILL.md:55`、`skills/recall/SKILL.md:20`、`skills/automate-me/SKILL.md:55` |
 | 🖱️ Cursor 行为 | why 与 recall 通过 MCP 查询 Slack、工单、错误追踪等外部来源。 |
 | 🧰 标准模式 | `dsh-mcp-client` 按 profile 配置 stdio 或 streamable-http 服务器，工具注册为 `mcp__<server>__<tool>`。默认不启用任何服务器。 |
 | 🧩 官方插件 | 无独立插件条目，能力在运行时包中。 |
@@ -1041,7 +1057,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/make-bot-ui/SKILL.md:5`、`skills/poteto-help/SKILL.md:100`、`skills/poteto-mode/references/bugbot-triage.md:122`、`docs/guide/04-design.md:86` |
+| 📍 使用位置 | `skills/make-bot-ui/SKILL.md:5`、`skills/poteto-help/SKILL.md:100`、`skills/poteto-mode/references/bugbot-triage.md:122`、`skills/make-bot-ui/SKILL.md:5` |
 | 🖱️ Cursor 行为 | make-bot-ui 让本机服务器 POST 到 Cursor routine 的 webhook。 |
 | 🧰 标准模式 | `ctx.webhookRuntime` 是官方接缝：provider 适配器验证投递，可信插件登记进程内规则，规则返回的请求变成普通 Workspace 会话。 |
 | 🧩 官方插件 | `@deepseek-ai/dsh-webhook` 与 `@deepseek-ai/dsh-webhook-github`。`dsh plugin --profile web add` 两个包，再用 `dsh web --patch .../examples/github-review/cordis.yml` 挂载。 |
@@ -1059,7 +1075,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/make-bot-ui/SKILL.md:6`、`docs/guide/09-make-it-yours.md:96`、`README.md:142`、`skills/make-bot-ui/SKILL.md:57` |
+| 📍 使用位置 | `skills/make-bot-ui/SKILL.md:6`、`docs/guide/09-make-it-yours.md:96`、`skills/make-bot-ui/SKILL.md:6`、`skills/make-bot-ui/SKILL.md:57` |
 | 🖱️ Cursor 行为 | make-bot-ui 要求把本机页面绑到 `0.0.0.0`，用 Tailscale 提供 tailnet URL。 |
 | 🧰 标准模式 | `dsh web` 接受一个具体的 `--host <ipv4-or-ipv6>` 与 `--public-url`；未指定地址在加载时被拒绝。 |
 | 🧩 官方插件 | 无。 |
@@ -1077,7 +1093,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `README.md:106`、`docs/guide/01-setup.md:64`、`docs/guide/02-poteto-mode.md:93`、`skills/poteto-help/SKILL.md:57` |
+| 📍 使用位置 | `README.md:105`、`docs/guide/01-setup.md:64`、`docs/guide/02-poteto-mode.md:93`、`skills/poteto-help/SKILL.md:57` |
 | 🖱️ Cursor 行为 | Cursor 支持把技能设为 Custom Mode：用 Option+Enter 或 Use as Mode 进入后，`/poteto-mode` 常驻上下文，每一轮都在，直到用户退出。 |
 | 🧰 标准模式 | 标准模式把技能当作单轮或按需显式加载的内容，没有常驻技能 section；`poteto-agent` preset 只给委派子代理用。 |
 | 🧩 官方插件 | 无。 |
@@ -1102,7 +1118,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/poteto-help/SKILL.md:116`、`skills/poteto-mode/playbooks/autopilot-full.md:10`、`docs/guide/05-build-and-clean.md:59`、`README.md:263` |
+| 📍 使用位置 | `skills/poteto-help/SKILL.md:115`、`skills/poteto-mode/playbooks/autopilot-full.md:10`、`docs/guide/05-build-and-clean.md:59`、`README.md:263` |
 | 🖱️ Cursor 行为 | `cursor-team-kit` 1.2.0 在兄弟目录，带 19 个技能，许可证是 MIT。pstack 明确引用其中三个，`deslop`、`control-ui`、`control-cli`。poteto-help 说它们不在 pstack 里。 |
 | 🧰 标准模式 | DSH 标准模式没有这个插件，也没有等价的三份技能。`dsh-skill-filesystem` 支持 `bundledSkillDir` 和 `customSkillDirs`，可以加载插件随包或项目目录里的技能。 |
 | 🧩 官方插件 | 无。 |
@@ -1121,7 +1137,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/poteto-help/SKILL.md:116`、`skills/poteto-mode/playbooks/autopilot-full.md:14`、`README.md:264`、`skills/poteto-mode/playbooks/multi-phase-plan.md:15` |
+| 📍 使用位置 | `skills/poteto-help/SKILL.md:115`、`skills/poteto-mode/playbooks/autopilot-full.md:14`、`skills/poteto-help/SKILL.md:115`、`skills/poteto-help/SKILL.md:115` |
 | 🖱️ Cursor 行为 | `control-ui` 驱动浏览器、Electron 与 Web UI，采集截图和交互证据。 |
 | 🧰 标准模式 | DSH 标准模式没有 UI 控制技能。 |
 | 🧩 官方插件 | 无。 |
@@ -1140,7 +1156,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/poteto-help/SKILL.md:116`、`skills/poteto-mode/playbooks/autopilot-full.md:14`、`README.md:264`、`skills/poteto-mode/playbooks/multi-phase-plan.md:15` |
+| 📍 使用位置 | `skills/poteto-help/SKILL.md:115`、`skills/poteto-mode/playbooks/autopilot-full.md:14`、`skills/poteto-help/SKILL.md:115`、`skills/poteto-help/SKILL.md:115` |
 | 🖱️ Cursor 行为 | `control-cli` 驱动 CLI 与 TUI，使用 PTY 或 tmux 采集终端证据。 |
 | 🧰 标准模式 | `bash` 可运行命令。交互式 TUI 需要持久终端插件。 |
 | 🧩 官方插件 | 持久终端（`@deepseek-ai/dsh-experimental-terminal-bundle`）。 |
@@ -1158,7 +1174,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/poteto-help/SKILL.md:116`、`skills/poteto-mode/playbooks/autopilot-full.md:10`、`docs/guide/05-build-and-clean.md:59`、`README.md:263` |
+| 📍 使用位置 | `skills/poteto-help/SKILL.md:115`、`skills/poteto-mode/playbooks/autopilot-full.md:10`、`docs/guide/05-build-and-clean.md:59`、`skills/poteto-help/SKILL.md:115` |
 | 🖱️ Cursor 行为 | 提交前运行 `cursor-team-kit` 的 `deslop`，删除叙述性注释、无依据的守卫、死兼容路径和无关改动。该技能使用 MIT 许可证。 |
 | 🧰 标准模式 | DSH 标准模式没有代码清理技能。`deslop` 是 cursor-team-kit 的 MIT 单独技能，可作为 vendored 技能加载。pstack 自带的 `unslop` 只处理 prose。 |
 | 🧩 官方插件 | 无。 |
@@ -1177,7 +1193,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/poteto-mode/playbooks/autopilot-full.md:8`、`skills/poteto-mode/playbooks/babysit.md:7`、`skills/poteto-mode/playbooks/multi-phase-plan.md:56`、`skills/poteto-mode/playbooks/opening-a-pr.md:24` |
+| 📍 使用位置 | `skills/poteto-mode/playbooks/babysit.md:6`、`skills/poteto-mode/playbooks/shipping.md:5`、`skills/poteto-mode/playbooks/autopilot-full.md:8` |
 | 🖱️ Cursor 行为 | pstack 多次声明 `Never require Graphite (gt)`。它是可选的堆叠 PR 工具。 |
 | 🧰 标准模式 | `git` 与 `gh` 可以完成堆叠 PR 操作，但没有 Graphite 的自动重排。 |
 | 🧩 官方插件 | 无。 |
@@ -1195,7 +1211,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/poteto-mode/playbooks/autopilot-full.md:8`、`skills/poteto-mode/playbooks/babysit.md:7`、`skills/poteto-mode/playbooks/multi-phase-plan.md:56`、`skills/poteto-mode/playbooks/opening-a-pr.md:24` |
+| 📍 使用位置 | `skills/poteto-mode/playbooks/autopilot-full.md:8`、`skills/poteto-mode/playbooks/autopilot-full.md:8`、`skills/poteto-mode/playbooks/autopilot-full.md:8`、`skills/poteto-mode/playbooks/autopilot-full.md:8` |
 | 🖱️ Cursor 行为 | 若 `command -v origin` 成功则用 `origin pr`，否则回退 `gh`，并记录回退。 |
 | 🧰 标准模式 | `gh` 是默认 forge。 |
 | 🧩 官方插件 | 无。 |
@@ -1211,7 +1227,7 @@
 
 <a id="cat-g"></a>
 
-## G 运行时与脚本　🟢 直接映射 12 · 🟠 插件实现 1 · 🔴 舍弃 1
+## G 运行时与脚本　🟢 直接映射 8 · 🟠 插件实现 2 · 🔴 舍弃 3
 
 <a id="cap-054"></a>
 
@@ -1219,7 +1235,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/poteto-mode/scripts/bootstrap.ts:21`、`skills/reflect/references/synthesizer.md:33`、`skills/statechart/scripts/statechart:22`、`skills/poteto-mode/scripts/bootstrap.ts:43` |
+| 📍 使用位置 | `skills/poteto-mode/scripts/bootstrap.ts:21`、`skills/poteto-mode/scripts/bootstrap.ts:21`、`skills/statechart/scripts/statechart:22`、`skills/poteto-mode/scripts/bootstrap.ts:43` |
 | 🖱️ Cursor 行为 | `watch-pr` 入口 shebang 是 `#!/usr/bin/env bun`，并调用 `bootstrap.ts` 安装依赖。 |
 | 🧰 标准模式 | DSH 自带 Node 运行时。 |
 | 🧩 官方插件 | 无。 |
@@ -1293,7 +1309,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/poteto-mode/playbooks/autopilot-full.md:8`、`skills/recall/SKILL.md:21`、`docs/harness/claude-code.md:67` |
+| 📍 使用位置 | `skills/poteto-mode/playbooks/autopilot-full.md:8`、`skills/recall/SKILL.md:21`、`skills/poteto-mode/playbooks/autopilot-full.md:8` |
 | 🖱️ Cursor 行为 | PR 创建、检查、评审线程、合并、堆叠操作都走 `gh`。 |
 | 🧰 标准模式 | 本机有 gh 2.100.0，已登录状态待用 `gh auth status` 验证。 |
 | 🧩 官方插件 | 变更请求与工作树插件依赖 gh 登录。 |
@@ -1305,31 +1321,13 @@
 
 [返回审核清单](#审核清单)
 
-<a id="cap-059"></a>
-
-### CAP-059 check-plan.mjs 计划文件校验脚本　🟢 直接映射
-
-| 维度 | 内容 |
-|:--|:--|
-| 📍 使用位置 | `skills/poteto-mode/playbooks/multi-phase-plan.md:10`、`skills/poteto-mode/scripts/check-plan.mjs:33`、`skills/poteto-mode/scripts/check-plan.test.ts:7`、`skills/poteto-mode/scripts/check-plan.test.ts:54` |
-| 🖱️ Cursor 行为 | poteto-mode 的 `check-plan` 入口，校验计划文件。 |
-| 🧰 标准模式 | Node 脚本，带可执行位，无外部依赖。原样复制即可运行。 |
-| 🧩 官方插件 | 无。 |
-| 🕳️ 剩余缺口 | 无。 |
-| ⚔️ 冲突 | 无。 |
-| 🚧 最终遗留 | 无。 |
-| 💡 推荐 | 🟢 直接映射。标准模式覆盖，无剩余缺口。 |
-| ✅ 处置 | 直接映射 |
-
-[返回审核清单](#审核清单)
-
 <a id="cap-060"></a>
 
 ### CAP-060 watch-pr 脚本　🟢 直接映射
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/poteto-mode/playbooks/babysit.md:12`、`skills/poteto-mode/playbooks/shipping.md:9`、`skills/poteto-mode/scripts/package.json:6`、`skills/poteto-mode/scripts/package.json:7` |
+| 📍 使用位置 | `skills/poteto-mode/playbooks/babysit.md:6`、`skills/poteto-mode/playbooks/shipping.md:9`、`skills/poteto-mode/scripts/package.json:6`、`skills/poteto-mode/scripts/package.json:7` |
 | 🖱️ Cursor 行为 | babysit 与 shipping 用 `watch-pr` 轮询 PR 状态，输出 JSON 或人类可读文本。 |
 | 🧰 标准模式 | Bun 入口，依赖 `commander@14.0.0` 与 `gh`；`bootstrap.ts` 会在运行时安装依赖。 |
 | 🧩 官方插件 | 无。 |
@@ -1444,7 +1442,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/ketchup-video/SKILL.md:27`、`skills/poteto-mode/playbooks/multi-phase-plan.md:123` |
+| 📍 使用位置 | `skills/ketchup-video/SKILL.md:27`、`skills/ketchup-video/SKILL.md:27` |
 | 🖱️ Cursor 行为 | ketchup-video 要求把幻灯片渲染成带字幕的无声 mp4，逐帧检查字幕可读性与停留时长。 |
 | 🧰 标准模式 | DSH 没有视频生成工具。只能通过 `bash` 调用外部渲染器。 |
 | 🧩 官方插件 | 无。 |
@@ -1481,13 +1479,12 @@
 
 | 编号 | 入口 | 用途 | 解释器 | 外部命令 | 网络与写入 | 本机可用性 | 限制 |
 |---|---|---|---|---|---|---|---|
-| SCR-001 | `skills/poteto-mode/scripts/check-plan.mjs` | multi-phase-plan 的计划文件校验，见 `skills/poteto-mode/playbooks/multi-phase-plan.md:10` | `#!/usr/bin/env node` | 无 | 只读计划文件，不写盘 | node 26 可用 | 无 |
-| SCR-002 | `skills/poteto-mode/scripts/watch-pr/watch-pr` | babysit 与 shipping 的 PR 轮询，见 `skills/poteto-mode/playbooks/babysit.md:12` | `#!/usr/bin/env bun` | `gh`、`git` | 首次运行 `bun install --frozen-lockfile` 写 `node_modules`，需要网络 | bun 可用，gh 2.100.0 可用 | 需要 gh 登录与网络 |
-| SCR-003 | `skills/poteto-mode/scripts/worktree-audit.sh` | worktree-cleanup 的工作树分类，见 `skills/poteto-mode/playbooks/worktree-cleanup.md:3` | `#!/usr/bin/env bash` | `git`、`gh`、`awk`、`du`、`stat`、`date`、`head`、`sort` | 只读审计；可能执行 `git fetch` | bash 与 git 可用 | gh 未登录时 PR 状态缺失 |
-| SCR-004 | `skills/show-me-your-work/scripts/log.sh` | show-me-your-work 的 TSV 决策日志，见 `skills/show-me-your-work/SKILL.md:38` | `#!/usr/bin/env bash` | `date`、`mkdir`、`printf`、`tr` | 追加写日志文件 | 可用 | 无 |
-| SCR-005 | `skills/statechart/scripts/statechart` | TLA+ 模型检查与 Mermaid 状态图，见 `skills/statechart/SKILL.md:14` | `#!/bin/sh`，依次尝试 node、bun、deno | `mise`、`java`、`tlc` | 首次 `mise install` 需要网络，写临时目录与输出目录 | node、bun、mise 可用，tlc 缺失 | 需要网络安装 TLC 与 `java@temurin-25` |
-| SCR-006 | `skills/statechart/scripts/test/java.ts` | statechart 的 Java 测试辅助，调用 `ConfigOracle.java` 与 `tlc2.TLC` | `#!/usr/bin/env node` | `java`、`tlc2.TLC` | 只读测试 | java 17 可用，TLC 由 mise 安装 | 无 TLC 时不可用 |
-| SCR-007 | `automations/benny` | 问题分诊与复现自动化，依赖 Slack、Cursor Automations 与 webhook | Cursor Automations | Cursor 平台 | routine 与 webhook | 不可用 | 上游 `claude-code.md` 排除 Automations，按平台排除项处理 |
+| SCR-001 | `skills/poteto-mode/scripts/watch-pr/watch-pr` | babysit 与 shipping 的 PR 轮询，见 `skills/poteto-mode/playbooks/babysit.md:12` | `#!/usr/bin/env bun` | `gh`、`git` | 首次运行 `bun install --frozen-lockfile` 写 `node_modules`，需要网络 | bun 可用，gh 2.100.0 可用 | 需要 gh 登录与网络 |
+| SCR-002 | `skills/poteto-mode/scripts/worktree-audit.sh` | worktree-cleanup 的工作树分类，见 `skills/poteto-mode/playbooks/worktree-cleanup.md:3` | `#!/usr/bin/env bash` | `git`、`gh`、`awk`、`du`、`stat`、`date`、`head`、`sort` | 只读审计；可能执行 `git fetch` | bash 与 git 可用 | gh 未登录时 PR 状态缺失 |
+| SCR-003 | `skills/show-me-your-work/scripts/log.sh` | show-me-your-work 的 TSV 决策日志，见 `skills/show-me-your-work/SKILL.md:38` | `#!/usr/bin/env bash` | `date`、`mkdir`、`printf`、`tr` | 追加写日志文件 | 可用 | 无 |
+| SCR-004 | `skills/statechart/scripts/statechart` | TLA+ 模型检查与 Mermaid 状态图，见 `skills/statechart/SKILL.md:14` | `#!/bin/sh`，依次尝试 node、bun、deno | `mise`、`java`、`tlc` | 首次 `mise install` 需要网络，写临时目录与输出目录 | node、bun、mise 可用，tlc 缺失 | 需要网络安装 TLC 与 `java@temurin-25` |
+| SCR-005 | `skills/statechart/scripts/test/java.ts` | statechart 的 Java 测试辅助，调用 `ConfigOracle.java` 与 `tlc2.TLC` | `#!/usr/bin/env node` | `java`、`tlc2.TLC` | 只读测试 | java 17 可用，TLC 由 mise 安装 | 无 TLC 时不可用 |
+| SCR-006 | `automations/benny` | 问题分诊与复现自动化，依赖 Slack、Cursor Automations 与 webhook | Cursor Automations | Cursor 平台 | routine 与 webhook | 不可用 | 上游 `claude-code.md` 排除 Automations，按平台排除项处理 |
 
 ## 技能覆盖索引
 
@@ -1515,7 +1512,7 @@
 | make-bot-ui | CAP-035 CAP-036 CAP-046 CAP-047 | 见上方能力小节 |
 | no-comments | CAP-001 CAP-004 CAP-013 CAP-016 | 见上方能力小节 |
 | poteto-help | CAP-003 CAP-004 CAP-005 CAP-011 CAP-013 CAP-015 CAP-026 CAP-027 CAP-028 CAP-029 CAP-031 CAP-038 CAP-039 CAP-041 CAP-042 CAP-043 CAP-046 CAP-048 CAP-049 CAP-050 CAP-051 CAP-056 CAP-063 CAP-068 | 见上方能力小节 |
-| poteto-mode | CAP-001 CAP-002 CAP-003 CAP-004 CAP-005 CAP-011 CAP-013 CAP-015 CAP-018 CAP-020 CAP-023 CAP-024 CAP-026 CAP-027 CAP-029 CAP-034 CAP-036 CAP-038 CAP-039 CAP-040 CAP-041 CAP-045 CAP-046 CAP-048 CAP-049 CAP-050 CAP-051 CAP-052 CAP-053 CAP-054 CAP-058 CAP-059 CAP-060 CAP-061 CAP-064 CAP-066 CAP-067 | 见上方能力小节 |
+| poteto-mode | CAP-001 CAP-002 CAP-003 CAP-004 CAP-005 CAP-011 CAP-013 CAP-015 CAP-018 CAP-020 CAP-023 CAP-024 CAP-026 CAP-027 CAP-029 CAP-034 CAP-036 CAP-038 CAP-039 CAP-040 CAP-041 CAP-045 CAP-046 CAP-048 CAP-049 CAP-050 CAP-051 CAP-052 CAP-053 CAP-054 CAP-058 CAP-060 CAP-061 CAP-064 CAP-066 CAP-067 | 见上方能力小节 |
 | principle-attack-the-premise | 无命中 | 无专门接口要求，使用通用 Bash 与文件工具 |
 | principle-boundary-discipline | 无命中 | 无专门接口要求，使用通用 Bash 与文件工具 |
 | principle-build-the-lever | 无命中 | 无专门接口要求，使用通用 Bash 与文件工具 |

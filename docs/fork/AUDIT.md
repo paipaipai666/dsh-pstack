@@ -16,7 +16,7 @@
 | 技能 reference | 29 | 62（含上游 copy 与本地/生成引用） | 多于上游，属于打包差异 |
 | 原生工具 | Cursor 的 Task/AskQuestion 等 | 8 个：`pstack_skill`、`pstack_models`、`pstack_roles`、`pstack_doctor`、`pstack_subagent`、`pstack_script`、`pstack_remote`、`pstack_chart` | 已替换为 DSH 原生接口 |
 | Agent preset | Cursor custom modes | 5 个：`poteto-mode`、`poteto-mode-creator`（两个根模式）、`poteto-agent`、`comment-sicko`、`readonly` | 覆盖常驻模式与委派 |
-| 脚本入口 | 5 个 | 5 个：`check-plan`、`watch-pr`、`worktree-audit`、`log`、`statechart` | 一致，均 Node 重写 |
+| 脚本入口 | 4 个 | 4 个：`watch-pr`、`worktree-audit`、`log`、`statechart` | 一致，均 Node 重写 |
 | 测试文件 | 上游无 DSH 测试 | `tests/` 30 个文件 239 个用例，另有 `runtime/` 76 个脚本用例（Windows 跳过 4 个） | 已建立 QA 基线 |
 
 ## 2. 与上游的功能差异
@@ -74,7 +74,7 @@
 ### CI 质量门
 
 - Linux：typecheck → build → `vp test` → `vp run test:runtime` → generated-tree check → port audit → compatibility check → package tarball
-- Windows：typecheck → build → 全量 test → `vp run test:runtime`（五个脚本的真实执行）→ generated-tree check
+- Windows：typecheck → build → 全量 test → `vp run test:runtime`（四个脚本的真实执行）→ generated-tree check
 - Install smoke (Linux)：安装真实 `@deepseek-ai/dsh@0.2.2-rc.1`，把 tarball 装入隔离 `DSH_HOME`，校验 bundle 行（含 `pstack-remote`、`pstack-chart`）和五个 preset 行
 - Playground case definitions：`tests/playground-cases.test.mjs` 加载全部 17 个 case 文件，校验 id、prompt 与 verify；真实模型执行仍不进 CI
 - 最新 CI：`42177703239` 全部通过

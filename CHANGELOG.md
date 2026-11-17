@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.5.0-beta.10
+
+Synchronizes the port with upstream pstack 0.15.43 (commit `2f87c85`).
+
+### Changed
+
+- Regenerated `pstack/` from upstream 0.15.43, which shortens most skill and playbook bodies, cuts `architect` to a short brief plus a route to `arena`, makes `reflect` one file with no subagents, deletes the Orchestrate playbook, and adds `poteto-mode/worker.md`. The setup marker becomes `# defaults: 3`.
+- The role set drops to nine. `hardest tasks`, `reflect tooling`, `reflect judgment, divergent, synthesizer`, and `architect runners` are retired, so an old role file reports those lines as unknown and `/setup-pstack` drops them. `arena cross-judge pool` and `arena runners` keep their panel shape.
+- The budget drops `unlimited`, because no role runs above `xhigh`. `large`, `medium`, and `small` target `xhigh`, `high`, and `medium`; a stored `unlimited` label reads as unset instead of becoming a tier.
+- `pstack_script` exposes four ids. Upstream deleted `check-plan.mjs` and nothing calls it any more, so the `check-plan` entry, its runtime source and test, and the desktop smoke check are gone.
+
+### Fixed
+
+- Native text translation covers the new Opus 5.5 fast slugs and the shortened slug-rejection ladders in `arena`, `swarm`, and `poteto-mode`, so no shipped skill carries a Cursor slug or tells an agent to walk a slug list.
+
 ## 0.5.0-beta.9
 
 Synchronizes the port with upstream pstack 0.15.42 (commit `bf0c7cd`).

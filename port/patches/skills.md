@@ -32,32 +32,18 @@ Spawn all N subagents in one message with `run_in_background: true`, each with t
 Spawn all N subagents in one message, each with the task, the path to the shared grounding, its own output path, and instructions to produce the artifact and a short rationale naming the alternatives it considered and what it rejected. The spawn calls return when the children start. Their artifacts arrive as completion notices, so wait for all N notices before Phase C.
 ```
 
-## `skills/reflect/SKILL.md`
+## `skills/arena/SKILL.md`
 
 **Find**
 
 ```text
-Pass each template verbatim, substituting the transcript path or digest where marked. Reviewers return findings in the `Task` response body.
+Pick each subagent's reasoning level per the Subagents section of the **poteto-mode** skill.
 ```
 
 **Replace**
 
 ```text
-Pass each template verbatim, substituting the transcript path or digest where marked. Reviewers return findings as completion notices, one per child, after the spawn call returns.
-```
-
-## `skills/reflect/SKILL.md`
-
-**Find**
-
-```text
-Pass `references/synthesizer.md` verbatim, with each reviewer's full output inlined where marked. It returns an Accepted / Rejected / Backlog list.
-```
-
-**Replace**
-
-```text
-Pass `references/synthesizer.md` verbatim, with each reviewer's full output inlined where marked. It returns an Accepted / Rejected / Backlog list as a completion notice.
+Pick each subagent's reasoning effort for the job, per the Subagents section of the **poteto-mode** skill.
 ```
 
 ## `skills/swarm/SKILL.md`
@@ -93,13 +79,13 @@ Read the terminal results from the completion notices.
 **Find**
 
 ```text
-**Defaults for every `Task` call.** `run_in_background: true` (a steer or resume of a running agent too, because a foreground call holds your turn while other reports wait), agent mode (readonly strips MCP),
+**Defaults for every `Task` call.** `run_in_background: true`, agent mode (readonly strips MCP), file pointers not inlined context, and an explicit model per role, Project workers included. `/setup-pstack` writes `~/.cursor/rules/pstack-models.mdc`, whose per-role lines override the defaults below and the role models in the routed skills (`arena`, `swarm`, `interrogate`). A role with no line keeps its default. A line of `inherit-parent` or `auto` runs the role on the parent model, so omit `model` and spawn `generalPurpose`, because `poteto-agent` defaults to Opus 5.5.
 ```
 
 **Replace**
 
 ```text
-**Defaults for every `Task` call.** `pstack_subagent` starts children and returns; their reports arrive as completion notices. Agent mode (readonly strips MCP),
+**Defaults for every `Task` call.** `pstack_subagent` starts children and returns; their reports arrive as completion notices. Agent mode (readonly strips MCP), file pointers not inlined context, and an explicit route per role, Project workers included. `/setup-pstack` writes `$DSH_HOME/pstack-models.mdc`, whose per-role lines override the defaults below and the role models in the routed skills (`arena`, `swarm`, `interrogate`). A role with no line keeps its default. A line of `inherit-parent` or `auto` runs the role on the parent model, so leave `role` and `reasoningEffort` out and spawn `generalPurpose`, because `poteto-agent` carries its own default route.
 ```
 
 ## `skills/show-me-your-work/SKILL.md`
@@ -158,20 +144,6 @@ Render charts with Pele. When the user asks for an image, or a chart is too larg
 Render charts with `pstack_chart`. When the user asks for an image, or a chart is too large to read as text, follow `references/render.md`. It is the only renderer; do not install Pele or another renderer unless the user asks for a different one.
 ```
 
-## `skills/poteto-mode/playbooks/multi-phase-plan.md`
-
-**Find**
-
-```text
-6. Run `node pstack/skills/poteto-mode/scripts/check-plan.mjs <plan.md>` and fix every line it prints (the **encode-lessons-in-structure** principle skill).
-```
-
-**Replace**
-
-```text
-6. Run `pstack_script` with `id: "check-plan"` and `args: ["<plan.md>"]` and fix every line it prints (the **encode-lessons-in-structure** principle skill).
-```
-
 ## `skills/poteto-mode/playbooks/worktree-cleanup.md`
 
 **Find**
@@ -191,13 +163,13 @@ run `pstack_script` with `id: "worktree-audit"` and `args: ["-b", "<pr-base-ref>
 **Find**
 
 ```text
-status comes from `scripts/watch-pr/watch-pr`. Run it directly.
+On GitHub, status comes from the mode's watcher at `scripts/watch-pr/watch-pr`.
 ```
 
 **Replace**
 
 ```text
-status comes from `pstack_script` with `id: "watch-pr"`. Run that tool.
+On GitHub, status comes from `pstack_script` with `id: "watch-pr"`.
 ```
 
 ## `skills/poteto-mode/playbooks/shipping.md`
@@ -205,13 +177,13 @@ status comes from `pstack_script` with `id: "watch-pr"`. Run that tool.
 **Find**
 
 ```text
-(`scripts/watch-pr/watch-pr --queued-stack --stack-prs <bottom-to-top>`)
+On GitHub, watch the run with `scripts/watch-pr/watch-pr --queued-stack` under `/loop` until it reports `COMPLETE` at the ceiling.
 ```
 
 **Replace**
 
 ```text
-(`pstack_script` with `id: "watch-pr"` and `args: ["--queued-stack", "--stack-prs", "<bottom-to-top>"]`)
+On GitHub, watch the run with `pstack_script` with `id: "watch-pr"` and `args: ["--queued-stack", "--stack-prs", "<bottom-to-top>"]` under `/loop` until it reports `COMPLETE` at the ceiling.
 ```
 
 ## `skills/recall/SKILL.md`
@@ -226,48 +198,6 @@ Transcripts live at `~/.cursor/projects/<slug>/agent-transcripts/<uuid>/<uuid>.j
 
 ```text
 In DeepSeek Harness, `agent-transcripts/` is not a real path; never read a Cursor transcript directory. When the optional `@deepseek-ai/dsh-experimental-session-search` bundle is installed, use `session_search` to find earlier Sessions with the same `cwd` and `session_event_search` / `session_trace` / `session_event_read` to inspect them. Without it, mine the current Session and the artifacts the user supplies, and say that earlier-chat evidence is unavailable.
-```
-
-## `skills/reflect/SKILL.md`
-
-**Find**
-
-```text
-Before fanning out, find this conversation's transcript in the `agent-transcripts/` directory the system prompt names. Do not glob across `~/.cursor/projects/*/`. That crosses workspace boundaries and reads private chats from unrelated projects.
-```
-
-**Replace**
-
-```text
-Before fanning out, find this conversation's transcript. In DeepSeek Harness, `agent-transcripts/` is not a real path and `~/.cursor/projects/*/` must never be read. When the optional `@deepseek-ai/dsh-experimental-session-search` bundle is installed, call `session_event_search` with this Session's id and inspect matching events with `session_trace` / `session_event_read`. Without it, skip the directory lookup and pass a tight digest of the current conversation instead.
-```
-
-## `skills/reflect/SKILL.md`
-
-**Find**
-
-```text
-ls -t <agent-transcripts>/*.jsonl <agent-transcripts>/*/*.jsonl <agent-transcripts>/*/subagents/*.jsonl 2>/dev/null | head -10
-```
-
-**Replace**
-
-```text
-# No agent-transcripts lookup in DeepSeek Harness. Use session_event_search with the current Session id when available.
-```
-
-## `skills/reflect/SKILL.md`
-
-**Find**
-
-```text
-That covers the legacy flat (`<id>.jsonl`), current nested (`<id>/<id>.jsonl`), and subagent (`<parent>/subagents/<child>.jsonl`) layouts. For each candidate, read the first JSONL line. Take the file whose `message.content[0].text` contains the conversation's opening user prompt. If none matches, pass a tight digest of the session instead.
-```
-
-**Replace**
-
-```text
-If session-search is unavailable, skip the transcript lookup. Pass a tight digest of the session instead, and say that the transcript itself was not readable.
 ```
 
 ## `skills/automate-me/SKILL.md`
@@ -310,32 +240,6 @@ At the end of the run, before handing back, check the log told the truth. Read t
 
 ```text
 At the end of the run, before handing back, check the log told the truth. In DeepSeek Harness, `agent-transcripts/` is not a real path; never read a Cursor transcript directory. When the optional `@deepseek-ai/dsh-experimental-session-search` bundle is installed, use `session_event_search` / `session_event_read` for this Session. Without it, audit against the run's `log` rows, command output, and artifacts the user has, and mark transcript-only checks unavailable. Walk this run's rows against what actually happened.
-```
-
-## `skills/reflect/SKILL.md`
-
-**Find**
-
-```text
-One message, three `Task` calls, `subagent_type: generalPurpose`, agent mode (`readonly: false`). Reviewers need MCP access to look up the tickets, chat threads, and observability traces the transcript references, and readonly strips MCPs.
-```
-
-**Replace**
-
-```text
-One message, three `Task` calls, `agent: "general"`. Reviewers must not edit files. In DeepSeek Harness MCP access comes from the profile's configured MCP servers; a child's read-only instruction neither adds nor removes MCP tools. If MCP is not configured, reviewers work from the transcript digest, repository files, `git`, and `gh`, and say which evidence was unavailable.
-```
-
-**Find**
-
-```text
-One `Task` call, `subagent_type: generalPurpose`, `model` from the `reflect judgment, divergent, synthesizer` line (default `claude-opus-5-5-xhigh`), agent mode (`readonly: false`). It spot-verifies citations through MCP, and readonly strips MCPs.
-```
-
-**Replace**
-
-```text
-One `Task` call, `agent: "general"`, `model` from the `reflect judgment, divergent, synthesizer` line (default `claude-opus-5-5-xhigh`). It spot-verifies citations through MCP when the profile configures an MCP client, and otherwise checks them against the transcript digest, repository files, `git`, and `gh`.
 ```
 
 ## `skills/poteto-help/SKILL.md`
@@ -530,48 +434,6 @@ Build a page the user clicks. A server on this computer POSTs JSON to a webhook 
 
 ```text
 1. Locate the prior trail. In DeepSeek Harness, `agent-transcripts/` is not a real path; never read a Cursor transcript directory. When the optional `@deepseek-ai/dsh-experimental-session-search` bundle is installed, use `session_search` / `session_event_search` to find the prior Session for this workspace; without it, use the artifacts the user supplies and the current Session. A `pstack_remote` job record or a pushed branch also works.
-```
-
-## `skills/poteto-mode/SKILL.md`
-
-**Find**
-
-```text
-**Match the model to the job.** Before each spawn, start from the role's line or default and pick the reasoning level and speed the job needs. The `/setup-pstack` budget sets each role's starting level, xhigh or high by default, and max for `hardest tasks`. Raise it one step, up to max, for the hardest or subtlest work. Lower it one step for judgment and two or more steps for routine work. Use fast mode only when the job is urgent, meaning CI or trunk is red or a person is blocked on the result right now. Otherwise use standard speed, the same slug without `-fast`. Verification is the exception and stays on the `swarm workers` model and speed (`claude-opus-5-5-high-fast` by default). Change only the effort level and whether the slug is fast, and keep the family the role names, so a diverse panel stays diverse. Fable (`claude-fable-*`) is its own family, apart from the other Claude models. If the family has no slug at that level and speed, use its nearest slug. Gemini has no xhigh, max, or fast slug, so a Gemini subagent runs at high, such as `gemini-4-carbon-high`, whenever the job calls for high or above. Fable 5.2 has no fast slug, so an urgent Fable 5.2 subagent runs at standard speed and keeps its level. A role on `auto` or `inherit-parent` stays on the parent model. If the Task tool rejects the adjusted slug, do not try another adjusted slug. Use the role's line or default and say so. If the Task tool rejects that too, continue with the calling skill's fallback. A slug counts as rejected once a Task error says that the model is not valid, or leaves the slug out of its list of valid slugs. Never pass a rejected slug, and skip any fallback whose slug is already rejected. When the calling skill has no fallback, use the closest valid slug of the role's family from the error's list of valid slugs, or omit `model` so the subagent runs on the parent model when the list has none. When the calling skill's fallback runs out of slugs without saying what to do next, omit `model` too. Say so in both cases.
-```
-
-**Replace**
-
-```text
-**Match the model to the job.** Before each spawn, start from the role's line or default and pick the reasoning effort the job needs. The `/setup-pstack` budget sets each role's starting effort, xhigh by default. Raise it one step, up to max, for the hardest or subtlest work. Lower it one step for judgment and two or more steps for routine work. Pass the effort as `reasoningEffort` on `pstack_subagent`; DeepSeek Harness has no separate speed or fast-mode parameter. Verification is the exception and stays on the `swarm workers` role. Change only the effort level and keep the family the role names, so a diverse panel stays diverse. A role on `auto` or `inherit-parent` stays on the parent model. If the route rejects the chosen model or effort, do not try another adjusted value. Use the role's line or default and say so. If that is rejected too, continue with the calling skill's fallback, or omit `model` so the subagent runs on the parent model. Say so in both cases.
-```
-
-## `skills/arena/SKILL.md`
-
-**Find**
-
-```text
-If the Task tool rejects a configured entry, run that seat on its family's default and say so. Families go by prefix, and the longest matching prefix wins: `claude-fable-*`, `claude-*`, and `gemini-*`. Drop a leading `cursor-` before you compare. Any other slug's family is its text before the first hyphen. A family's default is its entry in the default list above. If the family has no default, or the Task tool rejects that default, use the closest valid slug of the same family from its error message, or drop the seat and say so when there is none. If dropped seats leave fewer than two runners, add runners until there are two, or one when the line has one entry. Run each added runner on a remaining runner's model, or omit `model` so it runs on the parent model when none remain, and say so.
-```
-
-**Replace**
-
-```text
-If `pstack_subagent` rejects a configured entry, run that seat on its role's default and say so. A role set to `inherit-parent` or `auto` runs on the parent model. If the role has no usable route, omit `model` so the seat runs on the parent model, or drop the seat and say so when there is none.
-```
-
-## `skills/arena/SKILL.md`
-
-**Find**
-
-```text
-Pick each subagent's reasoning level and fast or standard speed for the job, per the Subagents section of the **poteto-mode** skill.
-```
-
-**Replace**
-
-```text
-Pick each subagent's reasoning effort for the job, per the Subagents section of the **poteto-mode** skill.
 ```
 
 ## `skills/poteto-mode/playbooks/worktree-cleanup.md`

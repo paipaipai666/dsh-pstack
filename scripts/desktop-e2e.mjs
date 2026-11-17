@@ -61,7 +61,6 @@ const checks = [
     expected: 0,
     verify: () => readFileSync(join(work, "log.tsv"), "utf8").includes("phase"),
   },
-  { id: "check-plan", args: [], expected: 2 },
   { id: "worktree-audit", args: ["--help"], expected: 0 },
   { id: "watch-pr", args: ["--help"], expected: 0 },
   { id: "statechart", args: [], expected: 2 },

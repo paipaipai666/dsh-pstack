@@ -24,7 +24,7 @@ afterEach(() => {
 
 describe("pstack_script arguments", () => {
   it("accepts only the shipped script ids", () => {
-    expect(SCRIPT_IDS).toEqual(["check-plan", "watch-pr", "worktree-audit", "log", "statechart"]);
+    expect(SCRIPT_IDS).toEqual(["watch-pr", "worktree-audit", "log", "statechart"]);
     expect(parseScriptArgs({ id: "statechart", args: ["spec.tla"] })).toMatchObject({
       id: "statechart",
       args: ["spec.tla"],

@@ -95,7 +95,7 @@ export type {
 /** The slice of `ctx.subagents` this plugin drives. */
 export type SubagentsHost = Pick<
   SubagentRuntime,
-  "list" | "getProvider" | "resolveMaxDepth" | "startActivation"
+  "getProvider" | "resolveMaxDepth" | "startActivation"
 >;
 
 export type { JsonSchemaNode, ToolDefinition, ToolOutputDefinition, ToolRunContext };

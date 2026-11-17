@@ -131,6 +131,26 @@ describe("pstack_subagent arguments and planning", () => {
     expect(rendered[0]?.text).toContain("do not poll");
   });
 
+  it("reports a missing provider without requiring SubagentRuntime.list", async () => {
+    const base = fakeRuntime(home());
+    const subagents = {
+      getProvider: () => undefined,
+      resolveMaxDepth: base.subagents.resolveMaxDepth.bind(base.subagents),
+      startActivation: base.subagents.startActivation.bind(base.subagents),
+    };
+    const runtime = { ...base, subagents } as unknown as DelegationRuntime;
+    const plan = planDelegation(args(), runtime);
+
+    await expect(
+      startPlannedChildren(
+        { options: {} } as unknown as Agent,
+        plan,
+        runtime,
+        new AbortController().signal,
+      ),
+    ).rejects.toThrow('subagent provider "spawn" is not registered');
+  });
+
   it("keeps started child ids when a later activation fails", async () => {
     const dshHome = home("arena runners: cpa/model-a, cpa/model-b\n");
     let starts = 0;

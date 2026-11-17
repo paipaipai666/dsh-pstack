@@ -96,7 +96,7 @@ DeepSeek Harness 没有 Cursor Automations、Bugbot、Cursor 云代理或内置 
 | `@deepseek-ai/dsh-experimental-terminal-bundle` | CLI 与 TUI 验证所需的持久 PTY 工具。 | 用 `bash` 前台命令或后台 job。 |
 | `@deepseek-ai/dsh-experimental-session-search` | 会话历史搜索和事件检查。 | 用用户提供的 resume note 或证据。 |
 | `@deepseek-ai/dsh-mcp-client` | 已配置的 MCP 工具。 | 检查本地文件，使用标准搜索或 fetch 工具。 |
-| `@deepseek-ai/dsh-experimental-agent-team-profile` | Lead/teammate 角色和共享任务板。 | 不要在提供 pstack 根预设的 profile 中启用 Agent Teams。两者都拥有派发和任务协调能力。检测到 Agent Teams 服务时，pstack 根预设会加载，但跳过持久 workflow section，改为显示冲突提示。Agent Teams 还会禁用 pstack 的 `tool-subagent-control` 行，父级不能对 pstack 子代理使用 `send_message`、`interrupt_agent` 或 `list_agents`；需要 Agent Teams 时使用单独 profile，派发仍用 `pstack_subagent`。 |
+| `@deepseek-ai/dsh-agent-team` 和 `@deepseek-ai/dsh-tool-agent-team` | Lead/teammate 角色和共享任务板。 | 不要在提供 pstack 根预设的 profile 中启用 Agent Teams。两者都拥有派发和任务协调能力。检测到 Agent Teams 服务时，pstack 根预设会加载，但跳过持久 workflow section，改为显示冲突提示。Agent Teams 还会禁用 pstack 的 `tool-subagent-control` 行，父级不能对 pstack 子代理使用 `send_message`、`interrupt_agent` 或 `list_agents`；需要 Agent Teams 时使用单独 profile，派发仍用 `pstack_subagent`。 |
 | `@deepseek-ai/dsh-experimental-ralph-bundle` | 带结构化交接的前台 `ralph` 循环。 | 用 `create_goal` 配 `schedule_create` 或后台 `bash` watcher。 |
 
 ## 社区替代

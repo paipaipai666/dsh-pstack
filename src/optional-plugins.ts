@@ -94,8 +94,7 @@ export const OPTIONAL_PLUGINS: readonly OptionalPluginDefinition[] = [
   {
     id: "OPT-08",
     group: "multi-agent",
-    packages: ["@deepseek-ai/dsh-experimental-agent-team-profile"],
-    bundle: "@deepseek-ai/dsh-experimental-agent-team-profile",
+    packages: ["@deepseek-ai/dsh-agent-team", "@deepseek-ai/dsh-tool-agent-team"],
     conflict: true,
     switchable: false,
   },

@@ -25,7 +25,7 @@ export const SECTION_ORDER = 10;
 
 /** Notice shown when Agent Teams would compete with pstack delegation. */
 export const AGENT_TEAMS_CONFLICT =
-  "pstack root presets cannot run their persistent poteto-mode workflow while Agent Teams is enabled in this profile. This preset loads without that section. Disable @deepseek-ai/dsh-experimental-agent-team-profile to restore it.";
+  "pstack root presets cannot run their persistent poteto-mode workflow while Agent Teams is enabled in this profile. This preset loads without that section. Disable @deepseek-ai/dsh-agent-team and @deepseek-ai/dsh-tool-agent-team to restore it.";
 
 /** Whether Agent Teams owns delegation in this context. */
 export function hasAgentTeams(ctx: Context): boolean {

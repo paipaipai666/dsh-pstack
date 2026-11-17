@@ -109,6 +109,12 @@ describe("poteto-mode creator root preset", () => {
 });
 
 describe("Agent Teams detection", () => {
+  it("names the rc.2 Agent Teams packages in the conflict notice", () => {
+    expect(AGENT_TEAMS_CONFLICT).toContain("@deepseek-ai/dsh-agent-team");
+    expect(AGENT_TEAMS_CONFLICT).toContain("@deepseek-ai/dsh-tool-agent-team");
+    expect(AGENT_TEAMS_CONFLICT).not.toContain("@deepseek-ai/dsh-experimental-agent-team-profile");
+  });
+
   it("reports whether the Agent Teams service is present", () => {
     const present = {
       get(name: string) {

@@ -211,7 +211,7 @@
 | 📍 使用位置 | `skills/arena/SKILL.md:17`、`skills/how/SKILL.md:15`、`skills/no-comments/SKILL.md:19`、`skills/arena/SKILL.md:17` |
 | 🖱️ Cursor 行为 | pstack 的并行、评审和探索都通过 `Task` 派生子代理。技能里写明 `subagent_type`、`readonly`、`environment`、`run_in_background`、`resume`、`file_attachments` 等字段。 |
 | 🧰 标准模式 | `subagent`、`subagent_fork`、`workflow` 三个工具。子代理默认后台运行，返回子会话 id，完成后以通知交付结果；`send_message` 可继续对话。 |
-| 🧩 官方插件 | 智能体团队（`@deepseek-ai/dsh-experimental-agent-team-profile`）提供具名队友与共享任务板，不是匿名子代理的直接替代。 |
+| 🧩 官方插件 | 智能体团队（`@deepseek-ai/dsh-agent-team` 和 `@deepseek-ai/dsh-tool-agent-team`）提供具名队友与共享任务板，不是匿名子代理的直接替代。 |
 | 🕳️ 剩余缺口 | 没有一次调用接收全部 Cursor 字段。预设选择需要额外的工具入口。 |
 | 🛠️ 插件要求与验收 | 插件提供 `pstack_subagent`，字段至少包含 `agent`、`role`、`reasoningEffort`、`cwd`、`maxDepth`。验收：一次调用启动 poteto-agent 与 comment-sicko 各一个，返回子会话 id，完成后收到两份结果。 |
 | ⚔️ 冲突 | DSH 有三套多代理入口，标准 `subagent`、官方智能体团队、插件 `pstack_subagent`。智能体团队有具名队友和共享任务板，pstack 需要临时子代理、角色预设和按角色选模型。两者同时启用会出现两条派发路径和两套任务视图。pstack 主路径应选 `pstack_subagent`，智能体团队不作为 pstack 的派发层。 |

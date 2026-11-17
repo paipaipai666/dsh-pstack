@@ -192,7 +192,7 @@ Install dsh-pstack without these plugins, then enable only the capabilities you 
 | Persistent terminals | `@deepseek-ai/dsh-experimental-terminal-bundle` | Persistent shell and REPL sessions for CLI and TUI verification. |
 | MCP integrations | `@deepseek-ai/dsh-mcp-client` | Tools from explicitly configured MCP servers; no server is configured by default. |
 | Autonomous loops | `@deepseek-ai/dsh-experimental-ralph-bundle` | A foreground loop that starts a fresh child each round, rather than a persistent Session loop or event watcher. |
-| Agent Teams (incompatible) | `@deepseek-ai/dsh-experimental-agent-team-profile` | Lead and teammate roles and a shared task board. Do not enable it in a profile that offers the pstack root presets; both own delegation and coordination. When the service is present, the pstack root preset loads without its persistent workflow section and shows a conflict notice instead. |
+| Agent Teams (incompatible) | `@deepseek-ai/dsh-agent-team` plus `@deepseek-ai/dsh-tool-agent-team` | Lead and teammate roles and a shared task board. Do not enable it in a profile that offers the pstack root presets; both own delegation and coordination. When the service is present, the pstack root preset loads without its persistent workflow section and shows a conflict notice instead. |
 
 For browser verification, choose one provider:
 
@@ -207,12 +207,12 @@ Enable packages through **Plugins → Add plugin**, then restart the profile whe
 
 ### Agent Teams conflict
 
-`@deepseek-ai/dsh-experimental-agent-team-profile` and the pstack root presets both own delegation and task coordination. Enabling both in one profile gives the model two competing dispatch paths:
+`@deepseek-ai/dsh-agent-team` plus `@deepseek-ai/dsh-tool-agent-team` and the pstack root presets both own delegation and task coordination. Enabling both in one profile gives the model two competing dispatch paths:
 
-- **Delegation.** `pstack_subagent` is the only direct dispatch tool in both pstack root presets. Agent Teams adds `spawn_teammate` as a second dispatch tool, and `spawn_teammate` cannot start a `poteto-agent` or carry a pstack `role`.
-- **Control tools.** pstack's `tool-subagent-control` registers `send_message`, `interrupt_agent`, and `list_agents`. Agent Teams registers the same three tool names and disables the pstack row, so a pstack child can start but the parent loses the pstack control surface.
+- **Delegation.** pstack uses `pstack_subagent` with pstack roles and presets. Agent Teams uses the standard `subagent` and `subagent_fork` tools with named teammates. The paths do not share role or preset semantics.
+- **Control tools.** Both expose `send_message`, `interrupt_agent`, and `list_agents`; only one registration can own those tool names in a profile.
 - **Task state.** pstack keeps its plan in `todo_write` and the active playbook. Agent Teams keeps a persistent `team_task_*` board. Both claim to be the source of truth for what is assigned and what remains.
-- **Capacity.** pstack `swarm` starts N one-shot workers and collects completion notices. Agent Teams keeps at most 8 long-lived teammates in its shipped profile.
+- **Capacity.** pstack `swarm` starts one-shot workers and collects completion notices. Agent Teams keeps a durable team board with up to 256 tasks.
 
 When the Agent Teams service is present, `src/poteto-mode.ts` skips the persistent `pstack:poteto-mode` section and registers a conflict notice instead. The root preset still loads with its persona and tool surface, but its workflow is no longer persistent. This is a deliberate degradation, not a crash: mounting both sections would give the model two competing sets of delegation and task-tracking instructions.
 

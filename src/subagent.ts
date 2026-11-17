@@ -341,10 +341,7 @@ export async function startPlannedChildren(
 ): Promise<DelegationResult> {
   const provider = runtime.subagents.getProvider(plan.provider);
   if (provider === undefined) {
-    const available = runtime.subagents.list();
-    throw new Error(
-      `subagent provider "${plan.provider}" is not registered; available providers: ${available.length === 0 ? "(none)" : available.join(", ")}`,
-    );
+    throw new Error(`subagent provider "${plan.provider}" is not registered`);
   }
 
   assertCapabilities(provider.capabilities, plan);

@@ -55,7 +55,7 @@ const en = {
   recommendedRalphDescription: "Run a foreground fresh-agent loop with structured handoff.",
   recommendedAgentTeamTitle: "Agent Teams",
   recommendedAgentTeamDescription:
-    "Conflicts with the pstack root preset and pstack_subagent. Enabling it makes the pstack root preset fail at startup.",
+    "Conflicts with the pstack root preset and pstack_subagent. Enabling it makes the pstack root preset skip its persistent poteto-mode workflow.",
 } as const;
 
 const zh = {
@@ -107,7 +107,7 @@ const zh = {
   recommendedRalphDescription: "运行带结构化交接的前台 fresh-agent 循环。",
   recommendedAgentTeamTitle: "智能体团队",
   recommendedAgentTeamDescription:
-    "与 pstack 根预设和 pstack_subagent 冲突。启用后 pstack 根预设会启动失败。",
+    "与 pstack 根预设和 pstack_subagent 冲突。启用后 pstack 根预设会跳过持久的 poteto-mode 工作流。",
 } as const satisfies Record<keyof typeof en, string>;
 
 export type PluginsKey = keyof typeof en;

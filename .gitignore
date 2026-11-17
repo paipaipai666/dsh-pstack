@@ -7,3 +7,6 @@ dist
 .tmp
 artifacts
 coverage
+# Task logs stay on the worker host; never commit them to a public repository.
+docs/fork/task-logs/
+.dsh-task-log.md

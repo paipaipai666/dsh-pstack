@@ -12,7 +12,7 @@
   <p>
     <a href="https://npmx.dev/package/@paipaipai666/dsh-pstack"><img src="https://img.shields.io/npm/v/@paipaipai666/dsh-pstack?style=flat-square&colorA=080f12&colorB=1fa669" alt="npm version" /></a>
     <a href="https://github.com/deepseek-ai/deepseek-harness"><img src="https://img.shields.io/badge/dsh-%3E%3D0.2.2--rc.1-1f6feb?style=flat-square" alt="dsh >=0.2.2-rc.1" /></a>
-    <a href="https://github.com/cursor/plugins/tree/main/pstack"><img src="https://img.shields.io/badge/pstack-0.15.42-d97706?style=flat-square" alt="pstack 0.15.42" /></a>
+    <a href="https://github.com/cursor/plugins/tree/main/pstack"><img src="https://img.shields.io/badge/pstack-0.15.43-d97706?style=flat-square" alt="pstack 0.15.43" /></a>
     <a href="https://github.com/paipaipai666/dsh-pstack/blob/fork/main/LICENSE"><img src="https://img.shields.io/github/license/paipaipai666/dsh-pstack?style=flat-square&colorA=080f12&colorB=1fa669" alt="license" /></a>
     <a href="https://github.com/paipaipai666/dsh-pstack"><img src="https://img.shields.io/badge/fork-of_l246804%2Fdsh--pstack-8957e5?style=flat-square&colorA=080f12&colorB=8957e5" alt="fork of l246804/dsh-pstack" /></a>
   </p>
@@ -124,7 +124,7 @@
 | `src/` | 插件源码：工具、角色、preset、客户端界面，以及本 fork 的 `script`、`script-policy`、`doctor`、`native-text` 模块。 |
 | `pstack/` | 生成的 pstack 树，提交进仓库以便审查。`port/generate.mjs` 会重写整个目录，因此不要在其中放手写文件。 |
 | `port/` | 移植工具与审查资料：生成器、能力扫描、适配文案（`dsh.md`）与审核记录。 |
-| `runtime/` | 五个随包脚本的源码，构建时编译进 `dist/pstack/skills/*/scripts`。 |
+| `runtime/` | 四个随包脚本的源码，构建时编译进 `dist/pstack/skills/*/scripts`。 |
 | `skills/authored/` | 仅存在于本 fork 的技能。 |
 | `skills/.agents/skills/` | 从其他仓库 vendored 并随包发布的技能。 |
 | `.agents/skills/` | 本仓库自身代理使用的技能，由 `package.json#skills` 同步。 |
@@ -142,7 +142,7 @@
 | `pstack_models` | 列出可用的 provider、model 和 reasoning effort。 |
 | `pstack_roles` | 展示每个角色的类型及是否为自动面板，确保委派时使用正确的参数。 |
 | `pstack_subagent` | 应用角色路由与 agent preset，支持并行子代理。 |
-| `pstack_script` | 在宿主自带的 Node 运行时下运行五个随包工作流之一（`check-plan`、`watch-pr`、`worktree-audit`、`log`、`statechart`）。`pstack-script-policy` 行会在每次调用前请求审批；`background: true` 把长任务交给 job 系统。 |
+| `pstack_script` | 在宿主自带的 Node 运行时下运行四个随包工作流之一（`watch-pr`、`worktree-audit`、`log`、`statechart`）。`pstack-script-policy` 行会在每次调用前请求审批；`background: true` 把长任务交给 job 系统。 |
 | `pstack_doctor` | 报告随包工作流需要的本机依赖（`git`、`gh`、`node`、`bun`、`ffmpeg`、`mise`、`java`、`jq`）、已配置的模型角色、当前 profile 中可选插件的状态，以及工作区里那些 DSH 永远不会加载的 `.cursor/rules/*.mdc` 文件。 |
 | `pstack_remote` | 把一次任务派发到你登记的机器，读取它的事件流，并可以停止它。本插件不提供机器：目标是 PATH 里有 `dsh` 的 SSH 主机，或流式输出 NDJSON 的 HTTP worker。 |
 | `pstack_chart` | 把 statechart 的 `chart.mmd` 渲染成独立 SVG，配色一并还原。它只画 statechart 脚本发出的 Mermaid 子集，不需要浏览器或外部二进制；读不懂的语法按行号报错，不猜。 |
@@ -267,7 +267,7 @@ vendored 技能的来源与哈希记录在 [`skills/skills-lock.json`](./skills/
 <!-- compatibility-keys: ["dsh-0.2.2-rc.1+port-v1","dsh-0.2.1-rc.5+legacy-v1","dsh-0.2.0-0.3.0+legacy-v1"] -->
 | DSH 版本 | dsh-pstack 发布版本 | 包含的 pstack 版本 |
 |---|---|---|
-| `>=0.2.2-rc.1` | `0.4.0-beta.2`、`0.5.0-beta.9` | `0.15.42` |
+| `>=0.2.2-rc.1` | `0.4.0-beta.2`、`0.5.0-beta.10` | `0.15.43` |
 | `>=0.2.1-rc.5` | `0.2.2` | `0.15.36` |
 | `>=0.2.0 < 0.3.0` | `0.1.0` | `0.15.29` |
 

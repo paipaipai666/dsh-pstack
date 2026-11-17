@@ -29,7 +29,7 @@
 | Client 支撑 | `src/client/ui.tsx`、`src/client/icons.tsx`、`src/client/styles.ts`、`src/client/toast.tsx`、`src/client/message.ts`、`src/client/focus-trap.ts`、`src/client/locales/`、`src/client/role-copy.ts`、`src/client/role-draft.ts`、`src/client/role-selectors.ts` | 提供本插件的 UI 组件、样式、共享提示、焦点陷阱、翻译、角色草稿和选择器文案。 |
 | 移植与生成 | `port/generate.mjs`、`port/scan.mjs`、`port/dsh.md`、`port/dsh.zh.md`、`port/audit.md`、`port/audit.lock.json` | 从固定上游生成 `pstack/`；扫描能力、校验审核引用和当前基线处置。 |
 | 发布元数据 | `port/release-compatibility.ts`、`bump.config.ts` | 按显式兼容键同步双语 README 的版本表；每个 `x.y` 保留最新 `z`，新兼容键新增行，并把双语 README 加入发布提交。 |
-| Fork 增量：脚本与审计 | `src/script.ts`、`src/script-policy.ts`、`src/doctor.ts`、`runtime/`、`scripts/replace-runtime-scripts.mjs` | 以宿主自带的 Node 运行随包脚本，入口固定为五个 id；审批交给 `tools/pre-execute` 行 `pstack-script-policy`；报告脚本依赖的宿主前置条件；编译后的 `.mjs` 覆盖生成树里的脚本源文件。 |
+| Fork 增量：脚本与审计 | `src/script.ts`、`src/script-policy.ts`、`src/doctor.ts`、`runtime/`、`scripts/replace-runtime-scripts.mjs` | 以宿主自带的 Node 运行随包脚本，入口固定为四个 id；审批交给 `tools/pre-execute` 行 `pstack-script-policy`；报告脚本依赖的宿主前置条件；编译后的 `.mjs` 覆盖生成树里的脚本源文件。 |
 | Fork 增量：运行时翻译 | `src/native-text.ts`、`src/skill.ts`、`src/poteto-mode.ts` | 在读取技能正文与资源时把 Cursor 词汇（`Task`、`subagent_type`、`~/.cursor/...`、模型 slug）换成 DSH 名称；生成树保留上游原文，便于 `port/generate.mjs --check` 证明改动了什么。 |
 | Fork 增量：远程派发 | `src/remote.ts`、`docs/remote-worker.md`、bundle 行 `pstack-remote` | 把一次并行 owner 的任务派发到用户自己登记的机器（PATH 里有 `dsh` 的 SSH 主机，或流式输出 NDJSON 的 HTTP worker），记录事件流并支持 `status`/`logs`/`cancel`。插件不提供机器、云 SDK 或面板；审批走 `tools/pre-execute`，`mode: ask` 是默认值。 |
 | Fork 增量：图表渲染 | `src/chart.ts`、bundle 行 `pstack-chart` | `pstack_chart` 解析 `statechart` 脚本写出的 Mermaid 子集，用自带的分层布局输出独立 SVG，保留 `breaks`/`mayBreak`/`bugPath`/`repeats` 四类配色；不引入 Mermaid、浏览器或原生依赖，无法解析的行按行号报错。 |

@@ -81,7 +81,7 @@
 5. 用 `port/generate.mjs` 生成根 `pstack/`，用 `--check` 检查生成漂移。
 6. 验证生成树中的链接、适配提示和已确认行为。
 
-随包脚本由 `runtime/` 下的 TypeScript 源码构建，`scripts/replace-runtime-scripts.mjs` 在打包时用 `runtime/dist` 的产物替换生成树里的上游脚本。五个固定入口统一经 `pstack_script` 调用，由 Host 自己的 Node 运行时执行，不依赖 `PATH` 上的 `node`、`bun` 或 `bash`。为每个脚本登记用途、解释器、外部命令和限制。非常用能力不默认提供插件内补偿。环境不满足时明确报告不可用，不将跳过算作适配成功。
+随包脚本由 `runtime/` 下的 TypeScript 源码构建，`scripts/replace-runtime-scripts.mjs` 在打包时用 `runtime/dist` 的产物替换生成树里的上游脚本。四个固定入口统一经 `pstack_script` 调用，由 Host 自己的 Node 运行时执行，不依赖 `PATH` 上的 `node`、`bun` 或 `bash`。为每个脚本登记用途、解释器、外部命令和限制。非常用能力不默认提供插件内补偿。环境不满足时明确报告不可用，不将跳过算作适配成功。
 
 ### 脚本登记
 
@@ -89,7 +89,6 @@
 
 | 入口 | 用途 | 解释器 | 外部命令与运行时 | 重要限制 |
 |:--|:--|:--|:--|:--|
-| `check-plan` | 校验 multi-phase-plan 的计划文件 | Host Node（经 `pstack_script`） | 无外部命令 | 无 |
 | `watch-pr` | babysit 与 shipping 轮询 PR 状态 | Host Node（经 `pstack_script`） | 网络、`gh`（含登录）；`commander` 由包依赖提供，无需现场安装 | 只支持 GitHub，不支持 Origin；未登录 `gh` 时不可用 |
 | `worktree-audit` | worktree-cleanup 的工作树分类审计 | Host Node（经 `pstack_script`） | `git`、`gh`（PR 状态）；`--sessions` JSON 文件是用量信号的唯一来源 | 只读审计，可能执行 `git fetch`；无 `gh` 登录时缺少 PR 状态；不传 `--sessions` 时全部落 unknown-usage |
 | `log` | show-me-your-work 追加 TSV 决策日志 | Host Node（经 `pstack_script`） | 无外部命令 | 无 |

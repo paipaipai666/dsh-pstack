@@ -39,11 +39,7 @@ export interface BudgetDialogProps {
   readonly signal?: AbortSignal;
 }
 
-const TIER_LABEL: Record<
-  BudgetTier,
-  "budgetTierUnlimited" | "budgetTierLarge" | "budgetTierMedium" | "budgetTierSmall"
-> = {
-  unlimited: "budgetTierUnlimited",
+const TIER_LABEL: Record<BudgetTier, "budgetTierLarge" | "budgetTierMedium" | "budgetTierSmall"> = {
   large: "budgetTierLarge",
   medium: "budgetTierMedium",
   small: "budgetTierSmall",
@@ -336,8 +332,6 @@ export function budgetLabel(raw: string | undefined, t: PstackTranslations["role
   const tier = budgetTierFromLabel(raw);
   if (tier === undefined) return raw ?? t("budgetUnset");
   switch (tier) {
-    case "unlimited":
-      return t("budgetTierUnlimited");
     case "large":
       return t("budgetTierLarge");
     case "medium":

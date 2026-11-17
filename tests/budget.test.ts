@@ -66,7 +66,7 @@ describe("budget planning", () => {
         role({ key: "inherit", configured: true, routes: [{ kind: "inherit", alias: "auto" }] }),
       ],
       catalogue,
-      { tier: "unlimited", scope: "concrete" },
+      { tier: "large", scope: "concrete" },
     );
     expect(plan.rows.map((row) => [row.key, row.status])).toEqual([
       ["exact", "changed"],
@@ -76,7 +76,7 @@ describe("budget planning", () => {
       ["inherit", "skipped"],
     ]);
     expect(plan.rows[0]?.routes).toEqual([
-      { kind: "route", provider: "p", model: "full", effort: "max" },
+      { kind: "route", provider: "p", model: "full", effort: "xhigh" },
     ]);
     expect(plan.rows[1]?.routes).toEqual([
       { kind: "route", provider: "p", model: "flat", effort: "high" },
@@ -180,6 +180,11 @@ describe("budget planning", () => {
       "defaultModel",
     );
     expect(budgetTierFromLabel("large (xhigh)")).toBe("large");
+    // Upstream retired `unlimited` in 0.15.43; an older file must not resurrect it as a tier.
+    expect(budgetTierFromLabel("unlimited (max)")).toBeUndefined();
+    expect(() => parseBudgetApplyRequest({ tier: "unlimited", scope: "concrete" })).toThrow(
+      "one of",
+    );
     expect(budgetLineFor("medium")).toBe("# budget: medium (high)");
     expect(
       updateBudgetText(

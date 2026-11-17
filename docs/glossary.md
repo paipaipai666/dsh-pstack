@@ -27,7 +27,7 @@ Role 的路由基数和展开方式由两个独立属性描述：
 
 ## Budget（推理预算）
 
-`budget` 是角色文件中的全局推理目标，写作 `# budget: <tier> (<target>)`。四档为 `unlimited`、`large`、`medium`、`small`，分别以 `max`、`xhigh`、`high`、`medium` 为目标 effort。它是一次批量应用操作的记录，不直接参与委派；真正生效的是每个角色行里的具体模型和 `[effort]`。应用预算时按模型实际公布的 efforts 做精确匹配、向下回退或标记需要手动选择；自定义 efforts 或没有 effort 的模型保持原值并提示。
+`budget` 是角色文件中的全局推理目标，写作 `# budget: <tier> (<target>)`。三档为 `large`、`medium`、`small`，分别以 `xhigh`、`high`、`medium` 为目标 effort。上游在 0.15.43 撤掉了 `unlimited`，因为没有路由高于 `xhigh`；旧文件里的 `unlimited` 按未设置处理，不当成档位。它是一次批量应用操作的记录，不直接参与委派；真正生效的是每个角色行里的具体模型和 `[effort]`。应用预算时按模型实际公布的 efforts 做精确匹配、向下回退或标记需要手动选择；自定义 efforts 或没有 effort 的模型保持原值并提示。
 
 ## Agent preset（Agent 预设）
 

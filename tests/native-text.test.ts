@@ -111,6 +111,26 @@ describe("native skill text translation", () => {
     );
   });
 
+  it("translates the shortened slug ladder and the Opus 5.5 fast slugs", () => {
+    expect(
+      toDshText(
+        "If the Task tool rejects a slug, never pass it again. Fall back to the role's line or default, then the calling skill's fallback, then the closest valid slug of the same family, then omit `model`. Say so.",
+      ),
+    ).toBe(
+      "If the pstack_subagent tool rejects the route, never pass it again. Fall back to the role's line or default, then the calling skill's fallback, then leave `role` and `reasoningEffort` out so the child runs on the parent route. Say so.",
+    );
+    expect(toDshText("`claude-opus-5-5-xhigh-fast` for code")).toBe(
+      "`the configured code role` for code",
+    );
+    expect(
+      toDshText(
+        "If the Task tool rejects a slug, use the nearest valid slug of the same family or drop the seat",
+      ),
+    ).toBe(
+      "If the pstack_subagent tool rejects the route, use the role's nearest configured route or drop the seat",
+    );
+  });
+
   it("points the team-kit skills at this package", () => {
     expect(toDshText("the `deslop` skill from the `cursor-team-kit` plugin")).toBe(
       "the `deslop` skill from the `dsh-pstack` plugin",

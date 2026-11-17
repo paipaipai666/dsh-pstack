@@ -11,7 +11,7 @@ pstack 技能沿用 Cursor 名称。在 DeepSeek Harness 中，每个会话先�
 | 打开待办清单 | `todo_write`，每次传完整列表并替换上一次。状态只有 `pending`、`in_progress`、`completed`。跳过的步骤写成 `skip: <reason> - <step>`，状态标为 `completed`。 |
 | 运行另一个 pstack 技能（`/name` 或 “the **name** skill”） | `pstack_skill`，传精确的 kebab-case `name`。它可以加载被 `disable-model-invocation` 从 `skill` 目录隐藏的 pstack 技能。传相对 `resource` 读取 `SKILL.md` 旁的 reference 或 playbook。用户命令保持原名，例如 `/setup-pstack`；DSH 不加 `pstack:` 前缀。 |
 | `Grep`、`Glob` | 用 `grep`、`glob` 做发现，已知文件用 `read`，shell 命令用 `bash`。`grep` 使用 ripgrep 语法。搜索工具超限时报告结果保存位置。 |
-| `scripts/` 下的随包脚本 | 优先用 `pstack_script`，id 只有 `check-plan`、`watch-pr`、`worktree-audit`、`log`、`statechart`。它用 Host 自带的 Node 运行随包产物，因此在 `node` 不在 PATH 时也能跑（桌面端跑在 Electron 上）。传 `cwd` 指定工作目录，`timeoutMs` 最大 600000，长任务用 `background: true`。`pstack-script-policy` 行会在每次调用前请求审批；`mode: allow` 只用于受信任的 headless profile。其他脚本保留各自声明的解释器，从 shell 运行。 |
+| `scripts/` 下的随包脚本 | 优先用 `pstack_script`，id 只有 `watch-pr`、`worktree-audit`、`log`、`statechart`。它用 Host 自带的 Node 运行随包产物，因此在 `node` 不在 PATH 时也能跑（桌面端跑在 Electron 上）。传 `cwd` 指定工作目录，`timeoutMs` 最大 600000，长任务用 `background: true`。`pstack-script-policy` 行会在每次调用前请求审批；`mode: allow` 只用于受信任的 headless profile。其他脚本保留各自声明的解释器，从 shell 运行。 |
 | 另一台机器（`environment: "cloud"`，或“the VM”） | 用 `pstack_remote` 加目标名：`action: "run"` 在那台机器上启动一次 headless DSH 运行并返回 job id；`status`、`logs` 读取，`cancel` 停止。目标注册表与审批策略由 `pstack-remote` 行负责。机器要么是 PATH 里有 `dsh` 的 SSH 主机，要么是流式输出 NDJSON 的 HTTP worker；契约见 `docs/remote-worker.md`。本插件从不提供 VM、面板或共享文件系统。 |
 
 ## 子代理字段
@@ -37,15 +37,15 @@ pstack 技能沿用 Cursor 名称。在 DeepSeek Harness 中，每个会话先�
 | `grok-*`、`gpt-*` 或其他非 Claude slug | 传 `role: null` 让子代理继承父路由，并说明。角色值写 `inherit-parent` 或 `auto` 也一样。 |
 | `auto` 或 `inherit-parent` | 传 `role: null`，或把角色值写成 `inherit-parent` / `auto`。`pstack_subagent` 不发送路由覆盖。 |
 | `pstack-models.mdc` 规则，`~/.cursor/rules/pstack-models.mdc` | `$DSH_HOME/pstack-models.mdc`。`pstack_subagent` 每次委派重新读取，所以改动只影响下一个子代理，不影响运行中的子代理。文件缺失时所有角色继承父路由；文件不可读是错误；坏行按行号报告。角色名来自 pstack 角色清单。 |
-| 角色值 `<model> <effort>`，如 `opus high` | `<provider>/<model> [effort]`，如 `provider/model [high]`。按第一个 `/` 分割。方括号里的 effort 必须是模型声明的 token。逗号分隔表示列表。`arena runners`、`architect runners`、`interrogate reviewers` 是自动面板，每个条目启动一个子代理。`arena cross-judge pool` 和 `swarm workers` 用 `roleIndex` 选一个条目（null 选第一个）。`swarm workers` 是每个 worker 的默认路由。`arena cross-judge pool` 跳过 `inherit-parent` 和 `auto`，优先选择与父模型不同家族的路由。角色可能为列表时先调 `pstack_roles`。 |
+| 角色值 `<model> <effort>`，如 `opus high` | `<provider>/<model> [effort]`，如 `provider/model [high]`。按第一个 `/` 分割。方括号里的 effort 必须是模型声明的 token。逗号分隔表示列表。`arena runners`、`interrogate reviewers` 是自动面板，每个条目启动一个子代理。`arena cross-judge pool` 和 `swarm workers` 用 `roleIndex` 选一个条目（null 选第一个）。`swarm workers` 是每个 worker 的默认路由。`arena cross-judge pool` 跳过 `inherit-parent` 和 `auto`，优先选择与父模型不同家族的路由。角色可能为列表时先调 `pstack_roles`。 |
 
 ## setup-pstack
 
 `setup-pstack` 写 `$DSH_HOME/pstack-models.mdc`，`pstack_subagent` 每次委派都会读它。先运行 `pstack_models`，它报告本部署真实 provider、model 和 reasoning-effort token，不根据 Cursor slug 猜测路由。Web 插件设置页的 pstack 标签编辑同一文件；后写覆盖先写，下一次委派直接生效，无需重启。
 
 - 探测。枚举 `pstack_models` 返回的路由，写成 `<provider>/<model> [effort]`。effort 必须是该路由声明的 token。探测不到时让用户粘贴路由，不要写未确认的路由。`inherit-parent` 与 `auto` 始终有效。
-- 默认值。按模型表把默认 Cursor slug 换成 `pstack_models` 返回的真实路由。按预算调整 effort：`unlimited`、`large`、`medium`、`small` 对应 `max`、`xhigh`、`high`、`medium`。模型没有该 token 时选不高于目标的最高可用 effort 并说明；所有 effort 都高于目标时让用户选择；没有 effort 时保留不带方括号的路由并说明。
-- 写入。写 `$DSH_HOME/pstack-models.mdc`，不要 frontmatter；先写注释行、`# budget:` 行，再写每个角色一行。覆盖整个文件，保证重跑幂等。删除某行就是让该角色继承父路由。未知或已退休的角色行按行号报告、从新文件删除并告诉用户。不要把角色行写进 `AGENTS.md` 或 `CLAUDE.md`。
+- 默认值。按模型表把默认 Cursor slug 换成 `pstack_models` 返回的真实路由。按预算调整 effort：`large`、`medium`、`small` 对应 `xhigh`、`high`、`medium`，且没有路由高于 `xhigh`。模型没有该 token 时选不高于目标的最高可用 effort 并说明；所有 effort 都高于目标时让用户选择；没有 effort 时保留不带方括号的路由并说明。
+- 写入。写 `$DSH_HOME/pstack-models.mdc`，不要 frontmatter；先写注释行、`# defaults: 3` 行、`# budget:` 行，再写每个角色一行。覆盖整个文件，保证重跑幂等。删除某行就是让该角色继承父路由。未知或已退休的角色行按行号报告、从新文件删除并告诉用户。不要把角色行写进 `AGENTS.md` 或 `CLAUDE.md`。
 
 ## 路径
 

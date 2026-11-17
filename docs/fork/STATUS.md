@@ -1,7 +1,7 @@
 # Fork status
 
-Updated 2026-11-16. Base: upstream `dsh-pstack 0.3.1` (`2d577b1`). Package: `@paipaipai666/dsh-pstack`
-`0.5.0-beta.9`.
+Updated 2026-11-17. Base: upstream `dsh-pstack 0.3.1` (`2d577b1`). Package: `@paipaipai666/dsh-pstack`
+`0.5.0-beta.10`.
 
 ## A. Fork foundation
 
@@ -119,7 +119,7 @@ These `QF` ids are the fork's quality-fix completion record. They are independen
 ## Publishing
 
 - `@paipaipai666/dsh-pstack@0.5.0-beta.7` is the last published version. The local package is now
-  `0.5.0-beta.9`; publish it with the staged flow below before claiming a registry install.
+  `0.5.0-beta.10`; publish it with the staged flow below before claiming a registry install.
 - `0.5.0-beta.2` exists only because the `0.5.0-beta.1` tarball left out `docs/remote-worker.md`;
   `package.json#files` now lists that document.
   The later betas followed the same staged flow: beta.3 added the doctor workspace check and

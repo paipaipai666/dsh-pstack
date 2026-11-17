@@ -93,7 +93,7 @@ describe("role manifest and parser", () => {
     expect(parsed.status).toBe("loaded");
     if (parsed.status !== "loaded") return;
     expect(parsed.issues).toEqual([]);
-    expect(parsed.roles.size).toBe(13);
+    expect(parsed.roles.size).toBe(9);
     expect([...parsed.roles.values()].every((role) => role.routes[0]?.kind === "inherit")).toBe(
       true,
     );
@@ -102,6 +102,7 @@ describe("role manifest and parser", () => {
     expect(ensureRoleBaseline(path)).toBe(false);
     expect(readFileSync(path, "utf8")).toBe("bug-fix: inherit-parent\n");
     expect(renderBaselineRoleFile()).toContain("feature, refactoring: inherit-parent");
+    expect(renderBaselineRoleFile()).toContain("# defaults: 3");
   });
 
   it("distinguishes a missing file from an unreadable path", () => {

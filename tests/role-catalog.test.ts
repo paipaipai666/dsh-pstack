@@ -17,7 +17,7 @@ describe("pstack_roles", () => {
 
   it("marks automatic panels and list selectors distinctly", () => {
     const roles = roleCapabilities();
-    for (const key of ["arena runners", "architect runners", "interrogate reviewers"]) {
+    for (const key of ["arena runners", "interrogate reviewers"]) {
       expect(roles.find((role) => role.role === key)?.roleIndex).toBe("not-applicable");
       expect(roles.find((role) => role.role === key)?.autoPanel).toBe(true);
     }

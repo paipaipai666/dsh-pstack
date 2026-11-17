@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "baseline": {
-    "id": "dsh-0.2.2-rc.1@pstack-bf0c7cd80abdbf7fe47b634978a7d1b4071f71a7",
+    "id": "dsh-0.2.2-rc.1@pstack-2f87c854fe3e2fcda44ca86b46ede35aad3c46b7",
     "compatibilityKey": "dsh-0.2.2-rc.1+port-v1",
-    "previous": "dsh-0.2.2-rc.1@pstack-ae5650febf4320793844c12c4adaa937f417f8da",
+    "previous": "dsh-0.2.2-rc.1@pstack-bf0c7cd80abdbf7fe47b634978a7d1b4071f71a7",
     "transition": "normal"
   },
   "items": {
@@ -15,7 +15,7 @@
       "requirement": "插件提供 `pstack_subagent`，字段至少包含 `agent`、`role`、`reasoningEffort`、`cwd`、`maxDepth`。验收：一次调用启动 poteto-agent 与 comment-sicko 各一个，返回子会话 id，完成后收到两份结果。",
       "conflict": "DSH 有三套多代理入口，标准 `subagent`、官方智能体团队、插件 `pstack_subagent`。智能体团队有具名队友和共享任务板，pstack 需要临时子代理、角色预设和按角色选模型。两者同时启用会出现两条派发路径和两套任务视图。pstack 主路径应选 `pstack_subagent`，智能体团队不作为 pstack 的派发层。",
       "residual": "即使插件提供 `pstack_subagent`，子代理仍不是智能体团队的具名队友，不会出现在团队任务板。只读、附件和恢复语义依赖提示或 DSH 本地后端。",
-      "sourceDigest": "sha256:81c0b05a6a8f945ee67f0ac914285c15721876c1b4f8ce30dd52a39a47bf0f6c"
+      "sourceDigest": "sha256:3f067e22a569716a409e041342f6d181ac6f6aedb7bc2fe202352c2fdc5a6fef"
     },
     "CAP-002": {
       "key": "AskQuestion",
@@ -24,7 +24,7 @@
       "recommendation": "🟢 直接映射。标准模式覆盖，无剩余缺口。",
       "conflict": "无。",
       "residual": "无。",
-      "sourceDigest": "sha256:b1f332616a4a6b4c40bda9bc1d41b2c3c29a9fd9b2b670235af001740623ed8d"
+      "sourceDigest": "sha256:dc602796bbb46ca76c29012c80f313091bb4257caa1a9330df24d9d4df2d33f1"
     },
     "CAP-003": {
       "key": "TodoWrite",
@@ -33,7 +33,7 @@
       "recommendation": "🟢 直接映射。跳过统一写成条目文本 `skip: <reason>` 并标为 `completed`，不保留 `pending`。`merge` 不实现，调用方每次提交完整列表。",
       "conflict": "无。",
       "residual": "跳过的步骤与已完成步骤共用 `completed` 状态，只能靠 `skip:` 文本前缀区分。每次更新都要重发完整列表。",
-      "sourceDigest": "sha256:d3a59f58abd6cae2b427eff6602437f1423f508e9e488ace001223d39f39b78f"
+      "sourceDigest": "sha256:50e1497c4c125759a677cfb8d41f304f8354de9baa0eae0360ee378861337c2b"
     },
     "CAP-004": {
       "key": "Skill",
@@ -43,7 +43,7 @@
       "requirement": "插件提供 `pstack_skill` 按名称加载隐藏技能，支持 `resource` 子路径。验收：加载 `poteto-mode` 的 `playbooks/babysit.md` 并返回正文。",
       "conflict": "`skill` 工具与插件提供的 `pstack_skill` 是两套加载入口。同名技能同时存在时模型可能选错。约定 `skill` 只加载模型目录内的技能，隐藏技能用 `pstack_skill` 或直接读文件。",
       "residual": "被 `disable-model-invocation` 隐藏的技能不会出现在模型目录，模型不能自动发现，只能靠技能正文点名或用户显式调用。",
-      "sourceDigest": "sha256:7b1a75a67acae7a790a9605cb9d33a5c90466e8234d8b69c4f8a8654e26b49fe"
+      "sourceDigest": "sha256:899bc9c9e7103050b7140ef78f82672731d7e018c95d85642eb5f4d2859ce28c"
     },
     "CAP-005": {
       "key": "Read",
@@ -52,7 +52,7 @@
       "recommendation": "🟢 直接映射。标准模式覆盖，无剩余缺口。",
       "conflict": "无。",
       "residual": "无。",
-      "sourceDigest": "sha256:3683f0ada5a2a5d39071f52865035964c8e7b0aa39414e5de514334398322fec"
+      "sourceDigest": "sha256:c14a868f95714887e3f9265891c00ec402a4848e36ef29d1b7e63394e32ada27"
     },
     "CAP-006": {
       "key": "Write",
@@ -107,7 +107,7 @@
       "requirement": "用 `writing-for-agents` 技能作为 `create-skill` 的替代品。该技能作为插件依赖或随插件提供，不进入 DSH 标准模式。验收：按它的规则创建一个 `SKILL.md`，frontmatter 通过 `dsh-skill-filesystem` 校验。",
       "conflict": "`writing-for-agents` 与 `create-skill` 是替代关系，不是等价关系。`writing-for-agents` 覆盖写作规则，但没有 Cursor 的描述优化循环。",
       "residual": "`writing-for-agents` 不含描述优化循环和自动注册检查，仍需人工校验 frontmatter。",
-      "sourceDigest": "sha256:7bea0fe8ae59d57b8fe8320e7820536d1eee66876b5c2ce0537f3fadf4f6432f"
+      "sourceDigest": "sha256:ee0a800b37dd10567eb0c3899ab0b3dd93e2fe2006fb57abda5c5abb6830993a"
     },
     "CAP-012": {
       "key": "/visualize",
@@ -126,7 +126,7 @@
       "requirement": "插件提供 `pstack_subagent`，`agent` 字段接受 `poteto-agent`、`comment-sicko`、`general` 三种值。验收：三种类型各派生一次，子会话返回各自的预设版本。",
       "conflict": "标准 `subagent` 没有类型字段，官方智能体团队按具名队友组织，插件的 `pstack_subagent` 才按预设路由。三者混用会出现同一份角色指令被不同入口解释。",
       "residual": "预设路由只在 `pstack_subagent` 内生效，标准 `subagent` 看不到这些预设。",
-      "sourceDigest": "sha256:ca953f21da35cd6f85bbc02c45b970c83f6068ed1dc9967b17f5762ef06feb3d"
+      "sourceDigest": "sha256:b65c4c7f7cfb6f5a26207c313f5ae3c2ca98f40e29c265a310bdf222f6715b15"
     },
     "CAP-014": {
       "key": "generalPurpose",
@@ -135,7 +135,7 @@
       "recommendation": "🟢 直接映射。标准模式覆盖，无剩余缺口。",
       "conflict": "无。",
       "residual": "无。",
-      "sourceDigest": "sha256:086678e43b84471b47e02dbeae6493a84f2e14b2a653ee7bcdc57b153c153dc4"
+      "sourceDigest": "sha256:cfbacda2d23989e6ef39c1ce15ef22353b24c87e311ecfcfda6c2de6d2d3533c"
     },
     "CAP-015": {
       "key": "poteto-agent",
@@ -145,7 +145,7 @@
       "requirement": "插件以 agent preset 形式挂载 `poteto-agent`，预设组合加载 `agents/poteto-agent.md` 的指令与所需工具。验收：`pstack_subagent` 以 `agent: poteto-agent` 派生，子代理开箱即按预设身份工作。",
       "conflict": "`poteto-agent` 是插件预设，官方插件里没有同名角色。不要把 `poteto-agent` 配成团队队友，否则角色指令与团队任务板会同时作用。",
       "residual": "预设的指令文件随插件发布，用户自定义角色时要改插件配置，不能只改工作区文件。",
-      "sourceDigest": "sha256:d9087435da6ded6fcc8a38ed7803a609fd83386567327295be83316ac2956e68"
+      "sourceDigest": "sha256:cc502e81f1c3ecd9e9509e4e8bd4022cbcc01c15b834b10e05c8348c47107760"
     },
     "CAP-016": {
       "key": "comment-sicko",
@@ -155,7 +155,7 @@
       "requirement": "插件以 agent preset 形式挂载 `comment-sicko`，提示里禁止编辑。验收：评审一个 diff 并返回报告，结束后 `git status` 无新增改动。",
       "conflict": "无。",
       "residual": "只读评审无法强制只读，评审代理可以写工作区，需要在结束后检查 `git status`。",
-      "sourceDigest": "sha256:81601dea485df5887e0383ba33869ea608b22ae5a2a2bc61d25bc8aeab6bc17b"
+      "sourceDigest": "sha256:58df56cf622fbae248a2559d1cdc30d7b7fd7ecc27567f54ce27f2594b358311"
     },
     "CAP-017": {
       "key": "readonly",
@@ -165,7 +165,7 @@
       "requirement": "插件提供只读子代理预设，子代理会话以 `read-only` 沙箱模式启动，保留 `bash` 读取与查询能力。验收：子代理尝试写文件被拒绝，`git status` 无改动。",
       "conflict": "DSH 沙箱有 `read-only` 模式，但标准 `subagent` 没有直接暴露这个设置。官方插件也没有只读角色，需要插件在派生时指定沙箱模式。",
       "residual": "只读子代理需要独立会话策略。`read-only` 沙箱能拒绝写入，但仍允许读取可读范围内的内容。",
-      "sourceDigest": "sha256:8faaf94e579d748af9fd0f14db46f2ceeaebdef3ac25ca2650fe0e410c1faa07"
+      "sourceDigest": "sha256:fdfc8f0a636524cdf79a722ade1646933572bc3938fa01c074fe264c45ff373a"
     },
     "CAP-018": {
       "key": "environment",
@@ -174,7 +174,7 @@
       "recommendation": "🟢 直接映射。本机隔离用 `create_worktree`。Cursor 云代理按上游排除项舍弃，不实现也不宣称等价。",
       "conflict": "标准 `create_worktree` 与官方 Git 工作树插件都能建工作树。两套入口会产生不同目录与清理路径。约定子代理隔离用 `create_worktree`，界面操作走官方插件。",
       "residual": "工作树只能隔离本机文件，不能替代 Cursor 云代理的远程机器与仪表盘。",
-      "sourceDigest": "sha256:e3055cd3b246bfab54d9283674042eb6fe2a69aa4005ae8fa593ddcb827c7305"
+      "sourceDigest": "sha256:c1ce2d36aab6f81699256456e53d339257caaf296a0ca52d644107c6544a994f"
     },
     "CAP-019": {
       "key": "cloud_base_branch",
@@ -192,7 +192,7 @@
       "recommendation": "🟠 插件实现。`pstack_subagent` 启动后立即返回，结果以 completion notice 送达；技能正文不写 `run_in_background`。",
       "conflict": "标准 `subagent` 与 `pstack_subagent` 都返回子会话 id；pstack 的角色与预算只走后者。",
       "residual": "无。`run_in_background` 不是 `pstack_subagent` 的字段；调用方省略它。",
-      "sourceDigest": "sha256:29701c939f3e580c86a4d9a6597ad6a7ebc17f9fbae63bcc85c48cb90e7b3ddc",
+      "sourceDigest": "sha256:6b2749b14db562ec58dd6d8d9c09e1f72e3fc1a654c0cdb5f2734f2078e3bdd4",
       "requirement": "插件提供 `pstack_subagent` 的启动即返回语义。验收：一次调用返回 childId，完成后父会话收到 completion notice。",
       "dshImplementation": "src/subagent.ts:484-570",
       "dshTests": "tests/subagent.test.ts"
@@ -223,7 +223,7 @@
       "requirement": "插件提供 `pstack_models` 工具枚举完整 provider、model 与 effort。角色配置把 Cursor `claude-*` slug 映射到实际路由；未配置映射时报错，不照抄 slug。验收：`pstack_models` 返回完整列表，角色配置解析出实际 `provider`、`model`、`reasoning_effort`。",
       "conflict": "DSH 的模型选择设置会记录会话路由，插件角色配置（见 CAP-028）又会覆盖每个角色的路由。两个来源同时生效时以插件角色配置为准，但用户在界面改的模型可能被静默覆盖。",
       "residual": "Cursor slug 与实际路由之间需要维护映射表，DSH 升级或供应商变化后要重新映射。",
-      "sourceDigest": "sha256:ccc3bbb10d8639cfe580b0c61851b3be752e7413823f828d7462f39c0adceeca"
+      "sourceDigest": "sha256:c45bc8ba2cdf1fd3123509d3f93f4e4d1ba9f55856216e125fb0c46a0b3b0b06"
     },
     "CAP-024": {
       "key": "grok-slug",
@@ -252,7 +252,7 @@
       "recommendation": "🟢 直接映射。标准模式覆盖，无剩余缺口。",
       "conflict": "无。",
       "residual": "无。",
-      "sourceDigest": "sha256:4db071ca5dd7443f0636b218fe2cf2d261fbf9d5bc619dc7445f74acc5b7c638"
+      "sourceDigest": "sha256:d49596c8326c61f73ac94d805a89bb0608fd540a27f52d69a9bd20103a689d1a"
     },
     "CAP-027": {
       "key": "auto-model",
@@ -261,7 +261,7 @@
       "recommendation": "🟢 直接映射。标准模式覆盖，无剩余缺口。",
       "conflict": "无。",
       "residual": "无。",
-      "sourceDigest": "sha256:1cf320c39f29c633d83172a434eddfae6caf8fe7a32961c17ef2f16386987998"
+      "sourceDigest": "sha256:309ef10235636baf73d4a1822326b2e411b6bd56508c2b99dcace24fa07a12a1"
     },
     "CAP-028": {
       "key": "pstack-models.mdc",
@@ -271,17 +271,17 @@
       "requirement": "插件提供角色配置读取与校验，文件位置与格式在 `dsh.md` 声明。验收：修改一个角色路由后，下一次 `pstack_subagent` 调用使用新路由。",
       "conflict": "角色配置文件和 DSH 的模型选择设置是两套来源。插件读取自己的文件，界面设置不会自动同步。",
       "residual": "需要插件提供配置入口与校验。文件丢失时回退到技能默认值，用户看不到差异。",
-      "sourceDigest": "sha256:2f54ab35e54e17f74b1b98b352e19ea20cdc4584f7e5d9192d6c53ebbc9d4986"
+      "sourceDigest": "sha256:4dea81e32606e0cf7144a175105f5371472fe65ffe5429958ef04e94e3a626fc"
     },
     "CAP-029": {
       "key": "setup-pstack",
       "origin": "override",
       "decision": "插件实现",
       "recommendation": "🟠 插件实现。插件提供 `pstack_models` 工具，枚举 LLM 服务注册的全部 provider、model 与 effort，不依赖 `list_subagent_models` 或 `modelDiscovery`。",
-      "requirement": "插件提供 `pstack_models` 工具，枚举 LLM 服务注册的全部 provider、model 与 effort，不依赖 `list_subagent_models` 或 `modelDiscovery`。插件提供角色配置页或配置命令，列出角色、当前路由、可选路由与预算，写回角色配置文件。验收：在 `modelDiscovery` 关闭的 profile 中 `pstack_models` 仍返回完整路由；Web UI 修改一个角色并保存，重启后仍生效。",
+      "requirement": "插件提供 `pstack_models` 工具，枚举 LLM 服务注册的全部 provider、model 与 effort，不依赖 `list_subagent_models` 或 `modelDiscovery`。插件提供角色配置页或配置命令，列出九个角色（`feature, refactoring`、`bug-fix`、`perf-issue`、`hillclimb`、`judgment and prose`、`arena runners`、`arena cross-judge pool`、`swarm workers`、`interrogate reviewers`）、当前路由、可选路由与预算，写回角色配置文件。预算只提供 `large`、`medium`、`small` 三档，目标 effort 分别为 `xhigh`、`high`、`medium`，没有高于 `xhigh` 的目标；文件用 `# defaults: 3` 标记；`hardest tasks`、`reflect tooling`、`reflect judgment, divergent, synthesizer`、`architect runners` 为已退休角色。验收：在 `modelDiscovery` 关闭的 profile 中 `pstack_models` 仍返回完整路由；Web UI 修改一个角色并保存，重启后仍生效；写入 `unlimited` 预算被拒绝，旧文件的 `unlimited` 行被报告为已退休。",
       "conflict": "无。`setup-pstack` 和设置页都写同一份角色配置文件，以最后写入的值为准。",
-      "residual": "同一角色的路由没有版本历史，后写覆盖先写。",
-      "sourceDigest": "sha256:67ed55ccd312afb10417e63d3f94366ee5468a364a593f72ae22d43e7ef7060a"
+      "residual": "同一角色的路由没有版本历史，后写覆盖先写。已退休角色的旧行不会自动删除，下一次 `/setup-pstack` 或保存时才按行号报告并移除。",
+      "sourceDigest": "sha256:356ab268e5e2a5479d0852d1dff04b4b05afc43ab9d69254353128d7a770baba"
     },
     "CAP-030": {
       "key": ".cursor/skills",
@@ -290,7 +290,7 @@
       "recommendation": "🟢 直接映射。生成器把 `.cursor/skills` 改写为 `.agents/skills`。安装前检查技能重名，撞名时保留项目技能。",
       "conflict": "`.dsh/skills`、`.agents/skills`、插件内置技能与用户技能目录有优先级。同名技能会被高优先级根覆盖，pstack 生成树与项目自定义技能可能撞名。",
       "residual": "没有命名空间隔离，技能名必须全局唯一。",
-      "sourceDigest": "sha256:4298e442d13ffbbc0ae29e2cda89ea47855eff4beb4f52808d93456f982c8f51"
+      "sourceDigest": "sha256:2f2377763f82edefde95943ba194c5ef9edc3db5db7c9b173fcc7f59da2f1ad3"
     },
     "CAP-031": {
       "key": ".cursor/rules",
@@ -299,7 +299,7 @@
       "recommendation": "🟢 直接映射。规则内容改写进 `AGENTS.md`。角色模型规则走 CAP-028 的插件配置文件，不写进 `AGENTS.md`。",
       "conflict": "`AGENTS.md` 与插件内的角色规则都会进入上下文，内容冲突时模型无法判断优先级。",
       "residual": "DSH 没有 `.mdc` 的 glob 作用域与 alwaysApply 语义，规则对所有会话生效。",
-      "sourceDigest": "sha256:40ba286fa2a355ba6ed16bfa270ee55ffb652d5dc84c445a1f992af4997815bd"
+      "sourceDigest": "sha256:f6665e0df0ac39d9d8183eb077ce750a0e5594d1d78fdedf29bf32b408f17b52"
     },
     "CAP-032": {
       "key": ".cursor/plugins",
@@ -308,7 +308,7 @@
       "recommendation": "🟢 直接映射。插件按 DSH 插件包发布，清单用 `package.json` 与 `cordis.patch.yml`，不保留 Cursor 插件目录格式。",
       "conflict": "无。",
       "residual": "无。",
-      "sourceDigest": "sha256:4444f33b233681c2f86f3b7d0b08cf2e8124386740da9bd238b65e50ea2b8464"
+      "sourceDigest": "sha256:0928b4fd95b9f737edf0e16064a1c95b70daebf05e45458000928c23c3c8fdaa"
     },
     "CAP-033": {
       "key": ".cursor/settings.json",
@@ -326,7 +326,7 @@
       "recommendation": "🟢 直接映射。会话检索改用 `session_search`、`session_event_search`、`session_event_read` 与 `session_trace`，只读当前工作区。不实现 JSONL 文件读取。",
       "conflict": "会话搜索工具与官方会话搜索插件可能同时提供搜索入口，结果范围相同但排序可能不同。",
       "residual": "没有直接 JSONL 路径，跨工作区读取被禁止，recall 只能读当前工作区。",
-      "sourceDigest": "sha256:23e6c8db243bb435dfffc87bea75061ce5caa0d52cdff22cad84d89bd808826f"
+      "sourceDigest": "sha256:aa6b35659857f29dae691b704e7d48804cd9542158bbf20f7710321b4e83effc"
     },
     "CAP-035": {
       "key": "Cursor Automations",
@@ -344,7 +344,7 @@
       "recommendation": "🔴 舍弃。随 Automations 一并舍弃。",
       "conflict": "同 CAP-035，`schedule_create` 只按时间触发，不能替代 routine 的事件唤醒。",
       "residual": "routine 创建、webhook 触发与密钥请求都不可用。",
-      "sourceDigest": "sha256:9fdf05a1e81a354ff7ca623c5ce9907865f7d8fafd72781f2f31367ad40d40fa"
+      "sourceDigest": "sha256:11828ddba2728fad184f92ea8a0600929c735a9240a244e07416b4359fc387b4"
     },
     "CAP-037": {
       "key": "Slack",
@@ -362,7 +362,7 @@
       "recommendation": "🟢 直接映射。Bugbot 专属检查舍弃。PR 评审线程用 `gh` 读取与回复，通过与否由人工判断。",
       "conflict": "Bugbot 评论是普通 PR 线程，但 Bugbot 的通过计数只有 PR 监视器能算。把两者混在一起会把评论数当通过数。",
       "residual": "没有 Bugbot 专属检查，只能靠 `gh` 读取线程并人工判断。",
-      "sourceDigest": "sha256:81dc2346fe4d0fa69ee7d0d40819633fbe31d9cfad64bb9f2f495c3d3ba33651"
+      "sourceDigest": "sha256:2f61a9e923f62850c8460173fda96cf406524715da2c2b7a2eb63e54d47e1ac5"
     },
     "CAP-039": {
       "key": "cloud agent",
@@ -380,7 +380,7 @@
       "recommendation": "🟢 直接映射。PR 操作统一走 `bash` 调 `gh`。官方 forge 插件只作界面展示，不作为 pstack 的 PR 判定来源。",
       "conflict": "`gh` 是执行路径，官方变更请求与工作树插件是展示层。两者都依赖 gh 登录，但 PR 状态可能刷新不同步。",
       "residual": "官方插件的界面看不到 pstack 的 PR 判定，pstack 也不读插件缓存。",
-      "sourceDigest": "sha256:54fcb962a22c4f8d026959285823ab09b5ecdf18f360cf80983249b930ba94b1"
+      "sourceDigest": "sha256:c95ae9bd20effa4c5033f56de9c23b6e14e09915753624e33cd57358bf483f89"
     },
     "CAP-041": {
       "key": "/loop",
@@ -389,7 +389,7 @@
       "recommendation": "🔵 官方插件。Ralph 循环（`@deepseek-ai/dsh-experimental-ralph-bundle`）每轮启动新代理推进同一目标，直到达成、报告阻塞或达到轮次上限。",
       "conflict": "有三套循环。DSH 的 `create_goal` 跨轮次继续同一会话，官方 Ralph 每轮新代理，Cursor `/loop` 是外部命令。同时用 goal 与 Ralph 会重复驱动同一目标。约定需要新代理时用 Ralph，需要同一会话续跑时用 goal。",
       "residual": "`/loop` 的精确时间语义与动态唤醒无法完全复现，PR 监视器的重新布防行为需要重写。",
-      "sourceDigest": "sha256:ccd9553564fa52d0c8337b114f1490384ab0c18c55e11dee335d305dbef9b59b"
+      "sourceDigest": "sha256:7fe173b0660805f66bfeaa4b9e889f1c7602e4c0821441105948ccb70b6d0dab"
     },
     "CAP-042": {
       "key": "/plugin",
@@ -425,7 +425,7 @@
       "recommendation": "🟢 直接映射。MCP 服务器由用户在 profile 配置，工具按 `mcp__<server>__<tool>` 调用。未配置的来源报告不可用。",
       "conflict": "MCP 工具可能与原生工具重名，例如 GitHub MCP 与 `gh`。模型会看到两套入口。",
       "residual": "每个服务器都要用户提供配置与凭证，未配置时相关来源不可用。",
-      "sourceDigest": "sha256:af4305b5a29f5b61803230dc8b3e322ab5bcd67d0e28d9dbeb34f5964d44c361"
+      "sourceDigest": "sha256:2b81d340fb85794d57fcdceca6677b860eb5894448d6c8ad98c2adcf5b4463f5"
     },
     "CAP-046": {
       "key": "webhook",
@@ -463,7 +463,7 @@
       "requirement": "插件以 vendored 形式随包提供 `cursor-team-kit` 的 `deslop`、`control-ui`、`control-cli` 三个技能目录，放在包内 `skills/` 下，保留上游 LICENSE 与来源版本。插件 composition 用 `dsh-skill-filesystem` 的 `bundledSkillDir` 指向该目录，不写插件工具代码。依赖处理以上游 `SKILL.md` 为准；上游没有写依赖缺失处理时，插件不额外处理，只在 `dsh.md` 与 README 记录前提。验收：三份技能可被发现，正文与上游一致。",
       "conflict": "如果用户另外安装 `cursor-team-kit` 或同名技能，会出现两份实现。`bundledSkillDir` 的 rank 600 低于项目根与用户根，高优先级版本覆盖随包版本。约定随包版本作默认，用户覆盖时以高优先级版本为准。",
       "residual": "`control-ui` 和 `control-cli` 只是指令，实际能力取决于宿主机是否安装浏览器与 PTY 工具。上游没有规定缺失时的处理，插件不额外补偿，只在 `dsh.md` 与 README 记录前提。",
-      "sourceDigest": "sha256:afd52f682c34a39bd8eb84ff891286d0cfe451c9fdc1bf45ee6f84defaf8a3aa"
+      "sourceDigest": "sha256:2e7eb0abaa70c9c9e622f3ab45b8e7320e9cf893a130fafeb5ede1164363b5c4"
     },
     "CAP-049": {
       "key": "control-ui",
@@ -473,7 +473,7 @@
       "requirement": "插件依赖 `agent-browser` 技能作为浏览器控制层。验收：打开页面、点击、截图并返回证据。",
       "conflict": "`agent-browser` 是外部浏览器控制技能，`control-ui` 是 cursor-team-kit 的同类技能。两者都控制浏览器，同时使用会争抢同一个实例。约定只保留一个作为控制层。",
       "residual": "Electron 与桌面应用没有现成控制技能，需要自建。",
-      "sourceDigest": "sha256:18b7371dc4e816a6cc61b81800477df8959f390972e8731782dae381c0fce1f4"
+      "sourceDigest": "sha256:6f21a8e601490b7af3174c4091e985e829db0df10ff44056a6447f12c7d2b767"
     },
     "CAP-050": {
       "key": "control-cli",
@@ -482,7 +482,7 @@
       "recommendation": "🔵 官方插件。启用持久终端（`@deepseek-ai/dsh-experimental-terminal-bundle`），`control-cli` 的 TUI 驱动走该插件的 PTY，不另建终端会话。",
       "conflict": "`control-cli` 依赖 PTY 或 tmux，持久终端插件也提供终端。两套终端会话不能互相读取。",
       "residual": "没有现成的 `control-cli` 技能，TUI 驱动要按项目自建。",
-      "sourceDigest": "sha256:18b7371dc4e816a6cc61b81800477df8959f390972e8731782dae381c0fce1f4"
+      "sourceDigest": "sha256:6f21a8e601490b7af3174c4091e985e829db0df10ff44056a6447f12c7d2b767"
     },
     "CAP-051": {
       "key": "deslop",
@@ -492,7 +492,7 @@
       "requirement": "插件以 vendored 形式随包提供 `deslop` 技能目录，按上游 `SKILL.md` 原样复制到包内 `skills/deslop/`，保留 LICENSE 与来源版本，不写插件工具代码。验收：对一个真实 diff 运行一次，报告删除的注释与守卫。",
       "conflict": "`deslop` 清代码，`unslop` 清 prose，名字接近但对象不同。不要把 `unslop` 当 `deslop` 用。",
       "residual": "`deslop` 只是指令技能，不能强制每个提交都运行，需要在 playbook 中显式点名。",
-      "sourceDigest": "sha256:fddf977ebe50e99384942ce84ba9a8d2e43a249924ee7ef0e8fbf8eec2563dfe"
+      "sourceDigest": "sha256:6c86ed2bd00934cecf6fce85e9b366dbc5e6f1ad52ec6fafba825690a99c0a07"
     },
     "CAP-052": {
       "key": "gt",
@@ -501,7 +501,7 @@
       "recommendation": "🔴 舍弃。Graphite 依赖不实现，堆叠 PR 操作走 `git` 与 `gh`。",
       "conflict": "`gh` 与 Graphite 都能做堆叠 PR，但 Graphite 会重写分支。",
       "residual": "上游明确非必需，缺少 Graphite 时堆叠操作更手工。",
-      "sourceDigest": "sha256:6b12e718d20b6e3dff7c2392e28b8e2c0ac22d5ec726bc110377805ec7f522fd"
+      "sourceDigest": "sha256:7545ca495f9b2e4b5ba0b2a916f3343d82cbd170a3a72409b20f296bb7cda5db"
     },
     "CAP-053": {
       "key": "origin",
@@ -510,7 +510,7 @@
       "recommendation": "🔴 舍弃。Origin 路径不实现，forge 操作固定回退 `gh`。",
       "conflict": "Origin 与 `gh` 是两套 forge，上游要求二选一。",
       "residual": "本机没有 Origin，固定走 `gh`。",
-      "sourceDigest": "sha256:6837f6f8ac1213ade1e414e1ce92b7fc5a70f1bd8d5b0dca5c26665fb699a6eb"
+      "sourceDigest": "sha256:b08595cdf92a636c60faf86881fcf3b14b0700f0e0bb2b0c35006d31c9972314"
     },
     "CAP-054": {
       "key": "bun",
@@ -519,7 +519,7 @@
       "recommendation": "🔴 舍弃。不在 DSH 侧保留 Bun 依赖，`watch-pr` 统一用 Host Node 执行。",
       "conflict": "无。",
       "residual": "仍需外部 `gh` 登录与网络访问 GitHub。",
-      "sourceDigest": "sha256:0cba746e15c313003fc1b74ff9a2897df613cb1e0462d4aa745b21c20b7df7c5",
+      "sourceDigest": "sha256:998c38fbaed0d38316b571997fdd920372b69b880089cac8b52e439aadd06c80",
       "dshImplementation": "runtime/skills/poteto-mode/scripts/watch-pr/cli.ts",
       "dshTests": "runtime/skills/poteto-mode/scripts/watch-pr/cli.test.ts"
     },
@@ -557,16 +557,7 @@
       "recommendation": "🟢 直接映射。PR 相关步骤先检查 `gh auth status`。未登录时停止并报告需要凭证，不降级为假成功。",
       "conflict": "`gh` 与官方变更请求与工作树插件共用登录状态。",
       "residual": "无 gh 凭证时 PR 步骤不可用。",
-      "sourceDigest": "sha256:cfdd982f41f3a60017520810ba26c241c9d515833251c69e54ca27ab9cdb4d3c"
-    },
-    "CAP-059": {
-      "key": "check-plan.mjs",
-      "origin": "accepted",
-      "decision": "直接映射",
-      "recommendation": "🟢 直接映射。标准模式覆盖，无剩余缺口。",
-      "conflict": "无。",
-      "residual": "无。",
-      "sourceDigest": "sha256:3764c50a13928ebacb7f264a4bed36d21cc0ac82720c457cf02c3a327571a6b1"
+      "sourceDigest": "sha256:1c29ff65b031c694e88536ff50bb9c64f05ee7fa23a40b839e9c83e56c5fa330"
     },
     "CAP-060": {
       "key": "watch-pr",
@@ -575,7 +566,7 @@
       "recommendation": "🟢 直接映射。`watch-pr` 原样运行，首次执行由 `bootstrap.ts` 安装依赖。只支持 GitHub，Origin 路径回退 `gh`。",
       "conflict": "`watch-pr` 轮询 `gh`，官方变更请求与工作树插件也显示 PR 状态，两边可能不同步。",
       "residual": "`watch-pr` 只支持 GitHub，不支持 Origin。",
-      "sourceDigest": "sha256:4b88ee733e76b6961e991622aa37c01e81eb7ad856eab8f4b78e3c07f166c38e"
+      "sourceDigest": "sha256:ec91e60765df3793764872806c8b333661505e228fb660a042befed19c186ae1"
     },
     "CAP-061": {
       "key": "worktree-audit",
@@ -637,7 +628,7 @@
       "requirement": "无。插件不实现视频渲染步骤。",
       "conflict": "`ketchup` 与 `ketchup-video` 共用截图素材。插件只提供文字摘要，视频需用户在插件之外生成。",
       "residual": "没有内置视频输出，`ketchup-video` 只能说明无法渲染。",
-      "sourceDigest": "sha256:9b7ff9c89fd24d5e4e4f5879561230a44f490122ddc883f0e6065fd013b515f6"
+      "sourceDigest": "sha256:1aeb411d10529620f4e743a0b308ad8b834128fb7e4aa7644b70d0bfe19ba404"
     },
     "CAP-067": {
       "key": "性能测量",
@@ -646,7 +637,7 @@
       "recommendation": "🟢 直接映射。性能测量全部走 `bash`。缺少 `py-spy` 时先说明并询问是否安装；不安装时改用 `perf`、`strace` 或 `node --cpu-prof`，都没有就在报告中写明限制，不猜数字。",
       "conflict": "无。",
       "residual": "缺少 `py-spy`，Python 性能剖析只能换工具或跳过。",
-      "sourceDigest": "sha256:bffd54dae1b59c8e73c32c16d536d4d550033326f4bb6640d4adedd3f64860c7"
+      "sourceDigest": "sha256:53ebb5e5c469f2bad58874d1c2c366dda64cf7d5a63d26b83af14ab7807749d3"
     }
   }
 }

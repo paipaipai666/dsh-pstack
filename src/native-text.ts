@@ -44,11 +44,14 @@ const REPLACEMENTS: readonly (readonly [RegExp, string])[] = [
   [/\bTodoWrite\b/g, "todo_write"],
   [/\bgrok-4\.7-xhigh-fast\b/g, "the configured code role"],
   [/\bgrok-4\.7-medium-fast\b/g, "the configured code role"],
+  // The `-fast` suffixes come before the bare slugs, since the bare pattern matches their prefix.
+  [/\bclaude-opus-5-5-(?:high|medium|low)-fast\b/g, "the configured worker role"],
+  [/\bclaude-opus-5-5-xhigh-fast\b/g, "the configured code role"],
   [/\bclaude-opus-5-5-xhigh\b/g, "the configured judgment role"],
   [/\bclaude-opus-5-5-medium\b/g, "the configured judgment role"],
   [/\bclaude-opus-5-5-max\b/g, "the configured judgment role"],
   [/\bclaude-opus-5-5-high-fast\b/g, "the configured worker role"],
-  [/\bclaude-fable-5-2-max\b/g, "the hardest tasks role"],
+  [/\bclaude-fable-5-2-max\b/g, "the configured judgment role"],
   [/\bclaude-fable-5-2-high\b/g, "the configured judgment role"],
   [/\bgemini-4-carbon-high\b/g, "the configured cross-check role"],
   [/\bgpt-5\.6-sol-max\b/g, "the configured judgment role"],
@@ -61,10 +64,24 @@ const REPLACEMENTS: readonly (readonly [RegExp, string])[] = [
     /Pick each subagent's reasoning level and fast or standard speed for the job/g,
     "Pick each subagent's reasoning effort for the job",
   ],
+  // The shortened ladder keeps the role-default rung but drops the family walk, which DSH cannot enumerate.
+  [
+    /rejects a slug, never pass it again\. Fall back to the role's line or default, then the calling skill's fallback, then the closest valid slug of the same family, then omit `model`\. Say so\./g,
+    "rejects the route, never pass it again. Fall back to the role's line or default, then the calling skill's fallback, then leave `role` and `reasoningEffort` out so the child runs on the parent route. Say so.",
+  ],
   // The slug-rejection ladder has no DSH counterpart; fall back to the role default, then the parent.
   [
     /rejects a slug, use the default and say so\. If it rejects the default, use the closest valid slug of the same family from its error message\./g,
     "rejects the chosen model or effort, use the role's default and say so. If it rejects the default, omit `model` so the subagent runs on the parent model.",
+  ],
+  // The shorter ladders in `arena` stop at the seat, not at a slug list.
+  [
+    /rejects a slug, use the nearest valid slug of the same family or drop the seat/g,
+    "rejects the route, use the role's nearest configured route or drop the seat",
+  ],
+  [
+    /rejects a slug, use the nearest valid slug of the same family, then the next such entry, or skip the judge/g,
+    "rejects the route, use the nearest configured route of the same family, then the next such entry, or skip the judge",
   ],
   // deslop, control-cli, and control-ui are vendored here, not in Cursor's team kit.
   [/\bcursor-team-kit\b/g, "dsh-pstack"],

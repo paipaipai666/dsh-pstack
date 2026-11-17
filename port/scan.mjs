@@ -94,7 +94,6 @@ const TERMS = [
   ["tlc", "runtime", /\btlc\b|TLA\+/],
   ["java", "runtime", /\bjava\b|\.java\b/],
   ["gh", "runtime", /\bgh\b/],
-  ["check-plan.mjs", "script", /check-plan/],
   ["watch-pr", "script", /watch-pr/],
   ["worktree-audit", "script", /worktree-audit/],
   ["log.sh", "script", /log\.sh|show-me-your-work\/scripts/],

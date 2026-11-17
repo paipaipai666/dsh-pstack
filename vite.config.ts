@@ -150,10 +150,10 @@ export default defineConfig({
       typeAware: true,
       typeCheck: true,
     },
-    ignorePatterns: ["upstream", "**/*.md", "pstack", "runtime"],
+    ignorePatterns: [".agents", "upstream", "**/*.md", "pstack", "runtime"],
   },
   fmt: {
-    ignorePatterns: ["upstream", "**/*.md", "pstack", "runtime"],
+    ignorePatterns: [".agents", "upstream", "**/*.md", "pstack", "runtime"],
   },
   staged: {
     "*": "vp check --fix",

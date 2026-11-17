@@ -23,6 +23,13 @@
       "sourceType": "local",
       "computedHash": "86208533b3c8c281642788330bd5e4c456e8432ed531088bbc14a56bdafb0c31"
     },
+    "dsh-doc": {
+      "source": "@deepseek-ai/dsh-agent-preset",
+      "sourceType": "node_modules",
+      "skillPath": "skills/dsh-doc/SKILL.md",
+      "version": "0.2.2-rc.3",
+      "computedHash": "5fbe762ba91a68f5b78671a8e3e47ea56bfa12f91b738be8bf148d0fe0d11564"
+    },
     "retro": {
       "source": "mattpocock/skills",
       "ref": "59db609eb1e18aaf59b63284d0e52255aff0c63c",

@@ -6,7 +6,7 @@ pstack 技能沿用 Cursor 名称。在 DeepSeek Harness 中，每个会话先�
 
 | Cursor | DeepSeek Harness |
 | --- | --- |
-| `Task` | `pstack_subagent`。一次调用为单条路由或选中的列表条目启动一个新鲜子代理；自动面板角色为每个条目启动一个。返回所有子会话 id 和解析后的路由。结果以完成通知返回，不要轮询。 |
+| `Task` | `pstack_subagent`。一次调用为单条路由或选中的列表条目启动一个新鲜子代理；自动面板角色为每个条目启动一个。返回所有子会话 id、原生名称和解析后的路由。结果以完成通知返回，不要轮询。 |
 | `AskQuestion` | `ask_user_question`。接受 `questions` 数组、选项、`multi_select` 和自由输入。只有活的根代理有真人回答者。被委派的子代理把问题写进报告。 |
 | 打开待办清单 | `todo_write`，每次传完整列表并替换上一次。状态只有 `pending`、`in_progress`、`completed`。跳过的步骤写成 `skip: <reason> - <step>`，状态标为 `completed`。 |
 | 运行另一个 pstack 技能（`/name` 或 “the **name** skill”） | `pstack_skill`，传精确的 kebab-case `name`。它可以加载被 `disable-model-invocation` 从 `skill` 目录隐藏的 pstack 技能。传相对 `resource` 读取 `SKILL.md` 旁的 reference 或 playbook。用户命令保持原名，例如 `/setup-pstack`；DSH 不加 `pstack:` 前缀。 |

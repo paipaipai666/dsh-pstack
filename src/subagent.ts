@@ -76,6 +76,7 @@ export interface ChildPlan {
   readonly index: number;
   readonly total: number;
   readonly label: string;
+  readonly name: string;
   readonly agent: AgentKind;
   readonly role: string;
   readonly route: Route;
@@ -96,6 +97,7 @@ export interface DelegationPlan {
 
 export interface ChildRecord {
   readonly childId: string;
+  readonly name: string;
   readonly label: string;
   readonly agent: string;
   readonly role: string;
@@ -294,13 +296,16 @@ export function planDelegation(
   const depth = resolveChildDepth(args.maxDepth, config, hostDepth);
 
   const total = routes.length;
+  const usedNames = new Set<string>();
   const children: ChildPlan[] = routes.map((route, index) => {
     const effort = args.reasoningEffort ?? (route.kind === "route" ? route.effort : undefined);
+    const label =
+      total > 1 ? `${args.description} [${roleName} ${index + 1}/${total}]` : args.description;
     return {
       index,
       total,
-      label:
-        total > 1 ? `${args.description} [${roleName} ${index + 1}/${total}]` : args.description,
+      label,
+      name: agentName(label, index, usedNames),
       agent: args.agent,
       role: roleName,
       route,
@@ -360,6 +365,7 @@ export async function startPlannedChildren(
       const activation = await runtime.subagents.startActivation({
         provider: plan.provider,
         label: child.label,
+        name: child.name,
         prompt: [{ type: "text", text: plan.prompt }],
         parent,
         ...(child.agentPreset === undefined ? {} : { agentPreset: child.agentPreset }),
@@ -512,6 +518,7 @@ const OUTPUT_SCHEMA: JsonSchemaNode = {
         additionalProperties: false,
         properties: {
           childId: { type: "string" },
+          name: { type: "string" },
           label: { type: "string" },
           agent: { type: "string" },
           role: { type: "string" },
@@ -519,7 +526,7 @@ const OUTPUT_SCHEMA: JsonSchemaNode = {
           effort: { type: "string" },
           maxDepth: { type: "integer" },
         },
-        required: ["childId", "label", "agent", "role", "route"],
+        required: ["childId", "name", "label", "agent", "role", "route"],
       },
     },
     diagnostics: { type: "array", items: { type: "string" } },
@@ -544,11 +551,11 @@ function renderDelegation(result: DelegationResult): string {
     result.kind === "partial"
       ? `started ${result.children.length} of ${result.failure.total} children; entry ${result.failure.index + 1} failed: ${result.failure.reason}`
       : result.kind === "activation"
-        ? `started 1 child: ${result.children[0]?.childId ?? "(none)"}`
+        ? `started 1 child: ${result.children[0]?.name ?? "(none)"} (${result.children[0]?.childId ?? "(none)"})`
         : `started ${result.children.length} children:`,
     ...result.children.map(
       (child) =>
-        `- ${child.childId} (${child.label}) agent=${child.agent} role=${child.role} route=${child.route}${child.effort === undefined ? "" : ` effort=${child.effort}`}${child.maxDepth === undefined ? "" : ` maxDepth=${child.maxDepth}`}`,
+        `- ${child.name} (${child.childId}) ${child.label} agent=${child.agent} role=${child.role} route=${child.route}${child.effort === undefined ? "" : ` effort=${child.effort}`}${child.maxDepth === undefined ? "" : ` maxDepth=${child.maxDepth}`}`,
     ),
     "Results from started children arrive as completion notices; do not poll for them.",
   ];
@@ -561,6 +568,7 @@ function renderDelegation(result: DelegationResult): string {
 function recordFor(child: ChildPlan, activation: SubagentActivation): ChildRecord {
   return {
     childId: activation.childId,
+    name: activation.name,
     label: child.label,
     agent: child.agent,
     role: child.role,
@@ -570,6 +578,29 @@ function recordFor(child: ChildPlan, activation: SubagentActivation): ChildRecor
       : { effort: child.agentOptions.reasoningEffort }),
     ...(child.maxDepth === undefined ? {} : { maxDepth: child.maxDepth }),
   };
+}
+
+const AGENT_NAME_MAX = 32;
+
+/** Derive a stable, URL-safe child name from the model-facing label. */
+function agentName(label: string, index: number, used: Set<string>): string {
+  const base = label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/gu, "-")
+    .replace(/^-+|-+$/gu, "")
+    .slice(0, AGENT_NAME_MAX)
+    .replace(/-+$/gu, "");
+  const fallback = `agent-${index + 1}`;
+  let name = base === "" || !/^[a-z]/u.test(base) || base === "lead" ? fallback : base;
+  let suffix = 2;
+  while (used.has(name)) {
+    const suffixText = `-${suffix}`;
+    const prefix = name.slice(0, AGENT_NAME_MAX - suffixText.length).replace(/-+$/gu, "");
+    name = `${prefix === "" ? fallback : prefix}${suffixText}`;
+    suffix++;
+  }
+  used.add(name);
+  return name;
 }
 
 function agentOptionsFor(route: Route, effort: string | undefined): AgentOptions {

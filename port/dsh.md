@@ -6,7 +6,7 @@ pstack skills use Cursor names. In DeepSeek Harness, read this file once per ses
 
 | Cursor | DeepSeek Harness |
 | --- | --- |
-| `Task` | `pstack_subagent`, provided by this package. A call starts one fresh child for a single or selected route, and one fresh child per automatic panel entry. It returns every child id with its resolved route. Results arrive as completion notices; do not poll. |
+| `Task` | `pstack_subagent`, provided by this package. A call starts one fresh child for a single or selected route, and one fresh child per automatic panel entry. It returns every child id and native name with its resolved route. Results arrive as completion notices; do not poll. |
 | `AskQuestion` | `ask_user_question`. It takes a `questions` array with options, `multi_select`, and free input. Only a live root agent has a human answerer. A delegated child keeps its questions in its report. |
 | Open a todolist | `todo_write` with the full list, replacing the previous one. It has only `pending`, `in_progress`, and `completed`. Keep a skipped step visible as `skip: <reason> - <step>` with status `completed`. |
 | Run another pstack skill (`/name` or "the **name** skill") | `pstack_skill` with the exact kebab-case `name`. It loads pstack skills that `disable-model-invocation` hides from `skill`. Pass a relative `resource` to read one reference or playbook beside `SKILL.md`. User commands keep their plain names, such as `/setup-pstack`. DSH adds no `pstack:` prefix. |

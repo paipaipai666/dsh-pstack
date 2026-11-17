@@ -49,7 +49,7 @@ function fakeRuntime(dshHome: string): DelegationRuntime {
         inheritsParentContext: false,
       }),
       resolveMaxDepth: () => 2,
-      startActivation: async () => ({ childId: "child-1" }),
+      startActivation: async () => ({ childId: "child-1", name: "inspect-parser" }),
     },
     llm: { resolveCallConfig: async () => ({}) },
     workingDirectory: { ensure: async () => "/session" },
@@ -172,7 +172,18 @@ describe("pstack_subagent arguments and planning", () => {
 
     expect(captured).toHaveProperty("prompt");
     expect(captured).toHaveProperty("parent");
+    expect(captured).toHaveProperty("name", "inspect-parser");
     expect(captured).not.toHaveProperty("request");
+  });
+
+  it("derives stable unique child names from panel labels", () => {
+    const runtime = fakeRuntime(home("arena runners: cpa/model-a, cpa/model-b\n"));
+    const plan = planDelegation(args({ role: "arena runners" }), runtime);
+
+    expect(plan.children.map((child) => child.name)).toEqual([
+      "inspect-parser-arena-runners-1-2",
+      "inspect-parser-arena-runners-2-2",
+    ]);
   });
 
   it("keeps started child ids when a later activation fails", async () => {

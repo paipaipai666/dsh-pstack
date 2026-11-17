@@ -17,7 +17,7 @@
 | 原生工具 | Cursor 的 Task/AskQuestion 等 | 8 个：`pstack_skill`、`pstack_models`、`pstack_roles`、`pstack_doctor`、`pstack_subagent`、`pstack_script`、`pstack_remote`、`pstack_chart` | 已替换为 DSH 原生接口 |
 | Agent preset | Cursor custom modes | 5 个：`poteto-mode`、`poteto-mode-creator`（两个根模式）、`poteto-agent`、`comment-sicko`、`readonly` | 覆盖常驻模式与委派 |
 | 脚本入口 | 4 个 | 4 个：`watch-pr`、`worktree-audit`、`log`、`statechart` | 一致，均 Node 重写 |
-| 测试文件 | 上游无 DSH 测试 | `tests/` 30 个文件 239 个用例，另有 `runtime/` 76 个脚本用例（Windows 跳过 4 个） | 已建立 QA 基线 |
+| 测试文件 | 上游无 DSH 测试 | `tests/` 30 个文件 244 个用例，另有 `runtime/` 76 个脚本用例（Windows 跳过 4 个） | 已建立 QA 基线 |
 
 ## 2. 与上游的功能差异
 

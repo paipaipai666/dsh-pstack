@@ -42,7 +42,7 @@ front matter block statechart writes.
 - GitHub fork created on 2026-11-06: `paipaipai666/dsh-pstack`.
 - `fork/upstream-0.3.1` carries the rebase onto upstream `0.3.1`; `fork/main` is the integration
   branch that gets pushed.
-- The package is named `@paipaipai666/dsh-pstack` and reports version `0.5.0-beta.9`.
+- The package is named `@paipaipai666/dsh-pstack` and reports version `0.5.0-beta.10`.
 - The generated tree is committed at `pstack/` and is rewritten as a whole by
   `vpx port/generate.mjs`. It is generated from `upstream/cursor-plugins` plus the adapter source
   `port/dsh.md`, so the 58 skills are reviewable in the repository instead of being generated during

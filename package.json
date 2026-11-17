@@ -89,6 +89,8 @@
     "prepublishOnly": "vp run ci"
   },
   "dependencies": {
+    "@deepseek-ai/dsh-agent-preset": "catalog:types",
+    "@deepseek-ai/dsh-agent-preset-registry": "catalog:types",
     "@deepseek-ai/schemastery": "catalog:runtime",
     "commander": "catalog:inlined"
   },
@@ -96,7 +98,6 @@
     "@deepseek-ai/cordis": "catalog:runtime",
     "@deepseek-ai/cordis-plugin-loader": "catalog:runtime",
     "@deepseek-ai/dsh-agent": "catalog:types",
-    "@deepseek-ai/dsh-agent-preset-registry": "catalog:types",
     "@deepseek-ai/dsh-api-gateway": "catalog:types",
     "@deepseek-ai/dsh-api-remotes": "catalog:types",
     "@deepseek-ai/dsh-client-locale": "catalog:types",

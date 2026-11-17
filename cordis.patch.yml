@@ -19,7 +19,15 @@
 # Each `@paipaipai666/dsh-pstack/preset` row's `name`/`description` below is a display default.
 # `@paipaipai666/dsh-pstack/preset` overwrites both at runtime from `src/preset-copy.ts` for the
 # active locale, so change the user-visible copy there, not here.
+#
+# pstack owns the preset registry its preset rows depend on. This row is
+# disabled when the host profile already mounts an agent-preset-registry.
 - insert:
+    - id: pstack-agent-preset-registry
+      name: "@deepseek-ai/dsh-agent-preset-registry"
+      config:
+        default: poteto-mode
+      disabled: !!js "[...ctx.loader.entries()].some((e) => e.options.name === '@deepseek-ai/dsh-agent-preset-registry' && e.options.id !== 'pstack-agent-preset-registry' && !e.disabled)"
     - id: pstack
       name: "@paipaipai666/dsh-pstack"
     - id: pstack-skills

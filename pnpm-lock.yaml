@@ -244,6 +244,9 @@ catalogs:
     '@deepseek-ai/dsh-agent':
       specifier: 0.2.2-rc.3
       version: 0.2.2-rc.3
+    '@deepseek-ai/dsh-agent-preset':
+      specifier: 0.2.2-rc.3
+      version: 0.2.2-rc.3
     '@deepseek-ai/dsh-agent-preset-registry':
       specifier: 0.2.2-rc.3
       version: 0.2.2-rc.3
@@ -322,6 +325,12 @@ importers:
 
   .:
     dependencies:
+      '@deepseek-ai/dsh-agent-preset':
+        specifier: catalog:types
+        version: 0.2.2-rc.3(@deepseek-ai/cordis-plugin-loader@1.1.0)(@deepseek-ai/cordis@4.1.0)(@deepseek-ai/dsh-agent-preset-registry@0.2.2-rc.3(8f5b61d2f9c86cb6be66a07350d73825))
+      '@deepseek-ai/dsh-agent-preset-registry':
+        specifier: catalog:types
+        version: 0.2.2-rc.3(8f5b61d2f9c86cb6be66a07350d73825)
       '@deepseek-ai/schemastery':
         specifier: catalog:runtime
         version: 3.19.0
@@ -338,9 +347,6 @@ importers:
       '@deepseek-ai/dsh-agent':
         specifier: catalog:types
         version: 0.2.2-rc.3(5a66ed30ebfeae025fb260d2c5c96077)
-      '@deepseek-ai/dsh-agent-preset-registry':
-        specifier: catalog:types
-        version: 0.2.2-rc.3(8f5b61d2f9c86cb6be66a07350d73825)
       '@deepseek-ai/dsh-api-gateway':
         specifier: catalog:types
         version: 0.2.2-rc.3(@deepseek-ai/cordis@4.1.0)
@@ -537,6 +543,13 @@ packages:
       '@deepseek-ai/dsh-system-prompt': 0.2.2-rc.3
       '@deepseek-ai/dsh-tools': 0.2.2-rc.3
       '@deepseek-ai/dsh-typert-protocol': 0.2.2-rc.3
+
+  '@deepseek-ai/dsh-agent-preset@0.2.2-rc.3':
+    resolution: {integrity: sha512-kz3l2xgre/g/FW2scvdtRALa/WsOuPH1B0j149tvvKWRkdvg4zHXDp9ByEnJKyH+Auig6bx8MQuvwS8fWTsBeg==}
+    peerDependencies:
+      '@deepseek-ai/cordis': ~4.1.0
+      '@deepseek-ai/cordis-plugin-loader': ~1.1.0
+      '@deepseek-ai/dsh-agent-preset-registry': 0.2.2-rc.3
 
   '@deepseek-ai/dsh-agent@0.2.2-rc.3':
     resolution: {integrity: sha512-e8ZraO5pcjJh7JJrTpjT3DhGVYjjzZFEiAOnqpqZyUW+WT3hK84yaBqV+wgiqmUz+A43ucd8ilPzkq/yWEUaLA==}
@@ -2514,6 +2527,13 @@ snapshots:
       - '@deepseek-ai/cordis-plugin-group'
       - '@deepseek-ai/dsh-home-paths'
       - '@deepseek-ai/dsh-launch-environment'
+
+  '@deepseek-ai/dsh-agent-preset@0.2.2-rc.3(@deepseek-ai/cordis-plugin-loader@1.1.0)(@deepseek-ai/cordis@4.1.0)(@deepseek-ai/dsh-agent-preset-registry@0.2.2-rc.3(8f5b61d2f9c86cb6be66a07350d73825))':
+    dependencies:
+      '@deepseek-ai/cordis': 4.1.0(@deepseek-ai/cordis-plugin-include@1.1.0)(@deepseek-ai/cordis-plugin-loader@1.1.0)
+      '@deepseek-ai/cordis-plugin-loader': 1.1.0(@deepseek-ai/cordis@4.1.0)(node-addon-require-builtin@0.1.9)
+      '@deepseek-ai/dsh-agent-preset-registry': 0.2.2-rc.3(8f5b61d2f9c86cb6be66a07350d73825)
+      '@deepseek-ai/schemastery': 3.19.0
 
   '@deepseek-ai/dsh-agent@0.2.2-rc.3(5a66ed30ebfeae025fb260d2c5c96077)':
     dependencies:

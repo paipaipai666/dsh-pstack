@@ -18,6 +18,7 @@ const rows = heads.map((head, index) => ({
 describe("bundle configuration", () => {
   it("keeps the expected plugin rows and presets", () => {
     expect(rows.map((row) => row.id)).toEqual([
+      "pstack-agent-preset-registry",
       "pstack",
       "pstack-skills",
       "pstack-vendored-skills",

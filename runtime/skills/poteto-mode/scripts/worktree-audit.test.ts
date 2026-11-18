@@ -2,6 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
+import { zstdCompressSync } from "node:zlib";
 
 import { ageColumn, bucketFor, dirtyColumn, discoverSessions, formatSize, lastChatColumn, mergedColumn, prColumn, remoteColumn, renderTable, sizeColumn, sortRows, type AuditRow } from "./worktree-audit.ts";
 import { expect } from "./support.ts";
@@ -128,6 +129,25 @@ test("auto-discovers sessions from DSH_HOME/sessions and DSH_LIVE_SESSIONS_JSON"
         JSON.stringify({ time: 1700003000 }),
       ].join("\n"),
     );
+    const zstdDir = join(home, "sessions", "--repo-wt-d--", "session-4");
+    mkdirSync(zstdDir, { recursive: true });
+    writeFileSync(
+      join(zstdDir, "session.v4.jsonl.zstd"),
+      zstdCompressSync(
+        Buffer.from(
+          [
+            JSON.stringify({
+              type: "session",
+              version: 4,
+              id: "s-4",
+              cwd: "/repo/wt-d",
+              createdAt: 1700006000000,
+            }),
+            JSON.stringify({ time: 1700007000000 }),
+          ].join("\n"),
+        ),
+      ),
+    );
 
     const discovered = discoverSessions({
       dshHome: home,
@@ -139,11 +159,13 @@ test("auto-discovers sessions from DSH_HOME/sessions and DSH_LIVE_SESSIONS_JSON"
       },
     });
 
-    expect(discovered?.length).toBe(3);
+    expect(discovered?.length).toBe(4);
     const byId = Object.fromEntries((discovered ?? []).map((s) => [s.sessionId, s]));
     expect(byId["s-1"]?.lastEventTime).toBe(1700005000);
     expect(byId["s-2"]?.lastEventTime).toBe(1700003000);
     expect(byId["s-3"]?.cwd).toBe("/repo/wt-c");
+    expect(byId["s-4"]?.cwd).toBe("/repo/wt-d");
+    expect(byId["s-4"]?.lastEventTime).toBe(1700007000);
     expect(discoverSessions({ env: {} })).toBe(undefined);
   } finally {
     rmSync(home, { recursive: true, force: true });

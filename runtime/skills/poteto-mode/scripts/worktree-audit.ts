@@ -36,6 +36,7 @@ import { existsSync, lstatSync, readFileSync, readdirSync, statSync } from "node
 import { homedir } from "node:os";
 import { isAbsolute, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { zstdDecompressSync } from "node:zlib";
 
 /** One row of the audit, in column order. */
 export interface AuditRow {
@@ -738,11 +739,13 @@ function asSessionInput(raw: unknown): SessionInput | undefined {
 function readDiscoveredSessionFile(path: string): readonly SessionInput[] {
   let text: string;
   try {
-    text = readFileSync(path, "utf8");
+    text = path.endsWith(".zstd")
+      ? zstdDecompressSync(readFileSync(path)).toString("utf8")
+      : readFileSync(path, "utf8");
   } catch {
     return [];
   }
-  if (path.endsWith(".jsonl")) {
+  if (path.endsWith(".jsonl") || path.endsWith(".jsonl.zstd")) {
     let headerEntry: SessionInput | undefined;
     let maxTime: number | undefined;
     for (const line of text.split(/\r?\n/)) {
@@ -788,7 +791,7 @@ function readDiscoveredSessionFile(path: string): readonly SessionInput[] {
 }
 
 function scanSessionsDirectory(dir: string, depth = 0): readonly SessionInput[] {
-  if (depth > 2 || !existsSync(dir)) return [];
+  if (depth > 3 || !existsSync(dir)) return [];
   let entries: string[];
   try {
     entries = readdirSync(dir);
@@ -806,7 +809,10 @@ function scanSessionsDirectory(dir: string, depth = 0): readonly SessionInput[] 
     }
     if (stats.isDirectory()) {
       found.push(...scanSessionsDirectory(fullPath, depth + 1));
-    } else if (stats.isFile() && (name.endsWith(".json") || name.endsWith(".jsonl"))) {
+    } else if (
+      stats.isFile() &&
+      (name.endsWith(".json") || name.endsWith(".jsonl") || name.endsWith(".jsonl.zstd"))
+    ) {
       found.push(...readDiscoveredSessionFile(fullPath));
     }
   }
@@ -817,8 +823,8 @@ function scanSessionsDirectory(dir: string, depth = 0): readonly SessionInput[] 
  * Auto-discover sessions when `--sessions` is omitted.
  *
  * Reads `DSH_LIVE_SESSIONS_JSON` (passed by `pstack_script` from `ctx.sessions`)
- * and `$DSH_HOME/sessions/*.json{,l}` up to 2 levels deep. Returns `undefined`
- * when no sessions were found so callers still see `unknown-usage`.
+ * and `$DSH_HOME/sessions/*.{json,jsonl,jsonl.zstd}` up to 3 levels deep. Returns
+ * `undefined` when no sessions were found so callers still see `unknown-usage`.
  */
 export function discoverSessions(
   options: { readonly dshHome?: string; readonly env?: NodeJS.ProcessEnv } = {},

@@ -56,9 +56,15 @@ const REPLACEMENTS: readonly (readonly [RegExp, string])[] = [
   [/\bgemini-4-carbon-high\b/g, "the configured cross-check role"],
   [/\bgpt-5\.6-sol-max\b/g, "the configured judgment role"],
   [/\b(?:cursor-grok|composer)-\*/g, "the configured code role family"],
-  [/\bclaude-fable-\*/g, "the configured judgment role family"],
+  [/\bclaude-fable-\*/g, "the configured deep-reasoning role family"],
   [/\bclaude-\*/g, "the configured judgment role family"],
+  [/\bgemini-\*/g, "the configured cross-check role family"],
   [/\bgrok-\*/g, "the configured code role family"],
+  [/so omit `model` and spawn/g, "so leave `role` and `reasoningEffort` out and spawn"],
+  [
+    /For `auto` or `inherit-parent`, omit `model` so/g,
+    "For `auto` or `inherit-parent`, leave `role` and `reasoningEffort` out so",
+  ],
   // DSH has no speed parameter; the recurring spawn instruction becomes a reasoning-effort pick.
   [
     /Pick each subagent's reasoning level and fast or standard speed for the job/g,

@@ -131,15 +131,28 @@ describe("role manifest and parser", () => {
     expect(selected.routes[0]).toMatchObject({ model: "b" });
   });
 
-  it("rejects roleIndex on a single role or an automatic panel", () => {
-    const parsed = parseRoleConfiguration("bug-fix: p/a\narena runners: p/a, p/b\n", "/x");
+  it("rejects roleIndex on a single role and allows selecting an automatic panel slot", () => {
+    const parsed = parseRoleConfiguration(
+      "bug-fix: p/a\narena runners: p/a [high], p/b [low]\narena cross-judge pool: p/a [high], q/b [high]\n",
+      "/x",
+    );
     expect(parsed.status).toBe("loaded");
     if (parsed.status !== "loaded") return;
     expect(() => selectRoutes(findRole("bug-fix")!, parsed.roles.get("bug-fix"), 0)).toThrow(
       /single route/,
     );
-    expect(() =>
-      selectRoutes(findRole("arena runners")!, parsed.roles.get("arena runners"), 0),
-    ).toThrow(/automatic panel/);
+    const slot = selectRoutes(findRole("arena runners")!, parsed.roles.get("arena runners"), 1);
+    expect(slot.mode).toBe("selected");
+    expect(slot.routes).toEqual([{ kind: "route", provider: "p", model: "b", effort: "low" }]);
+
+    const judge = selectRoutes(
+      findRole("arena cross-judge pool")!,
+      parsed.roles.get("arena cross-judge pool"),
+      undefined,
+      "p",
+    );
+    expect(judge.mode).toBe("selected");
+    expect(judge.roleIndex).toBe(1);
+    expect(judge.routes).toEqual([{ kind: "route", provider: "q", model: "b", effort: "high" }]);
   });
 });

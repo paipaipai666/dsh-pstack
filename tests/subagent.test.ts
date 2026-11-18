@@ -271,4 +271,45 @@ describe("pstack_subagent arguments and planning", () => {
     expect(plan.children[0]?.maxDepth).toBeUndefined();
     expect(plan.children[0] !== undefined && "maxDepth" in plan.children[0]).toBe(false);
   });
+
+  it("injects worker.md for delegates and interpolates panel slot placeholders", () => {
+    const dshHome = home("arena runners: cpa/model-a [high], cpa/model-b [low]\n");
+    const runtime = fakeRuntime(dshHome);
+    const generalPlan = planDelegation(args({ agent: "general" }), runtime);
+    expect(generalPlan.children[0]?.prompt).toContain("worker.md");
+    expect(generalPlan.children[0]?.prompt).not.toContain('name: "poteto-mode"');
+
+    const panelPlan = planDelegation(
+      args({
+        role: "arena runners",
+        prompt: "Write output for candidate {{index}} of {{total}}.",
+        cwd: "/tmp/arena/candidate-{{index}}",
+      }),
+      runtime,
+    );
+    expect(panelPlan.children[0]?.prompt).toContain("Write output for candidate 1 of 2.");
+    expect(panelPlan.children[0]?.cwd).toBe("/tmp/arena/candidate-1");
+    expect(panelPlan.children[1]?.prompt).toContain("Write output for candidate 2 of 2.");
+    expect(panelPlan.children[1]?.cwd).toBe("/tmp/arena/candidate-2");
+
+    const explicitWorkerPlan = planDelegation(
+      args({ agent: "readonly", prompt: "Read worker.md first, then inspect." }),
+      runtime,
+    );
+    expect(explicitWorkerPlan.children[0]?.prompt).toBe("Read worker.md first, then inspect.");
+  });
+
+  it("picks a cross-vendor entry for arena cross-judge pool when parentProvider is given", () => {
+    const dshHome = home(
+      "arena cross-judge pool: inherit-parent, cpa/model-a [high], google/gemini [high]\n",
+    );
+    const runtime = fakeRuntime(dshHome);
+    const plan = planDelegation(
+      args({ agent: "readonly", role: "arena cross-judge pool" }),
+      runtime,
+      { provider: "spawn" },
+      "cpa",
+    );
+    expect(plan.children[0]?.routeLabel).toBe("google/gemini [high]");
+  });
 });

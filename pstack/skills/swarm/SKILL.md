@@ -28,7 +28,7 @@ Open a todolist with one entry per phase before launching anything.
 
 Spawn all N workers in one message with `agent: "poteto-agent"` and the step 3 model, left unset for `auto` or `inherit-parent`. The spawn calls return when the workers start. Their reports arrive later as completion notices. For work that must run on a registered remote machine, use `pstack_remote` instead.
 
-When a worker must start from a non-default pushed branch, pass `cloud_base_branch`.
+When a worker must start from a non-default pushed branch, create a worktree from that branch with `create_worktree({ from: "<branch>" })` and pass its path as `cwd`.
 
 Every brief stands alone. Include the goal, scope, exact slice or race arm, how to verify, and what to report. Reports use `PASS`, `ISSUES`, or `BLOCKED` with evidence. A worker that can prove a defect reports `ISSUES` and lists every issue it can prove, not only the first.
 

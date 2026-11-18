@@ -7,7 +7,7 @@ vi.mock("@deepseek-ai/dsh-sandbox-policy", () => ({ setSandboxMode: mocks.setSan
 import { apply } from "../src/readonly.ts";
 
 describe("readonly preset policy", () => {
-  it("sets the read-only sandbox for readonly children only", () => {
+  it("sets the read-only sandbox for readonly and comment-sicko children only", () => {
     let listener:
       | ((value: { agent: { session: { header: { agentPreset: string } } } }) => void)
       | undefined;
@@ -25,6 +25,12 @@ describe("readonly preset policy", () => {
     listener?.({ agent: { session: { header: { agentPreset: "readonly" } } } });
     expect(mocks.setSandboxMode).toHaveBeenCalledWith(
       { header: { agentPreset: "readonly" } },
+      "read-only",
+    );
+    mocks.setSandboxMode.mockClear();
+    listener?.({ agent: { session: { header: { agentPreset: "comment-sicko" } } } });
+    expect(mocks.setSandboxMode).toHaveBeenCalledWith(
+      { header: { agentPreset: "comment-sicko" } },
       "read-only",
     );
     mocks.setSandboxMode.mockClear();

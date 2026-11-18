@@ -74,6 +74,20 @@ Read the terminal results.
 Read the terminal results from the completion notices.
 ```
 
+## `skills/swarm/SKILL.md`
+
+**Find**
+
+```text
+When a worker must start from a non-default pushed branch, pass `cloud_base_branch`.
+```
+
+**Replace**
+
+```text
+When a worker must start from a non-default pushed branch, create a worktree from that branch with `create_worktree({ from: "<branch>" })` and pass its path as `cwd`.
+```
+
 ## `skills/poteto-mode/SKILL.md`
 
 **Find**

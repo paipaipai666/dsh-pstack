@@ -21,13 +21,13 @@ Role 的路由基数和展开方式由两个独立属性描述：
 
 - `shape = single`：最多配置一条路由，不接受 `roleIndex`。
 - `shape = list`：配置多条路由。普通 list 通过 `roleIndex` 选择一条，缺省选择第一条。
-- `autoPanel = true`：list 角色的一种展开方式，一次调用为每条配置启动一个子代理，不接受 `roleIndex`。
+- `autoPanel = true`：list 角色的一种展开方式，省略 `roleIndex` 时为每条配置启动一个子代理（panel fan-out）；传入 `roleIndex` 时只选择对应的 0-based 槽位。其中 `arena cross-judge pool` 在省略 `roleIndex` 时默认选出首条跨供应商路由（provider 与父会话不同）。
 
 `shape` 描述存储结构，`autoPanel` 描述是否自动展开，两者不可互相替代。
 
 ## Budget（推理预算）
 
-`budget` 是角色文件中的全局推理目标，写作 `# budget: <tier> (<target>)`。三档为 `large`、`medium`、`small`，分别以 `xhigh`、`high`、`medium` 为目标 effort。上游在 0.15.43 撤掉了 `unlimited`，因为没有路由高于 `xhigh`；旧文件里的 `unlimited` 按未设置处理，不当成档位。它是一次批量应用操作的记录，不直接参与委派；真正生效的是每个角色行里的具体模型和 `[effort]`。应用预算时按模型实际公布的 efforts 做精确匹配、向下回退或标记需要手动选择；自定义 efforts 或没有 effort 的模型保持原值并提示。
+`budget` 是角色文件中的全局推理目标，写作 `# budget: <tier> (<target>)`。三档为 `large`、`medium`、`small`，按各个角色自身在 manifest 中定义的基准 `defaultEffort`（单子代理角色为 `xhigh`，panel/worker 角色为 `high`）沿 `["low", "medium", "high", "xhigh"]` 分别向下移动 `0 / 1 / 2` 档，从而将 `large` / `medium` / `small` 映射为各角色的目标 effort（单子代理对应 `xhigh` / `high` / `medium`，panel/worker 对应 `high` / `medium` / `low`）。上游在 0.15.43 撤掉了 `unlimited`，因为没有路由高于 `xhigh`；旧文件里的 `unlimited` 按未设置处理，不当成档位。它是一次批量应用操作的记录，不直接参与委派；真正生效的是每个角色行里的具体模型和 `[effort]`。应用预算时按模型实际公布的 efforts 做精确匹配、向下回退或标记需要手动选择；自定义 efforts 或没有 effort 的模型保持原值并提示。
 
 ## Agent preset（Agent 预设）
 

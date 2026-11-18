@@ -89,7 +89,7 @@ try {
   for (const line of required) {
     if (!config.includes(line)) throw new Error(`missing bundle row: ${line}`);
   }
-  if (!/maxDepth:\s*2/.test(config)) throw new Error("pstack-subagent maxDepth is not 2");
+  if (!/maxDepth:\s*3/.test(config)) throw new Error("pstack-subagent maxDepth is not 3");
 
   const installed = join(home, "profiles", "web", "node_modules", "@paipaipai666", "dsh-pstack");
   for (const file of ["dist/client.js", "dist/pstack/docs/harness/dsh.md"]) {

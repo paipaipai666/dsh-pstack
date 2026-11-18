@@ -17,6 +17,8 @@ export interface RoleSpec {
   readonly shape: RoleShape;
   /** A list role that starts one child per entry automatically. */
   readonly autoPanel: boolean;
+  /** Default reasoning effort under the `large` budget. */
+  readonly defaultEffort: "xhigh" | "high";
 }
 
 /** Role file name under `$DSH_HOME`. DSH never loads `.mdc`; this plugin does. */
@@ -28,15 +30,15 @@ export type InheritAlias = (typeof INHERIT_ALIASES)[number];
 
 /** The nine roles, in the order `setup-pstack` documents them. */
 export const ROLE_MANIFEST = [
-  { key: "feature, refactoring", shape: "single", autoPanel: false },
-  { key: "bug-fix", shape: "single", autoPanel: false },
-  { key: "perf-issue", shape: "single", autoPanel: false },
-  { key: "hillclimb", shape: "single", autoPanel: false },
-  { key: "judgment and prose", shape: "single", autoPanel: false },
-  { key: "arena runners", shape: "list", autoPanel: true },
-  { key: "arena cross-judge pool", shape: "list", autoPanel: false },
-  { key: "swarm workers", shape: "list", autoPanel: false },
-  { key: "interrogate reviewers", shape: "list", autoPanel: true },
+  { key: "feature, refactoring", shape: "single", autoPanel: false, defaultEffort: "xhigh" },
+  { key: "bug-fix", shape: "single", autoPanel: false, defaultEffort: "xhigh" },
+  { key: "perf-issue", shape: "single", autoPanel: false, defaultEffort: "xhigh" },
+  { key: "hillclimb", shape: "single", autoPanel: false, defaultEffort: "xhigh" },
+  { key: "judgment and prose", shape: "single", autoPanel: false, defaultEffort: "xhigh" },
+  { key: "arena runners", shape: "list", autoPanel: true, defaultEffort: "high" },
+  { key: "arena cross-judge pool", shape: "list", autoPanel: false, defaultEffort: "high" },
+  { key: "swarm workers", shape: "list", autoPanel: false, defaultEffort: "high" },
+  { key: "interrogate reviewers", shape: "list", autoPanel: true, defaultEffort: "high" },
 ] as const satisfies readonly RoleSpec[];
 
 export type RoleKey = (typeof ROLE_MANIFEST)[number]["key"];

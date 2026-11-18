@@ -36,6 +36,17 @@ const BUILT_IN_MARKS: Record<string, string> = {
   repeats: "fill:#f0ecff,stroke:#6a4fd8,stroke-width:2.5px,color:#3f2f8f",
 };
 
+/** Built-in group palette emitted by `statechart` without a `classDef` line. */
+const GROUP_COLORS: Readonly<Record<string, string>> = {
+  blue: "fill:#c3e0ff,stroke:#7aa7d9,color:#1f2937",
+  orange: "fill:#f0d3bf,stroke:#cfa080,color:#1f2937",
+  purple: "fill:#e3d5ff,stroke:#b09ae0,color:#1f2937",
+  yellow: "fill:#f0dcbf,stroke:#cfb080,color:#1f2937",
+  teal: "fill:#bfe3df,stroke:#7ab5ae,color:#1f2937",
+  tan: "fill:#e5d9ce,stroke:#b8a696,color:#1f2937",
+  pink: "fill:#ffcbe6,stroke:#d99ab8,color:#1f2937",
+};
+
 const DEFAULT_STYLE = { fill: "#f7f8fa", stroke: "#9aa4b2", strokeWidth: 1.5, color: "#1f2937" };
 
 export class ChartSyntaxError extends Error {
@@ -53,8 +64,10 @@ export interface ChartLeaf {
   readonly id: string;
   readonly label: string;
   readonly parent: string;
-  /** Class name from a `class` line, when one applies. */
+  /** Last `class` name applied to this state, when one applies. */
   readonly mark?: string;
+  /** Every `class` name applied to this state, in declaration order. */
+  readonly marks?: readonly string[];
 }
 
 export interface ChartGroup {
@@ -86,8 +99,15 @@ export interface ParsedChart {
 }
 
 const ENTITY = /#(\d+);/g;
+const TITLE_ESCAPE = /ﬂ°°(\d+)¶ß/gu;
 const decodeEntities = (text: string) =>
   text.replace(ENTITY, (_match, code: string) => String.fromCodePoint(Number.parseInt(code, 10)));
+const decodeTitle = (text: string) =>
+  decodeEntities(
+    text.replace(TITLE_ESCAPE, (_match, code: string) =>
+      String.fromCodePoint(Number.parseInt(code, 10)),
+    ),
+  );
 
 const splitStyle = (style: string) => {
   const out: Record<string, string> = {};
@@ -99,16 +119,57 @@ const splitStyle = (style: string) => {
   return out;
 };
 
-const styleOf = (mark: string | undefined, classDefs: ReadonlyMap<string, string>) => {
-  const raw = mark === undefined ? undefined : (classDefs.get(mark) ?? BUILT_IN_MARKS[mark]);
-  if (raw === undefined) return DEFAULT_STYLE;
-  const parts = splitStyle(raw);
-  return {
-    fill: parts.fill ?? DEFAULT_STYLE.fill,
-    stroke: parts.stroke ?? DEFAULT_STYLE.stroke,
-    strokeWidth: Number.parseFloat(parts["stroke-width"] ?? "") || DEFAULT_STYLE.strokeWidth,
-    color: parts.color ?? DEFAULT_STYLE.color,
-  };
+const styleOf = (
+  marks: readonly string[] | string | undefined,
+  classDefs: ReadonlyMap<string, string>,
+) => {
+  const list = marks === undefined ? [] : typeof marks === "string" ? [marks] : marks;
+  let result: {
+    fill: string;
+    stroke: string;
+    strokeWidth: number;
+    color: string;
+    strokeDasharray?: string;
+  } = { ...DEFAULT_STYLE };
+  let hasFill = false;
+
+  for (const cls of list) {
+    const def = classDefs.get(cls);
+    const groupColor = GROUP_COLORS[cls];
+    if (def !== undefined || groupColor !== undefined || cls === "breaks" || cls === "mayBreak") {
+      const raw = def ?? BUILT_IN_MARKS[cls] ?? groupColor;
+      if (raw === undefined) continue;
+      const parts = splitStyle(raw);
+      result = {
+        ...result,
+        fill: parts.fill ?? result.fill,
+        stroke: parts.stroke ?? result.stroke,
+        strokeWidth: Number.parseFloat(parts["stroke-width"] ?? "") || result.strokeWidth,
+        color: parts.color ?? result.color,
+      };
+      hasFill = true;
+      continue;
+    }
+    if (cls === "bugPath") {
+      result = {
+        ...result,
+        stroke: "#3b6fd4",
+        strokeWidth: 2.5,
+        ...(hasFill ? {} : { fill: "#eaf1ff", color: "#22457f" }),
+      };
+      continue;
+    }
+    if (cls === "repeats") {
+      result = {
+        ...result,
+        stroke: "#6a4fd8",
+        strokeWidth: 2.5,
+        strokeDasharray: "6 3",
+        ...(hasFill ? {} : { fill: "#f0ecff", color: "#3f2f8f" }),
+      };
+    }
+  }
+  return result;
 };
 
 const STATE_LABEL = /^state\s+"((?:[^"\\]|\\.)*)"\s+as\s+([\p{L}\p{N}_.-]+)(\s*\{)?$/u;
@@ -126,7 +187,7 @@ export function parseChart(source: string): ParsedChart {
   const roots: string[] = [];
   const edges: ChartEdge[] = [];
   const classDefs = new Map<string, string>();
-  const marks = new Map<string, string>();
+  const marks = new Map<string, string[]>();
   const stack: string[] = [""];
   let regions = new Map<string, number>();
   let direction: "TB" | "LR" = "TB";
@@ -165,7 +226,9 @@ export function parseChart(source: string): ParsedChart {
       throw new ChartSyntaxError(opening + 1, "front matter has no closing `---`");
     for (let index = opening + 1; index < closing; index++) {
       const value = /^title:\s*(.*)$/.exec(lines[index]?.trim() ?? "")?.[1]?.trim();
-      if (value !== undefined && value !== "") title = value.replace(/^"(.*)"$/s, "$1");
+      if (value !== undefined && value !== "") {
+        title = decodeTitle(value.replace(/^"(.*)"$/s, "$1"));
+      }
     }
     first = closing + 1;
   }
@@ -204,7 +267,12 @@ export function parseChart(source: string): ParsedChart {
     }
     const classApply = CLASS_APPLY.exec(text);
     if (classApply) {
-      for (const id of classApply[1]!.split(",")) marks.set(id.trim(), classApply[2]!);
+      for (const id of classApply[1]!.split(",")) {
+        const key = id.trim();
+        const existing = marks.get(key);
+        if (existing === undefined) marks.set(key, [classApply[2]!]);
+        else existing.push(classApply[2]!);
+      }
       continue;
     }
     const labelled = STATE_LABEL.exec(text);
@@ -274,8 +342,13 @@ export function parseChart(source: string): ParsedChart {
   // A class line may name a state declared later, so apply the marks once everything is read.
   const withMarks = new Map<string, ChartItem>();
   for (const [id, item] of items) {
-    const mark = marks.get(id);
-    withMarks.set(id, item.kind === "leaf" && mark !== undefined ? { ...item, mark } : item);
+    const list = marks.get(id);
+    withMarks.set(
+      id,
+      item.kind === "leaf" && list !== undefined && list.length > 0
+        ? { ...item, mark: list[list.length - 1], marks: list }
+        : item,
+    );
   }
   for (const [id, item] of withMarks) {
     if (item.kind === "group" && regions.size > 0) {
@@ -494,7 +567,17 @@ const escapeXml = (text: string) =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 
-const edgePath = (from: Box, to: Box, direction: "TB" | "LR") => {
+const edgePath = (from: Box, to: Box, direction: "TB" | "LR", selfLoop = false) => {
+  if (selfLoop) {
+    const sx = from.x + from.width - 14;
+    const sy = from.y;
+    const ex = from.x + from.width;
+    const ey = from.y + 14;
+    return {
+      d: `M ${sx} ${sy} C ${sx} ${sy - 22}, ${ex + 24} ${sy - 22}, ${ex} ${ey}`,
+      mid: { x: ex + 14, y: sy - 12 },
+    };
+  }
   const start =
     direction === "LR"
       ? { x: from.x + from.width, y: from.y + from.height / 2 }
@@ -539,7 +622,7 @@ export function renderChartSvg(chart: ParsedChart): string {
         void nested;
         continue;
       }
-      const style = styleOf(item.mark, chart.classDefs);
+      const style = styleOf(item.marks ?? item.mark, chart.classDefs);
       const lines = wrap(item.label, 176);
       const isMarker = item.label === "●" || item.label === "◉";
       if (isMarker) {
@@ -548,8 +631,10 @@ export function renderChartSvg(chart: ParsedChart): string {
         );
         continue;
       }
+      const dash =
+        style.strokeDasharray === undefined ? "" : ` stroke-dasharray="${style.strokeDasharray}"`;
       parts.push(
-        `<rect x="${dx + box.x}" y="${dy + box.y}" width="${box.width}" height="${box.height}" rx="8" fill="${style.fill}" stroke="${style.stroke}" stroke-width="${style.strokeWidth}"/>`,
+        `<rect x="${dx + box.x}" y="${dy + box.y}" width="${box.width}" height="${box.height}" rx="8" fill="${style.fill}" stroke="${style.stroke}" stroke-width="${style.strokeWidth}"${dash}/>`,
         `<text x="${dx + box.x + box.width / 2}" y="${dy + box.y + 20}" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="${style.color}">`,
         ...lines.map(
           (line, index) =>
@@ -565,11 +650,13 @@ export function renderChartSvg(chart: ParsedChart): string {
       const toId = itemOf(chart, scope, edge.to);
       const from = layout.boxes.get(fromId);
       const to = layout.boxes.get(toId);
-      if (from === undefined || to === undefined || fromId === toId) continue;
+      if (from === undefined || to === undefined) continue;
+      const selfLoop = fromId === toId;
       const path = edgePath(
         { x: dx + from.x, y: dy + from.y, width: from.width, height: from.height },
         { x: dx + to.x, y: dy + to.y, width: to.width, height: to.height },
         direction,
+        selfLoop,
       );
       parts.push(
         `<path d="${path.d}" fill="none" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arrow)"/>`,
@@ -583,18 +670,22 @@ export function renderChartSvg(chart: ParsedChart): string {
     }
   };
 
-  const width = root.width + PAD * 2;
+  const hasSelfLoop = chart.edges.some(
+    (edge) => itemOf(chart, edge.scope, edge.from) === itemOf(chart, edge.scope, edge.to),
+  );
+  const loopPad = hasSelfLoop ? 28 : 0;
+  const width = root.width + PAD * 2 + loopPad;
   const titleHeight = chart.title === undefined ? 0 : TITLE_HEIGHT;
-  const height = root.height + PAD * 2 + titleHeight;
-  drawScope("", root, PAD, PAD + titleHeight);
+  const height = root.height + PAD * 2 + titleHeight + loopPad;
+  drawScope("", root, PAD, PAD + titleHeight + loopPad);
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.ceil(width)}" height="${Math.ceil(height)}" viewBox="0 0 ${Math.ceil(width)} ${Math.ceil(height)}" role="img" aria-label="statechart">`,
-    '<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6b7280"/></marker></defs>',
-    `<rect width="100%" height="100%" fill="#ffffff"/>`,
+    '<defs><style>@media (prefers-color-scheme: dark) { .pstack-chart-bg { fill: #18181b; } .pstack-chart-title { fill: #f4f4f5; } }</style><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6b7280"/></marker></defs>',
+    `<rect class="pstack-chart-bg" width="100%" height="100%" fill="#ffffff"/>`,
     ...(chart.title === undefined
       ? []
       : [
-          `<text x="${PAD}" y="${PAD}" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="600" fill="#111827">${escapeXml(chart.title)}</text>`,
+          `<text class="pstack-chart-title" x="${PAD}" y="${PAD}" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="600" fill="#111827">${escapeXml(chart.title)}</text>`,
         ]),
     ...parts,
     "</svg>",
@@ -715,14 +806,16 @@ export function createPstackChartTool(host: ChartHost): ToolDefinition {
         if (item.kind === "group") groups += 1;
         else {
           states += 1;
-          const mark = item.mark;
-          if (
-            mark === "breaks" ||
-            mark === "mayBreak" ||
-            mark === "bugPath" ||
-            mark === "repeats"
-          ) {
-            marks[mark] += 1;
+          const itemMarks = item.marks ?? (item.mark === undefined ? [] : [item.mark]);
+          for (const mark of new Set(itemMarks)) {
+            if (
+              mark === "breaks" ||
+              mark === "mayBreak" ||
+              mark === "bugPath" ||
+              mark === "repeats"
+            ) {
+              marks[mark] += 1;
+            }
           }
         }
       }

@@ -1,7 +1,7 @@
 /** Budget planning, wire parsing, and role-file rendering for global reasoning targets. */
 
 import type { CatalogueResult, ModelEntry } from "./catalogue.ts";
-import type { RoleShape } from "./role-manifest.ts";
+import { findRole, type RoleShape } from "./role-manifest.ts";
 import { renderRouteValue, type Route } from "./route.ts";
 import { WireTypeError } from "./wire-error.ts";
 
@@ -18,6 +18,20 @@ export const BUDGET_TARGETS: Record<BudgetTier, string> = {
 };
 
 const EFFORT_LADDER = ["off", "low", "medium", "high", "xhigh", "max"] as const;
+const ROLE_EFFORT_LADDER = ["low", "medium", "high", "xhigh"] as const;
+const TIER_OFFSET: Record<BudgetTier, number> = {
+  large: 0,
+  medium: 1,
+  small: 2,
+};
+
+/** Resolve a role's target effort by shifting its manifest baseline down for the chosen budget tier. */
+export function targetEffortForRole(roleKey: string, tier: BudgetTier): string {
+  const base = findRole(roleKey)?.defaultEffort ?? "xhigh";
+  const baseIndex = ROLE_EFFORT_LADDER.indexOf(base);
+  const targetIndex = Math.max(0, baseIndex - TIER_OFFSET[tier]);
+  return ROLE_EFFORT_LADDER[targetIndex]!;
+}
 
 export type BudgetScope = "concrete" | "unconfigured";
 
@@ -238,7 +252,7 @@ function planRole(
     if (request.scope !== "unconfigured" || defaultModel === undefined) {
       return { key: role.key, status: "skipped", previous, routes: previous };
     }
-    const effort = effortFor(defaultModel, request.tier);
+    const effort = effortFor(defaultModel, request.tier, role.key);
     if (role.autoPanel) {
       warnings.push({ kind: "auto-panel", role: role.key });
     }
@@ -271,7 +285,7 @@ function planRole(
       });
       return route;
     }
-    const effort = effortFor(model, request.tier);
+    const effort = effortFor(model, request.tier, role.key);
     aggregate = mergeStatus(aggregate, statusForExisting(effort, route));
     detail = preferDetail(detail, effort.detail);
     if (effort.effort === undefined) return route;
@@ -337,11 +351,11 @@ interface EffortResolution {
   readonly detail?: BudgetDetail;
 }
 
-function effortFor(model: ModelEntry, tier: BudgetTier): EffortResolution {
+function effortFor(model: ModelEntry, tier: BudgetTier, roleKey = ""): EffortResolution {
   if (model.efforts.length === 0) {
     return { status: "unsupported", detail: { kind: "unsupported" } };
   }
-  const target = BUDGET_TARGETS[tier];
+  const target = targetEffortForRole(roleKey, tier);
   if (model.efforts.includes(target)) return { status: "exact", effort: target };
   const targetIndex = EFFORT_LADDER.indexOf(target as (typeof EFFORT_LADDER)[number]);
   const known = model.efforts

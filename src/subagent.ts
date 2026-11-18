@@ -21,6 +21,7 @@ import type {
 } from "@deepseek-ai/dsh-subagent";
 import type { JsonSchemaNode, ToolDefinition, ToolRunContext } from "@deepseek-ai/dsh-tools";
 
+import { WORKER_DOC_PATH } from "./paths.ts";
 import {
   modelsFilePath,
   readRoleConfiguration,
@@ -81,6 +82,7 @@ export interface ChildPlan {
   readonly role: string;
   readonly route: Route;
   readonly routeLabel: string;
+  readonly prompt?: string;
   readonly agentOptions?: AgentOptions;
   readonly agentPreset?: string;
   readonly cwd?: string;
@@ -251,6 +253,7 @@ export function planDelegation(
   args: DelegationArgs,
   runtime: DelegationRuntime,
   config: PstackSubagentConfig = DEFAULT_CONFIG,
+  parentProvider?: string,
 ): DelegationPlan {
   const path = modelsFilePath(runtime.dshHome);
   const roleFile = readRoleConfiguration(path);
@@ -273,7 +276,7 @@ export function planDelegation(
   if (args.role !== null) {
     const spec = requireRole(args.role);
     const entry = roleFile.status === "loaded" ? roleFile.roles.get(spec.key) : undefined;
-    selection = selectRoutes(spec, entry, args.roleIndex ?? undefined);
+    selection = selectRoutes(spec, entry, args.roleIndex ?? undefined, parentProvider);
     if (!selection.configured) {
       diagnostics.push(
         `role "${spec.key}" has no line in ${path}, so it inherits the parent route`,
@@ -291,7 +294,7 @@ export function planDelegation(
   ];
   const roleName = selection?.role.key ?? "(none)";
   const agentPreset = args.agent === "general" ? undefined : AGENT_PRESETS[args.agent];
-  const prompt = args.agent === "poteto-agent" ? injectPotetoModeSkill(args.prompt) : args.prompt;
+  const prompt = injectDelegateInstructions(args.prompt, args.agent);
   const hostDepth = runtime.subagents.resolveMaxDepth(config.maxDepth);
   const depth = resolveChildDepth(args.maxDepth, config, hostDepth);
 
@@ -301,6 +304,8 @@ export function planDelegation(
     const effort = args.reasoningEffort ?? (route.kind === "route" ? route.effort : undefined);
     const label =
       total > 1 ? `${args.description} [${roleName} ${index + 1}/${total}]` : args.description;
+    const childPrompt = interpolateSlot(prompt, index, total);
+    const childCwd = args.cwd === null ? null : interpolateSlot(args.cwd, index, total);
     return {
       index,
       total,
@@ -310,11 +315,12 @@ export function planDelegation(
       role: roleName,
       route,
       routeLabel: formatRoute(route, args.reasoningEffort ?? undefined),
+      prompt: childPrompt,
       ...(isRoute(route) || effort !== undefined
         ? { agentOptions: agentOptionsFor(route, effort) }
         : {}),
       ...(agentPreset === undefined ? {} : { agentPreset }),
-      ...(args.cwd === null ? {} : { cwd: args.cwd }),
+      ...(childCwd === null ? {} : { cwd: childCwd }),
       ...(depth === undefined ? {} : { maxDepth: depth }),
     };
   });
@@ -366,7 +372,7 @@ export async function startPlannedChildren(
         provider: plan.provider,
         label: child.label,
         name: child.name,
-        prompt: [{ type: "text", text: plan.prompt }],
+        prompt: [{ type: "text", text: child.prompt ?? plan.prompt }],
         parent,
         ...(child.agentPreset === undefined ? {} : { agentPreset: child.agentPreset }),
         ...(child.cwd === undefined ? {} : { cwd: child.cwd }),
@@ -408,7 +414,12 @@ export async function delegate(
   config: PstackSubagentConfig,
   signal: AbortSignal,
 ): Promise<DelegationResult> {
-  return startPlannedChildren(parent, planDelegation(args, runtime, config), runtime, signal);
+  return startPlannedChildren(
+    parent,
+    planDelegation(args, runtime, config, parent.options?.provider),
+    runtime,
+    signal,
+  );
 }
 
 export function apply(ctx: Context, rawConfig?: unknown): void {
@@ -457,7 +468,7 @@ export function createPstackSubagentTool(
         roleIndex: {
           type: ["integer", "null"],
           description:
-            "Entry index for a list role that is not an automatic panel. Null selects the first entry; omit only through null.",
+            "Entry index (0-based) for a list role, including an individual slot of an automatic panel. Null starts all entries on an automatic panel or the first entry on other list roles.",
         },
         reasoningEffort: {
           type: ["string", "null"],
@@ -501,7 +512,7 @@ const TOOL_DESCRIPTION = [
   "",
   "`agent` picks a DSH agent preset: `poteto-agent` mounts the pstack implementation delegate and receives the absolute path of the poteto-mode instructions; `comment-sicko` mounts the comment reviewer; `readonly` mounts a read-only research preset with the sandbox policy set to read-only; `general` joins the parent preset.",
   "",
-  "`role` selects a configured pstack role and therefore the child's model route and starting effort. Null inherits the parent route. Automatic panel roles start one child per configured entry; `pstack_roles` reports which roles accept `roleIndex`.",
+  "`role` selects a configured pstack role and therefore the child's model route and starting effort. Null inherits the parent route. Automatic panel roles start one child per configured entry when `roleIndex` is null (or one selected entry when `roleIndex` is set); `{{index}}` and `{{total}}` in `prompt` or `cwd` are replaced per child. `pstack_roles` reports each role's configured routes and shape.",
   "",
   "Returns every child id with its resolved route. Results arrive as completion notices; do not poll.",
 ].join("\n");
@@ -709,18 +720,27 @@ function isWithin(root: string, target: string): boolean {
   return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
 }
 
-function injectPotetoModeSkill(task: string): string {
-  return [
-    "Load the `poteto-mode` skill before doing any work:",
-    'call `pstack_skill` with `name: "poteto-mode"` and read the full instructions,',
-    "including its inline Principles index.",
-    "",
-    "Your skill catalog hides this skill, so a missing catalog entry does not mean pstack is absent.",
-    "",
-    "Task:",
-    "",
-    task,
-  ].join("\n");
+function interpolateSlot(text: string, index: number, total: number): string {
+  return text.replaceAll("{{index}}", String(index + 1)).replaceAll("{{total}}", String(total));
+}
+
+function injectDelegateInstructions(task: string, agent: AgentKind): string {
+  const header: string[] = [];
+  if (!/\bworker\.md\b/.test(task)) {
+    header.push(`Read ${WORKER_DOC_PATH} before anything else.`);
+  }
+  if (agent === "poteto-agent") {
+    header.push(
+      ...(header.length > 0 ? [""] : []),
+      "Load the `poteto-mode` skill before doing any work:",
+      'call `pstack_skill` with `name: "poteto-mode"` and read the full instructions,',
+      "including its inline Principles index.",
+      "",
+      "Your skill catalog hides this skill, so a missing catalog entry does not mean pstack is absent.",
+    );
+  }
+  if (header.length === 0) return task;
+  return [...header, "", "Task:", "", task].join("\n");
 }
 
 function isNonNegativeInteger(value: unknown): value is number {

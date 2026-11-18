@@ -228,4 +228,44 @@ describe("pstack_chart", () => {
       tool.execute({}, { signal: new AbortController().signal } as never),
     ).rejects.toThrow(/`input`/u);
   });
+
+  it("layers group colors, breaks/mayBreak, bugPath, and repeats without losing fill or counts", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "pstack-chart-multi-"));
+    try {
+      const mmd = [
+        "---",
+        'title: "A ﬂ°°60¶ß B"',
+        "---",
+        "stateDiagram-v2",
+        "  s0: start",
+        "  s1: loop",
+        "  s0 --> s1: Next",
+        "  s1 --> s1: Retry",
+        "  class s0 blue",
+        "  class s0 bugPath",
+        "  class s1 mayBreak",
+        "  class s1 repeats",
+      ].join("\n");
+      writeFileSync(join(dir, "chart.mmd"), mmd, "utf8");
+      const chart = parseChart(mmd);
+      expect(chart.title).toBe("A < B");
+      const svg = renderChartSvg(chart);
+      expect(svg).toContain("A &lt; B");
+      expect(svg).toContain('fill="#c3e0ff"'); // blue group fill preserved under bugPath
+      expect(svg).toContain('stroke="#3b6fd4"'); // bugPath border
+      expect(svg).toContain('fill="#fff3e6"'); // mayBreak fill preserved under repeats
+      expect(svg).toContain('stroke-dasharray="6 3"'); // repeats dashed border
+      expect(svg).toContain(">Retry<"); // self-loop edge rendered
+
+      const tool = createPstackChartTool({ resolveWorkspace: async () => dir });
+      const outcome = (await tool.execute({ input: "chart.mmd" }, {
+        signal: new AbortController().signal,
+      } as never)) as {
+        marks: { breaks: number; mayBreak: number; bugPath: number; repeats: number };
+      };
+      expect(outcome.marks).toEqual({ breaks: 0, mayBreak: 1, bugPath: 1, repeats: 1 });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });

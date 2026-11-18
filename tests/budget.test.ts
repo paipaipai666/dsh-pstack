@@ -226,4 +226,36 @@ describe("budget planning", () => {
     });
     expect(plan.rows[0]?.status).toBe("skipped");
   });
+
+  it("shifts panel and swarm worker roles one step below single-agent defaults", () => {
+    const roles = [
+      role({ key: "bug-fix", routes: [{ kind: "route", provider: "p", model: "full" }] }),
+      role({
+        key: "swarm workers",
+        shape: "list",
+        routes: [{ kind: "route", provider: "p", model: "full" }],
+      }),
+      role({
+        key: "arena runners",
+        shape: "list",
+        autoPanel: true,
+        routes: [{ kind: "route", provider: "p", model: "full" }],
+      }),
+    ];
+    expect(
+      planBudget(roles, catalogue, { tier: "large", scope: "concrete" }).rows.map(
+        (r) => (r.routes[0] as { effort?: string }).effort,
+      ),
+    ).toEqual(["xhigh", "high", "high"]);
+    expect(
+      planBudget(roles, catalogue, { tier: "medium", scope: "concrete" }).rows.map(
+        (r) => (r.routes[0] as { effort?: string }).effort,
+      ),
+    ).toEqual(["high", "medium", "medium"]);
+    expect(
+      planBudget(roles, catalogue, { tier: "small", scope: "concrete" }).rows.map(
+        (r) => (r.routes[0] as { effort?: string }).effort,
+      ),
+    ).toEqual(["medium", "low", "low"]);
+  });
 });

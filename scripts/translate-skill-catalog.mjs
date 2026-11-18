@@ -3,7 +3,7 @@
 // The native skill provider reads dist/pstack/skills directly, so the catalog must already
 // speak DSH. pstack_skill translates again at read time; toDshText is idempotent.
 
-import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -32,8 +32,11 @@ export function translateSkillCatalog(skillsRoot, translate) {
 
 async function main() {
   const { toDshText } = await import(pathToFileURL(join(ROOT, "dist/native-text.mjs")));
-  const skillsRoot = join(ROOT, "dist/pstack/skills");
-  const changed = translateSkillCatalog(skillsRoot, toDshText);
+  let changed = 0;
+  for (const folder of ["skills", "agents", "docs/guide"]) {
+    const dir = join(ROOT, "dist/pstack", folder);
+    if (existsSync(dir)) changed += translateSkillCatalog(dir, toDshText);
+  }
   console.log(`translated ${changed} skill catalog files`);
 }
 

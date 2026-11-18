@@ -14,7 +14,8 @@ export const name = "pstack-readonly";
 export function apply(ctx: Context): void {
   ctx.effect(() =>
     ctx.on("agent/created", ({ agent }) => {
-      if (agent.session.header.agentPreset === "readonly") {
+      const preset = agent.session.header.agentPreset;
+      if (preset === "readonly" || preset === "comment-sicko") {
         setSandboxMode(agent.session, "read-only");
       }
     }),

@@ -117,22 +117,29 @@ export function selectRoutes(
   spec: RoleSpec,
   entry: RoleEntry | undefined,
   roleIndex: number | undefined,
+  parentProvider?: string,
 ): RouteSelection {
   if (spec.shape === "single" && roleIndex !== undefined) {
     throw new Error(`role "${spec.key}" holds a single route, so \`roleIndex\` does not apply`);
   }
-  if (spec.autoPanel && roleIndex !== undefined) {
-    throw new Error(
-      `role "${spec.key}" is an automatic panel: it starts one child per entry, so \`roleIndex\` does not apply`,
-    );
-  }
   if (entry === undefined) {
+    if (roleIndex !== undefined && roleIndex !== 0) {
+      throw new Error(
+        `role "${spec.key}" has 1 entry, so \`roleIndex\` ${roleIndex} is out of range`,
+      );
+    }
     return {
       role: spec,
-      mode: spec.autoPanel ? "panel" : "single",
+      mode:
+        spec.autoPanel && roleIndex === undefined
+          ? "panel"
+          : roleIndex !== undefined
+            ? "selected"
+            : "single",
       configured: false,
       routes: [{ kind: "inherit", alias: "inherit-parent" }],
       total: 1,
+      ...(roleIndex === undefined ? {} : { roleIndex }),
     };
   }
   if (entry.issues.length > 0) {
@@ -140,7 +147,7 @@ export function selectRoutes(
       `role "${spec.key}" has invalid configuration on line ${entry.line}: ${entry.issues.join("; ")}`,
     );
   }
-  if (spec.autoPanel) {
+  if (spec.autoPanel && roleIndex === undefined) {
     return {
       role: spec,
       mode: "panel",
@@ -150,7 +157,21 @@ export function selectRoutes(
     };
   }
   if (spec.shape === "list") {
-    const index = roleIndex ?? 0;
+    let index = roleIndex;
+    if (index === undefined) {
+      if (spec.key === "arena cross-judge pool") {
+        const crossVendor =
+          parentProvider === undefined
+            ? -1
+            : entry.routes.findIndex(
+                (route) => route.kind === "route" && route.provider !== parentProvider,
+              );
+        const firstConcrete = entry.routes.findIndex((route) => route.kind === "route");
+        index = crossVendor >= 0 ? crossVendor : firstConcrete >= 0 ? firstConcrete : 0;
+      } else {
+        index = 0;
+      }
+    }
     const route = entry.routes[index];
     if (route === undefined) {
       throw new Error(

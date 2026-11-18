@@ -61,7 +61,7 @@
       name: "@paipaipai666/dsh-pstack/subagent"
       config:
         provider: spawn
-        maxDepth: 2
+        maxDepth: 3
     - id: pstack-doctor
       name: "@paipaipai666/dsh-pstack/doctor"
     - id: pstack-script-policy
@@ -333,6 +333,12 @@
             config:
               prefix: |
                 You are operating as poteto-mode's full agent style. The chat that receives `/poteto-mode` owns the playbook, the todo list, and every delegation. You are one of its delegates. Load the `poteto-mode` skill before doing any work: call `pstack_skill` with `name: "poteto-mode"` and read the full instructions, including its inline Principles index. Your skill catalog hides this skill, so a missing catalog entry does not mean pstack is absent. Navigate to a leaf `principle-*` skill whenever you apply that principle.
+          - id: agent-instructions
+            name: "@deepseek-ai/dsh-agent-instructions"
+            config:
+              maxBytes: 65536
+          - id: time-context
+            name: "@deepseek-ai/dsh-time-context"
           - id: tool-bash
             name: "@deepseek-ai/dsh-tool-bash"
             disabled: !!js process.platform === 'win32'
@@ -345,6 +351,25 @@
             name: "@deepseek-ai/dsh-tool-fs-search"
             config:
               sampleOverCapGlobResults: false
+          - id: skill-filesystem
+            name: "@deepseek-ai/dsh-skill-filesystem"
+          - id: tool-skill
+            name: "@deepseek-ai/dsh-tool-skill"
+          - id: compaction
+            name: cordis:group
+            group: true
+            isolate:
+              compaction: true
+              toolResultPruner: true
+            config:
+              - id: compaction-basic
+                name: "@deepseek-ai/dsh-compaction-basic"
+              - id: tool-result-pruner
+                name: "@deepseek-ai/dsh-compaction-tool-result-pruner"
+                config:
+                  thresholdChars: 8192
+                  headChars: 4096
+                  tailChars: 1024
           - id: tool-todo
             name: "@deepseek-ai/dsh-tool-todo"
             config:
@@ -356,13 +381,15 @@
             config:
               fetch: true
               searchTimeoutMs: 60000
+          - id: tool-subagent-control
+            name: "@deepseek-ai/dsh-tool-subagent-control"
           - id: pstack-skill
             name: "@paipaipai666/dsh-pstack"
           - id: pstack-subagent
             name: "@paipaipai666/dsh-pstack/subagent"
             config:
               provider: spawn
-              maxDepth: 2
+              maxDepth: 3
     - id: preset-comment-sicko
       name: "@paipaipai666/dsh-pstack/preset"
       config:
@@ -400,6 +427,12 @@
                 Every flag names code inside the scope and tells the truth. I invent nothing. I touch comments and identify refactor targets. I never write application code.
 
                 Report only. Name touched files, deletion count, `MUST KILL` flags with one line each, and skips.
+          - id: agent-instructions
+            name: "@deepseek-ai/dsh-agent-instructions"
+            config:
+              maxBytes: 65536
+          - id: time-context
+            name: "@deepseek-ai/dsh-time-context"
           - id: tool-bash
             name: "@deepseek-ai/dsh-tool-bash"
             disabled: !!js process.platform === 'win32'
@@ -421,7 +454,9 @@
             name: "@paipaipai666/dsh-pstack/subagent"
             config:
               provider: spawn
-              maxDepth: 2
+              maxDepth: 3
+          - id: readonly-policy
+            name: "@paipaipai666/dsh-pstack/readonly"
     - id: preset-readonly
       name: "@paipaipai666/dsh-pstack/preset"
       config:
@@ -434,6 +469,12 @@
             name: "@deepseek-ai/dsh-persona"
             config:
               prefix: You are a read-only pstack delegate. Investigate, read, search, and report evidence. Do not modify files or run commands that write. Your preset enforces the read-only sandbox; if a tool rejects a write, record the denial and continue with the evidence you can gather.
+          - id: agent-instructions
+            name: "@deepseek-ai/dsh-agent-instructions"
+            config:
+              maxBytes: 65536
+          - id: time-context
+            name: "@deepseek-ai/dsh-time-context"
           - id: tool-bash
             name: "@deepseek-ai/dsh-tool-bash"
             disabled: !!js process.platform === 'win32'
@@ -455,6 +496,6 @@
             name: "@paipaipai666/dsh-pstack/subagent"
             config:
               provider: spawn
-              maxDepth: 2
+              maxDepth: 3
           - id: readonly-policy
             name: "@paipaipai666/dsh-pstack/readonly"

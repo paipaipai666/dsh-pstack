@@ -96,17 +96,30 @@ export interface DoctorHost {
   readonly resolveWorkspace?: (exec: ToolRunContext) => Promise<string | undefined>;
 }
 
+const VERSION_ARGS: Readonly<Record<string, readonly (readonly string[])[]>> = {
+  ffmpeg: [["-version"], ["--version"]],
+  java: [["--version"], ["-version"]],
+};
+
 /** Run one command and return its first output line, or undefined when it is unavailable. */
-export function runCommandVersion(command: string): string | undefined {
-  const result = spawnSync(command, ["--version"], {
-    encoding: "utf8",
-    timeout: 5_000,
-    windowsHide: true,
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-  if (result.error !== undefined || result.status !== 0) return undefined;
-  const output = `${result.stdout ?? ""}${result.stderr ?? ""}`.trim();
-  return output.split(/\r?\n/, 1)[0] || "available";
+export function runCommandVersion(
+  command: string,
+  explicitArgs?: readonly string[],
+): string | undefined {
+  const attempts =
+    explicitArgs !== undefined ? [explicitArgs] : (VERSION_ARGS[command] ?? [["--version"]]);
+  for (const args of attempts) {
+    const result = spawnSync(command, args, {
+      encoding: "utf8",
+      timeout: 5_000,
+      windowsHide: true,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    if (result.error !== undefined || result.status !== 0) continue;
+    const output = `${result.stdout ?? ""}${result.stderr ?? ""}`.trim();
+    return output.split(/\r?\n/, 1)[0] || "available";
+  }
+  return undefined;
 }
 
 /** Resolve the active profile directory, deriving it from DSH_HOME when the environment omits it. */
@@ -240,7 +253,7 @@ export function collectDoctorReport(host: DoctorHost): DoctorReport {
         return undefined;
       }
     });
-  const run = host.runCommand ?? ((command: string) => runCommandVersion(command));
+  const run = host.runCommand;
   const readDir =
     host.readDir ??
     ((path: string): readonly string[] => {
@@ -251,7 +264,10 @@ export function collectDoctorReport(host: DoctorHost): DoctorReport {
       }
     });
   const commands = CHECKED_COMMANDS.map((command) => {
-    const version = run(command, ["--version"]);
+    const version =
+      run !== undefined
+        ? run(command, command === "ffmpeg" ? ["-version"] : ["--version"])
+        : runCommandVersion(command);
     return version === undefined
       ? { name: command, ok: false }
       : { name: command, ok: true, version };

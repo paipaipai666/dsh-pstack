@@ -136,4 +136,17 @@ describe("pstack_doctor", () => {
     });
     expect(result.workspace.hint).toContain("AGENTS.md");
   });
+
+  it("probes ffmpeg with -version and other commands with --version", () => {
+    const seen: Record<string, readonly string[]> = {};
+    collectDoctorReport({
+      ...host,
+      runCommand: (command, args) => {
+        seen[command] = args;
+        return "ok";
+      },
+    });
+    expect(seen["ffmpeg"]).toEqual(["-version"]);
+    expect(seen["git"]).toEqual(["--version"]);
+  });
 });

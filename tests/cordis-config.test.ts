@@ -104,7 +104,28 @@ describe("bundle configuration", () => {
   it("boots children through the spawn provider with a bounded depth", () => {
     const subagent = rows.find((row) => row.id === "pstack-subagent")?.block ?? "";
     expect(subagent).toContain("provider: spawn");
-    expect(subagent).toMatch(/maxDepth:\s*2\n/);
+    expect(subagent).toMatch(/maxDepth:\s*3\n/);
+  });
+
+  it("mounts agent instructions and compaction/sandbox policies on child presets", () => {
+    const potetoAgent = rows.find((row) => row.id === "preset-poteto-agent")?.block ?? "";
+    expect(potetoAgent).toContain("@deepseek-ai/dsh-agent-instructions");
+    expect(potetoAgent).toContain("@deepseek-ai/dsh-time-context");
+    expect(potetoAgent).toContain("@deepseek-ai/dsh-skill-filesystem");
+    expect(potetoAgent).toContain("@deepseek-ai/dsh-tool-skill");
+    expect(potetoAgent).toContain("@deepseek-ai/dsh-compaction-basic");
+    expect(potetoAgent).toContain("@deepseek-ai/dsh-tool-subagent-control");
+    expect(potetoAgent).toMatch(/maxDepth:\s*3\n/);
+
+    const commentSicko = rows.find((row) => row.id === "preset-comment-sicko")?.block ?? "";
+    expect(commentSicko).toContain("@deepseek-ai/dsh-agent-instructions");
+    expect(commentSicko).toContain("@paipaipai666/dsh-pstack/readonly");
+    expect(commentSicko).toMatch(/maxDepth:\s*3\n/);
+
+    const readonlyPreset = rows.find((row) => row.id === "preset-readonly")?.block ?? "";
+    expect(readonlyPreset).toContain("@deepseek-ai/dsh-agent-instructions");
+    expect(readonlyPreset).toContain("@paipaipai666/dsh-pstack/readonly");
+    expect(readonlyPreset).toMatch(/maxDepth:\s*3\n/);
   });
 
   it("asks before running a bundled script", () => {

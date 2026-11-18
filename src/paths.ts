@@ -28,5 +28,10 @@ const SKILLS_ROOT = join(PORT_ROOT, "skills");
  */
 export const POTETO_MODE_SKILL_PATH = join(SKILLS_ROOT, "poteto-mode", "SKILL.md");
 
+/**
+ * The shared worker rules every spawned subagent must read first.
+ */
+export const WORKER_DOC_PATH = join(SKILLS_ROOT, "poteto-mode", "worker.md");
+
 /** The shipped DSH adapter document. */
 export const HARNESS_DOC_PATH = join(PORT_ROOT, "docs", "harness", "dsh.md");

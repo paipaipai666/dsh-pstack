@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.5.0
+
+Graduates the `0.5.0-beta.*` series to a stable release synchronized with upstream pstack `0.15.43` and DSH `>=0.2.2-rc.2`.
+
+### Added
+
+- `pstack_subagent` (`src/subagent.ts`, `src/role-config.ts`): supports optional `roleIndex` single-slot selection on auto-panel roles (`arena runners`, `interrogate reviewers`), automatic cross-vendor selection for `arena cross-judge pool`, per-child `{{index}}`/`{{total}}` template interpolation, and automatic `worker.md` kickoff instructions (`Read <WORKER_DOC_PATH> before anything else.`).
+- Child presets (`cordis.patch.yml`, `src/readonly.ts`): raises default delegation `maxDepth` to `3`, mounts `agent-instructions` and `time-context` across child presets, gives `preset-poteto-agent` skill discovery and isolated compaction, and enforces `read-only` sandbox policy on `comment-sicko`.
+- Budget ladder (`src/role-manifest.ts`, `src/budget.ts`): defines per-role baseline `defaultEffort` (`xhigh` for single-agent roles, `high` for panel/worker roles) so `large`/`medium`/`small` shift down `0/1/2` steps per role.
+- `worktree-audit` & `pstack_script` (`runtime/skills/poteto-mode/scripts/worktree-audit.ts`, `src/script.ts`): when `--sessions` is omitted, auto-discovers active Host sessions (`DSH_LIVE_SESSIONS_JSON`) and persisted `$DSH_HOME/sessions` logs (including DSH v4 `.jsonl.zstd` files).
+- `pstack_doctor` (`src/doctor.ts`): checks `gh auth status`, surfaces workspace `.cursor/rules/*.mdc` reminders when `AGENTS.md` is present, and classifies mounted `mcp__*` tools into `/why` evidence categories.
+- Path-scoped skills (`src/skill.ts`, `src/poteto-mode.ts`): adds `forPath` resolution for `typescript-best-practices` (`.ts`/`.tsx`) and documents it in the persistent `poteto-mode` prompt section.
+- `pstack_chart` (`src/chart.ts`): extends Mermaid rendering to `flowchart TD/LR` with `subgraph ... end`, self-loops, layered group + `breaks`/`mayBreak`/`bugPath`/`repeats` styles, decoded `title` escapes, and optional bottom `subtitle` strips.
+
+### Fixed
+
+- `swarm` cloud worktree fallback (`port/patches/skills.md`, `pstack/skills/swarm/SKILL.md`), `src/native-text.ts` (`claude-fable-*` / `gemini-*` rewrites), `scripts/translate-skill-catalog.mjs` (`dist/pstack/agents` & `dist/pstack/docs/guide`), and `src/doctor.ts` (`ffmpeg -version`).
+
 ## 0.5.0-beta.10
 
 Synchronizes the port with upstream pstack 0.15.43 (commit `2f87c85`).

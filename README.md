@@ -23,7 +23,7 @@
       <td align="center"><strong>23</strong><br /><sub>playbooks</sub></td>
       <td align="center"><strong>8</strong><br /><sub>native tools</sub></td>
       <td align="center"><strong>5</strong><br /><sub>agent presets</sub></td>
-      <td align="center"><strong>5</strong><br /><sub>bundled scripts</sub></td>
+      <td align="center"><strong>4</strong><br /><sub>bundled scripts</sub></td>
     </tr>
   </table>
 
@@ -43,7 +43,7 @@
 `dsh-pstack` ports [pstack](https://github.com/cursor/plugins/tree/main/pstack) to [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (DSH). It includes the upstream skills, playbooks, and references, and adds skill routing, role-based model configuration, and role-routed subagents.
 
 > [!NOTE]
-> This is the community fork [`paipaipai666/dsh-pstack`](https://github.com/paipaipai666/dsh-pstack), rebased on upstream `0.3.1`. On top of the port it adds a `pstack_script` launcher so the bundled workflows run under the Host's own Node (the Desktop app has no `node` on PATH), a `pstack_doctor` prerequisite check, a `pstack_remote` surface that dispatches a task to a machine you run, a `pstack_chart` renderer for statechart diagrams, and a runtime translation layer that rewrites the Cursor names still present in the upstream skill text. See [FORK.md](./FORK.md) for the full delta.
+> This is the community fork [`paipaipai666/dsh-pstack`](https://github.com/paipaipai666/dsh-pstack), rebased on upstream `0.3.1`. On top of the port it adds a `pstack_script` launcher so the bundled workflows run under the Host's own Node (the Desktop app has no `node` on PATH), a `pstack_doctor` prerequisite check, a `pstack_remote` surface that dispatches a task to a machine you run, a `pstack_chart` renderer for statechart and flowchart diagrams, and a runtime translation layer that rewrites the Cursor names still present in the upstream skill text. See [FORK.md](./FORK.md) for the full delta.
 See the [capability audit (in Chinese)](./port/audit.md) and [runtime mapping](./port/dsh.md) for the full porting review.
 
 The current review covers 68 Cursor-facing capabilities: 39 direct mappings, 2 official plugins, 16 plugin implementations, and 11 deliberate omissions.
@@ -124,7 +124,7 @@ Use pstack skills when you want to start workflows directly from a Session.
 | `src/` | Plugin sources: tools, roles, presets, the client UI, and the fork's `script`, `script-policy`, `doctor`, and `native-text` modules. |
 | `pstack/` | Generated pstack tree, committed for review. `port/generate.mjs` rewrites the whole directory, so no hand-written file belongs there. |
 | `port/` | Porting tools and review material: the generator, the capability scan, the adapter text (`dsh.md`), and the audit. |
-| `runtime/` | Sources of the five bundled scripts, compiled into `dist/pstack/skills/*/scripts` at build time. |
+| `runtime/` | Sources of the four bundled scripts, compiled into `dist/pstack/skills/*/scripts` at build time. |
 | `skills/authored/` | Skills that only exist in this fork. |
 | `skills/.agents/skills/` | Skills vendored from other repositories and shipped with the package. |
 | `.agents/skills/` | Skills this repository uses for its own agents, synced from `package.json#skills`. |
@@ -138,14 +138,14 @@ Use pstack skills when you want to start workflows directly from a Session.
 
 | Tool | Function |
 |---|---|
-| `pstack_skill` | Loads hidden pstack skills by name, including resources at paths relative to the skill directory. |
+| `pstack_skill` | Loads hidden pstack skills by name or `forPath` extension match (such as `typescript-best-practices` for `.ts`/`.tsx` files), including resources at paths relative to the skill directory. |
 | `pstack_models` | Lists available providers, models, and reasoning efforts. |
-| `pstack_roles` | Shows each role's type and whether it is an automatic panel, so delegation uses the correct parameters. |
+| `pstack_roles` | Shows each role's type, automatic panel behavior, and configured routes from `$DSH_HOME/pstack-models.mdc`, so delegation uses the correct parameters. |
 | `pstack_subagent` | Applies role routing and agent presets. Supports parallel subagents. |
-| `pstack_script` | Runs one of the four bundled workflows (`watch-pr`, `worktree-audit`, `log`, `statechart`) under the Host's own Node runtime. The `pstack-script-policy` row asks before every call; `background: true` hands a long run to the job system. |
-| `pstack_doctor` | Reports the local prerequisites the bundled workflows need (`git`, `gh`, `node`, `bun`, `ffmpeg`, `mise`, `java`, `jq`), the configured model roles, the optional plugins the current profile has, and the `.cursor/rules/*.mdc` files in the workspace that DSH will never load. |
+| `pstack_script` | Runs one of the four bundled workflows (`watch-pr`, `worktree-audit`, `log`, `statechart`) under the Host's own Node runtime; `worktree-audit` auto-discovers live Host sessions and `$DSH_HOME/sessions` `.jsonl.zstd` logs when `--sessions` is omitted. The `pstack-script-policy` row asks before every call; `background: true` hands a long run to the job system. |
+| `pstack_doctor` | Reports the local prerequisites the bundled workflows need (`git`, `gh` including auth status, `node`, `ffmpeg`, `mise`, `java`), the configured model roles, heuristic `/why` MCP evidence-category classification, the optional plugins the current profile has, and the `.cursor/rules/*.mdc` files in the workspace that DSH will never load. |
 | `pstack_remote` | Dispatches one task to a machine you registered, reads its event stream, and stops it. This package supplies no machine: a target is an SSH host with `dsh` on `PATH` or an HTTP worker that streams NDJSON. |
-| `pstack_chart` | Renders a statechart `chart.mmd` to a standalone SVG, colours included. It draws the Mermaid subset the statechart script emits, needs no browser or external binary, and refuses syntax it does not understand instead of guessing. |
+| `pstack_chart` | Renders a `stateDiagram-v2` or `flowchart TD/LR` `chart.mmd` to a standalone SVG with self-loops, optional bottom `subtitle` strips, and group + `breaks`/`mayBreak`/`bugPath`/`repeats` layered palettes included. It needs no browser or external binary and refuses syntax it does not understand instead of guessing. |
 
 ### 🎭 Agent presets
 
@@ -229,7 +229,7 @@ A project that already uses pstack in Cursor needs four edits before it behaves 
 | `.cursor/rules/*.mdc` always-applied rules | Move the text into `AGENTS.md`. DSH never loads `.mdc` files; the one exception is the role file, which `pstack_subagent` reads from `$DSH_HOME/pstack-models.mdc`. |
 | Model slugs such as `claude-opus-5-5-xhigh` | Pass `role: "<role key>"` instead. Run `pstack_models` to see the routes this deployment serves, then write them with `setup-pstack`. |
 | `environment: "cloud"` in a Task call | Register a machine with `pstack_remote` and name it, or let the step fall back to a local worktree. DSH does not supply a VM. |
-| A chart, a video, or an inbound webhook | A `statechart` diagram needs nothing extra: `pstack_chart` renders `chart.mmd` to SVG. For the rest, install a replacement rather than rewriting the skill: `@nagi-ovo/dsh-visualize` for conversation cards, `dsh-ffmpeg` for media post-processing, and `@deepseek-ai/dsh-webhook` plus a provider adapter for inbound events. |
+| A chart, a video, or an inbound webhook | A `stateDiagram-v2` or `flowchart` diagram needs nothing extra: `pstack_chart` renders `.mmd` files (with optional `subtitle` strips) to SVG. For the rest, install a replacement rather than rewriting the skill: `@nagi-ovo/dsh-visualize` for conversation cards, `dsh-ffmpeg` for media post-processing, and `@deepseek-ai/dsh-webhook` plus a provider adapter for inbound events. |
 
 `pstack_doctor` inspects the session workspace and names any `.cursor/rules/*.mdc` files it finds, so
 the first row is not something you have to remember. The automation recipes, including how to run
@@ -246,10 +246,10 @@ These limitations remain even after all optional plugins that can coexist with p
 | PR orchestration | No model-side change-request tool or Agent Teams-style PR tracking board and shared ledger. `watch-pr` still provides stack verdicts. |
 | Mode switching | No Option+Enter toggle or mid-session mode switch. Select `poteto-mode` or `poteto-mode-creator` at session creation; other presets invoke `/poteto-mode` for each task. |
 | Event-driven loops | No forge event subscription. The official `dsh-webhook` seam can start a Session from a verified delivery, but it has no dedupe, no completion report, and only GitHub ships an adapter. |
-| Diagram rendering | Only the statechart subset is built in: `pstack_chart` draws `chart.mmd` with the `breaks`/`mayBreak`/`bugPath`/`repeats` colours, using its own layered layout rather than Mermaid's. Other Mermaid diagrams have no renderer; install `@nagi-ovo/dsh-visualize` for conversation cards. |
+| Diagram rendering | `pstack_chart` renders `stateDiagram-v2` and `flowchart TD/LR` subsets (with `breaks`/`mayBreak`/`bugPath`/`repeats`, group colours, self-loops, and optional `subtitle` strips) using its own layered layout rather than Mermaid's. Other Mermaid diagram types (sequence, ER, Gantt, etc.) have no built-in renderer; install `@nagi-ovo/dsh-visualize` for conversation cards. |
 | Media evidence | No built-in video rendering, recording, or frame-level verification. Use external recording or FFmpeg tools. |
 | Desktop coverage | Computer use is limited to macOS PTC desktop-control sessions. Windows support is incomplete. |
-| MCP discovery | No automatic evidence-category discovery. Configure and identify MCP tools explicitly. |
+| MCP discovery | `pstack_doctor` classifies mounted `mcp__*` tools into `/why` evidence categories heuristically by server/tool name, while MCP servers themselves still require explicit setup in `@deepseek-ai/dsh-mcp-client`. |
 
 ## ❓ FAQ
 
@@ -269,7 +269,7 @@ Choose a release by its declared DSH range. Within each compatibility range, eve
 <!-- compatibility-keys: ["dsh-0.2.2-rc.2+port-v1","dsh-0.2.2-rc.1+port-v1","dsh-0.2.1-rc.5+legacy-v1","dsh-0.2.0-0.3.0+legacy-v1"] -->
 | DSH version | dsh-pstack release | Included pstack version |
 |---|---|---|
-| `>=0.2.2-rc.2` | `0.5.0-beta.10` | `0.15.43` |
+| `>=0.2.2-rc.2` | `0.5.0` | `0.15.43` |
 | `>=0.2.2-rc.1` | `0.4.0-beta.2` | `0.15.43` |
 | `>=0.2.1-rc.5` | `0.2.2` | `0.15.36` |
 | `>=0.2.0 < 0.3.0` | `0.1.0` | `0.15.29` |

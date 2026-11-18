@@ -1,7 +1,7 @@
 # Fork status
 
-Updated 2026-11-17. Base: upstream `dsh-pstack 0.3.1` (`2d577b1`). Package: `@paipaipai666/dsh-pstack`
-`0.5.0-beta.10`.
+Updated 2026-11-18. Base: upstream `dsh-pstack 0.3.1` (`2d577b1`). Package: `@paipaipai666/dsh-pstack`
+`0.5.0`.
 
 ## A. Fork foundation
 
@@ -97,9 +97,9 @@ These `QF` ids are the fork's quality-fix completion record. They are independen
 ## Quality audit
 
 - Generated tree: 58 skills, 23 playbooks, 24 principles, 2 agent definitions, 11 guide pages.
-- Test suite: 30 files under `tests/` (244 cases) plus 76 runtime cases (4 skipped on Windows); CI runs
+- Test suite: 31 files under `tests/` (261 cases) plus 69 runtime cases (4 skipped on Windows); CI runs
   Linux build/test, the Windows suite, and a real DSH install smoke.
-- Desktop E2E: `pnpm run test:desktop` runs all five `pstack_script` ids under the packaged Electron;
+- Desktop E2E: `pnpm run test:desktop` runs all four `pstack_script` ids under the packaged Electron;
   `scripts/desktop-e2e.mjs` is Windows only.
 - Optional plugin load: `pnpm run test:optional-plugins` installs session-search into a throwaway
   headless profile and checks that its rows appear in `dsh --dump-config`.
@@ -118,8 +118,8 @@ These `QF` ids are the fork's quality-fix completion record. They are independen
 
 ## Publishing
 
-- `@paipaipai666/dsh-pstack@0.5.0-beta.7` is the last published version. The local package is now
-  `0.5.0-beta.10`; publish it with the staged flow below before claiming a registry install.
+- `@paipaipai666/dsh-pstack@0.5.0-beta.7` is the last published beta. The local package is now
+  `0.5.0`; publish it with the OIDC or staged flow below before claiming a registry install.
 - `0.5.0-beta.2` exists only because the `0.5.0-beta.1` tarball left out `docs/remote-worker.md`;
   `package.json#files` now lists that document.
   The later betas followed the same staged flow: beta.3 added the doctor workspace check and

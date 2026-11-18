@@ -68,6 +68,7 @@ export function createPotetoModeSection(
     `- Skill file: ${skillPath}`,
     `- Skill directory: ${skillDirectory}`,
     `- DSH adapter: ${harnessDocPath}`,
+    "- Path-scoped skills: load `typescript-best-practices` when reading or editing `.ts` / `.tsx` files.",
     "",
     `Read the DSH adapter at ${harnessDocPath} once per session before you follow this skill.`,
     "",

@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vite-plus/test";
 
 import {
+  classifyMcpTools,
   collectDoctorReport,
   collectWorkspaceCheck,
   createPstackDoctorTool,
@@ -148,5 +149,62 @@ describe("pstack_doctor", () => {
     });
     expect(seen["ffmpeg"]).toEqual(["-version"]);
     expect(seen["git"]).toEqual(["--version"]);
+  });
+
+  it("reports gh auth status and notes .cursor/rules when AGENTS.md is present", () => {
+    const unauth = collectDoctorReport({
+      ...host,
+      runCommand: (command, args) => {
+        if (command !== "gh") return undefined;
+        return args[0] === "--version" ? "gh version 2.65.0" : undefined;
+      },
+      workspacePath: "/work",
+      exists: (path) => /[\\/]AGENTS\.md$/.test(path),
+      readDir: (path) => (/[\\/]\.cursor[\\/]rules$/.test(path) ? ["style.mdc"] : []),
+    });
+    expect(unauth.commands.find((c) => c.name === "gh")).toMatchObject({
+      ok: true,
+      version: "gh version 2.65.0",
+      authenticated: false,
+    });
+    const rendered = renderReport(unauth);
+    expect(rendered).toContain("- gh: gh version 2.65.0 (unauthenticated)");
+    expect(rendered).toContain("DSH only reads AGENTS.md");
+
+    const auth = collectDoctorReport({
+      ...host,
+      runCommand: (command, args) => {
+        if (command !== "gh") return undefined;
+        return args[0] === "--version" ? "gh version 2.65.0" : "Logged in to github.com";
+      },
+    });
+    expect(auth.commands.find((c) => c.name === "gh")?.authenticated).toBe(true);
+  });
+
+  it("classifies mounted MCP tools into /why evidence categories", () => {
+    const categories = classifyMcpTools([
+      "read",
+      "mcp__sentry__search_issues",
+      "mcp__grafana__query_loki_logs",
+      "mcp__grafana__query_prometheus_metrics",
+      "mcp__postgres__run_sql",
+      "mcp__linear__get_issue",
+      "mcp__vercel__list_deployments",
+    ]);
+    const byCategory = Object.fromEntries(categories.map((entry) => [entry.category, entry.tools]));
+    expect(byCategory["errors"]).toContain("mcp__sentry__search_issues");
+    expect(byCategory["logs"]).toContain("mcp__grafana__query_loki_logs");
+    expect(byCategory["metrics"]).toContain("mcp__grafana__query_prometheus_metrics");
+    expect(byCategory["Database"]).toContain("mcp__postgres__run_sql");
+    expect(byCategory["deploys"]).toContain("mcp__vercel__list_deployments");
+    expect(byCategory["tickets"]).toContain("mcp__linear__get_issue");
+
+    const report = collectDoctorReport({
+      ...host,
+      toolNames: ["mcp__sentry__search_issues", "mcp__postgres__run_sql"],
+    });
+    expect(report.mcpCategories).toHaveLength(2);
+    expect(renderReport(report)).toContain("mcp evidence categories:");
+    expect(renderReport(report)).toContain("- Database: mcp__postgres__run_sql");
   });
 });

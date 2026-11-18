@@ -5,7 +5,12 @@ import { afterEach, describe, expect, it } from "vite-plus/test";
 
 import type { SkillDefinition, SkillRegistry } from "@deepseek-ai/dsh-skill";
 
-import { createPstackSkillTool, readSkillResource, renderLoadedSkill } from "../src/skill.ts";
+import {
+  createPstackSkillTool,
+  matchSkillsForPath,
+  readSkillResource,
+  renderLoadedSkill,
+} from "../src/skill.ts";
 import type { ToolRunContext } from "@deepseek-ai/dsh-tools";
 
 const directories: string[] = [];
@@ -76,6 +81,30 @@ describe("pstack_skill", () => {
     const tool = createPstackSkillTool({ get: async () => undefined } as unknown as SkillRegistry);
     await expect(tool.execute({ name: "nope" }, exec)).rejects.toThrow(
       'skill "nope" is unknown or no longer available',
+    );
+  });
+
+  it("matches and loads path-scoped skills via forPath", async () => {
+    expect(matchSkillsForPath("src/app.ts")).toEqual(["typescript-best-practices"]);
+    expect(matchSkillsForPath("src/UI/Button.TSX")).toEqual(["typescript-best-practices"]);
+    expect(matchSkillsForPath("README.md")).toEqual([]);
+
+    const tsSkill: SkillDefinition = {
+      name: "typescript-best-practices",
+      description: "ts practices",
+      provider: "pstack",
+      content: "# TypeScript Best Practices\n",
+      invocation: { modelInvocable: true, userInvocable: false },
+      source: "bundled",
+    };
+    const tool = createPstackSkillTool({
+      get: async (name: string) => (name === "typescript-best-practices" ? tsSkill : undefined),
+    } as unknown as SkillRegistry);
+
+    const result = await tool.execute({ forPath: "src/app.tsx" }, exec);
+    expect(result).toMatchObject({ name: "typescript-best-practices" });
+    await expect(tool.execute({ forPath: "README.md" }, exec)).rejects.toThrow(
+      /no path-scoped skill matches/,
     );
   });
 });

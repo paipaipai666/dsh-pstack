@@ -26,13 +26,15 @@
  * - `BUCKET` is `hold-wip`, `hold-open-pr`, `unknown-usage`, `verify-recent-chat`,
  *   `safe`, or `review`. An unknown usage signal never reaches `safe`.
  * - Rows are sorted by SIZE descending, then kept in the order they were produced.
- * - The session store is never scanned. `--sessions` is the only usage input, and
- *   without it the LAST_CHAT column is `-` and the bucket is `unknown-usage`.
+ * - When `--sessions` is omitted, auto-discovers live sessions from
+ *   `DSH_LIVE_SESSIONS_JSON` and persisted session files under `$DSH_HOME/sessions`;
+ *   when neither yields sessions, LAST_CHAT is `-` and BUCKET is `unknown-usage`.
  */
 
 import { execFileSync } from "node:child_process";
-import { lstatSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { isAbsolute, resolve, sep } from "node:path";
+import { existsSync, lstatSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { homedir } from "node:os";
+import { isAbsolute, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 /** One row of the audit, in column order. */
@@ -681,6 +683,200 @@ export function readSessionsFile(path: string): readonly SessionInput[] {
   });
 }
 
+function normalizeEpochSeconds(value: unknown): number | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return undefined;
+  return value > 1e11 ? Math.floor(value / 1000) : Math.floor(value);
+}
+
+function asSessionInput(raw: unknown): SessionInput | undefined {
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  const record = raw as Record<string, unknown>;
+  const header =
+    record["header"] !== null &&
+    typeof record["header"] === "object" &&
+    !Array.isArray(record["header"])
+      ? (record["header"] as Record<string, unknown>)
+      : undefined;
+  const sessionId =
+    typeof record["sessionId"] === "string" && record["sessionId"] !== ""
+      ? record["sessionId"]
+      : typeof record["id"] === "string" && record["id"] !== ""
+        ? record["id"]
+        : typeof header?.["id"] === "string" && header["id"] !== ""
+          ? header["id"]
+          : undefined;
+  if (sessionId === undefined) return undefined;
+
+  const rawCwd = record["cwd"] !== undefined ? record["cwd"] : header?.["cwd"];
+  const cwd = typeof rawCwd === "string" || rawCwd === null ? rawCwd : undefined;
+
+  let lastEventTime =
+    normalizeEpochSeconds(record["lastEventTime"]) ??
+    normalizeEpochSeconds(record["time"]) ??
+    normalizeEpochSeconds(record["updatedAt"]) ??
+    normalizeEpochSeconds(record["createdAt"]) ??
+    normalizeEpochSeconds(header?.["createdAt"]);
+
+  const events = record["events"];
+  if (Array.isArray(events)) {
+    for (const event of events) {
+      if (event === null || typeof event !== "object") continue;
+      const t = normalizeEpochSeconds((event as Record<string, unknown>)["time"]);
+      if (t !== undefined && (lastEventTime === undefined || t > lastEventTime)) {
+        lastEventTime = t;
+      }
+    }
+  }
+
+  return {
+    sessionId,
+    ...(cwd === undefined ? {} : { cwd }),
+    ...(lastEventTime === undefined ? {} : { lastEventTime }),
+  };
+}
+
+function readDiscoveredSessionFile(path: string): readonly SessionInput[] {
+  let text: string;
+  try {
+    text = readFileSync(path, "utf8");
+  } catch {
+    return [];
+  }
+  if (path.endsWith(".jsonl")) {
+    let headerEntry: SessionInput | undefined;
+    let maxTime: number | undefined;
+    for (const line of text.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (trimmed === "") continue;
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(trimmed);
+      } catch {
+        continue;
+      }
+      if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) continue;
+      const record = parsed as Record<string, unknown>;
+      const t =
+        normalizeEpochSeconds(record["lastEventTime"]) ??
+        normalizeEpochSeconds(record["time"]) ??
+        normalizeEpochSeconds(record["createdAt"]);
+      if (t !== undefined && (maxTime === undefined || t > maxTime)) maxTime = t;
+      if (headerEntry === undefined) headerEntry = asSessionInput(parsed);
+    }
+    if (headerEntry === undefined) return [];
+    const finalTime =
+      maxTime !== undefined &&
+      (headerEntry.lastEventTime === undefined || maxTime > headerEntry.lastEventTime)
+        ? maxTime
+        : headerEntry.lastEventTime;
+    return [
+      finalTime === undefined ? headerEntry : { ...headerEntry, lastEventTime: finalTime },
+    ];
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return [];
+  }
+  if (Array.isArray(parsed)) {
+    return parsed.map(asSessionInput).filter((entry): entry is SessionInput => entry !== undefined);
+  }
+  const single = asSessionInput(parsed);
+  return single === undefined ? [] : [single];
+}
+
+function scanSessionsDirectory(dir: string, depth = 0): readonly SessionInput[] {
+  if (depth > 2 || !existsSync(dir)) return [];
+  let entries: string[];
+  try {
+    entries = readdirSync(dir);
+  } catch {
+    return [];
+  }
+  const found: SessionInput[] = [];
+  for (const name of entries) {
+    const fullPath = join(dir, name);
+    let stats;
+    try {
+      stats = statSync(fullPath);
+    } catch {
+      continue;
+    }
+    if (stats.isDirectory()) {
+      found.push(...scanSessionsDirectory(fullPath, depth + 1));
+    } else if (stats.isFile() && (name.endsWith(".json") || name.endsWith(".jsonl"))) {
+      found.push(...readDiscoveredSessionFile(fullPath));
+    }
+  }
+  return found;
+}
+
+/**
+ * Auto-discover sessions when `--sessions` is omitted.
+ *
+ * Reads `DSH_LIVE_SESSIONS_JSON` (passed by `pstack_script` from `ctx.sessions`)
+ * and `$DSH_HOME/sessions/*.json{,l}` up to 2 levels deep. Returns `undefined`
+ * when no sessions were found so callers still see `unknown-usage`.
+ */
+export function discoverSessions(
+  options: { readonly dshHome?: string; readonly env?: NodeJS.ProcessEnv } = {},
+): readonly SessionInput[] | undefined {
+  const env = options.env ?? process.env;
+  const collected: SessionInput[] = [];
+
+  const liveJson = env["DSH_LIVE_SESSIONS_JSON"]?.trim();
+  if (liveJson) {
+    try {
+      const parsed: unknown = JSON.parse(liveJson);
+      if (Array.isArray(parsed)) {
+        for (const item of parsed) {
+          const entry = asSessionInput(item);
+          if (entry !== undefined) collected.push(entry);
+        }
+      }
+    } catch {
+      // Malformed live projection is ignored rather than aborting disk discovery.
+    }
+  }
+
+  const rawDshHome =
+    options.dshHome?.trim() ||
+    env["DSH_HOME"]?.trim() ||
+    (options.env !== undefined ? undefined : join(homedir(), ".dsh"));
+  if (rawDshHome !== undefined) {
+    collected.push(...scanSessionsDirectory(join(rawDshHome, "sessions")));
+  }
+
+  if (collected.length === 0) return undefined;
+
+  const byId = new Map<string, SessionInput>();
+  for (const entry of collected) {
+    const id = entry.sessionId;
+    if (id === undefined || id === "") {
+      byId.set(`__anon_${byId.size}`, entry);
+      continue;
+    }
+    const existing = byId.get(id);
+    if (existing === undefined) {
+      byId.set(id, entry);
+      continue;
+    }
+    const newerTime =
+      (entry.lastEventTime ?? 0) >= (existing.lastEventTime ?? 0)
+        ? (entry.lastEventTime ?? existing.lastEventTime)
+        : existing.lastEventTime;
+    const cwd = entry.cwd ?? existing.cwd;
+    byId.set(id, {
+      sessionId: id,
+      ...(cwd === undefined ? {} : { cwd }),
+      ...(newerTime === undefined ? {} : { lastEventTime: newerTime }),
+    });
+  }
+  return [...byId.values()];
+}
+
 // ---------------------------------------------------------------------------
 // CLI
 // ---------------------------------------------------------------------------
@@ -760,7 +956,13 @@ export function main(
     stdout: (value) => process.stdout.write(value),
     stderr: (value) => process.stderr.write(value),
   },
-  options: { readonly now?: number; readonly cwd?: string; readonly run?: typeof execFileSync } = {},
+  options: {
+    readonly now?: number;
+    readonly cwd?: string;
+    readonly run?: typeof execFileSync;
+    readonly dshHome?: string;
+    readonly env?: NodeJS.ProcessEnv;
+  } = {},
 ): number {
   try {
     const args = parseArgs(argv);
@@ -770,7 +972,7 @@ export function main(
     }
 
     const sessions =
-      args.sessions === undefined ? undefined : readSessionsFile(args.sessions);
+      args.sessions === undefined ? discoverSessions(options) : readSessionsFile(args.sessions);
 
     const cwd = options.cwd ?? process.cwd();
     const repo =

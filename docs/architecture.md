@@ -17,7 +17,7 @@
 |---|---|---|
 | Bundle 装配 | `cordis.patch.yml` | 注册技能目录、Host 工具和角色服务；组合两个根 preset 与三个子代理 preset。 |
 | Host 主入口 | `src/index.ts` | 注册可信的隐藏技能加载器；其余 Host 能力各自通过独立子路径（如 `dsh-pstack/models`）由 bundle 按行加载。 |
-| 技能加载 | `src/skill.ts`、`src/paths.ts` | 实现 `pstack_skill`，按名称加载技能及目录内资源；集中定义发布包内资源路径。 |
+| 技能加载 | `src/skill.ts`、`src/paths.ts` | 实现 `pstack_skill`，按名称或 `forPath` 路径匹配（如 `typescript-best-practices`）加载技能及目录内资源；集中定义发布包内资源路径。 |
 | 模型目录 | `src/models.ts`、`src/catalogue.ts` | 实现 `pstack_models`，读取实时 LLM adapter 目录，保留单 provider 或 model 的发现错误；共享 catalogue 类型、schema 与 wire 解析。 |
 | 角色清单 | `src/role-manifest.ts`、`src/role-catalog.ts` | 定义角色 key、shape 和自动面板属性；实现只读的 `pstack_roles`。 |
 | 子代理委派 | `src/subagent.ts` | 实现 `pstack_subagent`；解析角色路由，完成参数、能力和模型预检，再调用 `ctx.subagents.startActivation`。 |
@@ -29,10 +29,10 @@
 | Client 支撑 | `src/client/ui.tsx`、`src/client/icons.tsx`、`src/client/styles.ts`、`src/client/toast.tsx`、`src/client/message.ts`、`src/client/focus-trap.ts`、`src/client/locales/`、`src/client/role-copy.ts`、`src/client/role-draft.ts`、`src/client/role-selectors.ts` | 提供本插件的 UI 组件、样式、共享提示、焦点陷阱、翻译、角色草稿和选择器文案。 |
 | 移植与生成 | `port/generate.mjs`、`port/scan.mjs`、`port/dsh.md`、`port/dsh.zh.md`、`port/audit.md`、`port/audit.lock.json` | 从固定上游生成 `pstack/`；扫描能力、校验审核引用和当前基线处置。 |
 | 发布元数据 | `port/release-compatibility.ts`、`bump.config.ts` | 按显式兼容键同步双语 README 的版本表；每个 `x.y` 保留最新 `z`，新兼容键新增行，并把双语 README 加入发布提交。 |
-| Fork 增量：脚本与审计 | `src/script.ts`、`src/script-policy.ts`、`src/doctor.ts`、`runtime/`、`scripts/replace-runtime-scripts.mjs` | 以宿主自带的 Node 运行随包脚本，入口固定为四个 id；审批交给 `tools/pre-execute` 行 `pstack-script-policy`；报告脚本依赖的宿主前置条件；编译后的 `.mjs` 覆盖生成树里的脚本源文件。 |
+| Fork 增量：脚本与审计 | `src/script.ts`、`src/script-policy.ts`、`src/doctor.ts`、`runtime/`、`scripts/replace-runtime-scripts.mjs` | 以宿主自带的 Node 运行随包脚本，入口固定为四个 id，`worktree-audit` 在省略 `--sessions` 时自动汇集活跃与落盘会话；审批交给 `tools/pre-execute` 行 `pstack-script-policy`；`pstack_doctor` 报告命令版本、`gh` 登录态、工作区规则提示与 `/why` MCP 证据分类；编译后的 `.mjs` 覆盖生成树里的脚本源文件。 |
 | Fork 增量：运行时翻译 | `src/native-text.ts`、`src/skill.ts`、`src/poteto-mode.ts` | 在读取技能正文与资源时把 Cursor 词汇（`Task`、`subagent_type`、`~/.cursor/...`、模型 slug）换成 DSH 名称；生成树保留上游原文，便于 `port/generate.mjs --check` 证明改动了什么。 |
 | Fork 增量：远程派发 | `src/remote.ts`、`docs/remote-worker.md`、bundle 行 `pstack-remote` | 把一次并行 owner 的任务派发到用户自己登记的机器（PATH 里有 `dsh` 的 SSH 主机，或流式输出 NDJSON 的 HTTP worker），记录事件流并支持 `status`/`logs`/`cancel`。插件不提供机器、云 SDK 或面板；审批走 `tools/pre-execute`，`mode: ask` 是默认值。 |
-| Fork 增量：图表渲染 | `src/chart.ts`、bundle 行 `pstack-chart` | `pstack_chart` 解析 `statechart` 脚本写出的 Mermaid 子集，用自带的分层布局输出独立 SVG，保留 `breaks`/`mayBreak`/`bugPath`/`repeats` 四类配色；不引入 Mermaid、浏览器或原生依赖，无法解析的行按行号报错。 |
+| Fork 增量：图表渲染 | `src/chart.ts`、bundle 行 `pstack-chart` | `pstack_chart` 解析 `stateDiagram-v2` 与 `flowchart TD/LR` Mermaid 子集，用自带的分层布局输出独立 SVG，支持底部字幕条（`subtitle`）及分组色板与 `breaks`/`mayBreak`/`bugPath`/`repeats` 四类叠加配色；不引入 Mermaid、浏览器或原生依赖，无法解析的行按行号报错。 |
 | 构建与打包 | `vite.config.ts`、`package.json` | 分别构建 Host、浏览器 Client 与 `runtime/` 三个 pack；导出 Host 模块，复制生成树和技能资源，并把编译后的脚本替换进生成树。 |
 | 自动化验证 | `tests/`、`playground/start.mjs`、`playground/cases-run.mjs`、`playground/run-cases.mjs`、`playground/browser.mjs` | 运行单元和 DOM 交互测试；在真实 DSH playground 中验证插件和模型驱动用例，并用浏览器脚本做不涉及模型选择的交互。 |
 

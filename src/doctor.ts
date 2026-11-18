@@ -40,6 +40,26 @@ export interface CommandCheck {
   readonly name: string;
   readonly ok: boolean;
   readonly version?: string;
+  readonly authenticated?: boolean;
+}
+
+/** Evidence categories `/why` maps mounted MCP tools into. */
+export const MCP_EVIDENCE_CATEGORIES = [
+  "errors",
+  "logs",
+  "metrics",
+  "traces",
+  "deploys",
+  "flags",
+  "Database",
+  "tickets",
+] as const;
+
+export type McpEvidenceCategory = (typeof MCP_EVIDENCE_CATEGORIES)[number];
+
+export interface McpCategoryMatch {
+  readonly category: McpEvidenceCategory;
+  readonly tools: readonly string[];
 }
 
 export interface ScriptCheck {
@@ -69,6 +89,7 @@ export interface DoctorReport {
     readonly exists: boolean;
   };
   readonly workspace: WorkspaceCheck;
+  readonly mcpCategories?: readonly McpCategoryMatch[];
 }
 
 /** What a Cursor project would carry into DSH, and what DSH actually reads. */
@@ -94,6 +115,8 @@ export interface DoctorHost {
   readonly readFile?: (path: string) => string | undefined;
   readonly readDir?: (path: string) => readonly string[];
   readonly resolveWorkspace?: (exec: ToolRunContext) => Promise<string | undefined>;
+  readonly toolNames?: readonly string[];
+  readonly resolveToolNames?: (exec: ToolRunContext) => readonly string[];
 }
 
 const VERSION_ARGS: Readonly<Record<string, readonly (readonly string[])[]>> = {
@@ -241,6 +264,46 @@ export function collectWorkspaceCheck(
   return check;
 }
 
+const MCP_TOOL_NAME = /^mcp__([a-zA-Z0-9_-]+?)__(.+)$/;
+
+const MCP_CATEGORY_PATTERNS: Readonly<Record<McpEvidenceCategory, RegExp>> = {
+  errors: /sentry|bugsnag|rollbar|honeybadger|crashlytics|error|exception|issue_event/i,
+  logs: /loki|splunk|cloudwatch|papertrail|axiom|(?:^|[_-])logs?(?:[_-]|$)/i,
+  metrics: /prometheus|grafana|newrelic|statsd|metric/i,
+  traces: /jaeger|tempo|zipkin|honeycomb|otel|trace|span/i,
+  deploys: /vercel|render|railway|argo|deploy|release|workflow_run/i,
+  flags: /launchdarkly|statsig|unleash|flagsmith|growthbook|flag|experiment/i,
+  Database:
+    /postgres|mysql|sqlite|supabase|prisma|planetscale|neon|redis|mongo|(?:^|[_-])(?:db|sql|query)(?:[_-]|$)/i,
+  tickets:
+    /linear|jira|asana|shortcut|notion|ticket|zendesk|intercom|pagerduty|(?:github|gitlab).*issues?/i,
+};
+
+/** Classify mounted `mcp__<server>__<tool>` names into `/why` evidence categories. */
+export function classifyMcpTools(toolNames: readonly string[]): readonly McpCategoryMatch[] {
+  const buckets = new Map<McpEvidenceCategory, Set<string>>();
+  for (const name of toolNames) {
+    const match = MCP_TOOL_NAME.exec(name);
+    if (match === null) continue;
+    const target = `${match[1]}_${match[2]}`;
+    for (const category of MCP_EVIDENCE_CATEGORIES) {
+      if (MCP_CATEGORY_PATTERNS[category].test(target)) {
+        let set = buckets.get(category);
+        if (set === undefined) {
+          set = new Set<string>();
+          buckets.set(category, set);
+        }
+        set.add(name);
+      }
+    }
+  }
+  return MCP_EVIDENCE_CATEGORIES.flatMap((category) => {
+    const tools = buckets.get(category);
+    if (tools === undefined || tools.size === 0) return [];
+    return [{ category, tools: [...tools].sort() }];
+  });
+}
+
 /** Build the report without touching any external service. */
 export function collectDoctorReport(host: DoctorHost): DoctorReport {
   const exists = host.exists ?? existsSync;
@@ -263,14 +326,20 @@ export function collectDoctorReport(host: DoctorHost): DoctorReport {
         return [];
       }
     });
-  const commands = CHECKED_COMMANDS.map((command) => {
+  const commands = CHECKED_COMMANDS.map((command): CommandCheck => {
     const version =
       run !== undefined
         ? run(command, command === "ffmpeg" ? ["-version"] : ["--version"])
         : runCommandVersion(command);
-    return version === undefined
-      ? { name: command, ok: false }
-      : { name: command, ok: true, version };
+    if (version === undefined) return { name: command, ok: false };
+    if (command === "gh") {
+      const auth =
+        run !== undefined
+          ? run("gh", ["auth", "status"])
+          : runCommandVersion("gh", ["auth", "status"]);
+      return { name: command, ok: true, version, authenticated: auth !== undefined };
+    }
+    return { name: command, ok: true, version };
   });
   const scripts = SCRIPT_ENTRIES.map((entry) => {
     const path = join(PORT_ROOT, ...entry.assetPath.split("/"));
@@ -286,13 +355,16 @@ export function collectDoctorReport(host: DoctorHost): DoctorReport {
     optionalPlugins: collectOptionalPluginChecks(host.profileDir, readFile),
     roleFile: { path: rolePath, exists: exists(rolePath) },
     workspace: collectWorkspaceCheck(host.workspacePath, exists, readDir),
+    ...(host.toolNames === undefined ? {} : { mcpCategories: classifyMcpTools(host.toolNames) }),
   };
 }
 
 export function renderReport(report: DoctorReport): string {
-  const commandLines = report.commands.map(
-    (command) => `- ${command.name}: ${command.ok ? (command.version ?? "available") : "MISSING"}`,
-  );
+  const commandLines = report.commands.map((command) => {
+    if (!command.ok) return `- ${command.name}: MISSING`;
+    const suffix = command.authenticated === false ? " (unauthenticated)" : "";
+    return `- ${command.name}: ${command.version ?? "available"}${suffix}`;
+  });
   const scriptLines = report.scripts.map(
     (script) => `- ${script.id}: ${script.ok ? "present" : `MISSING (${script.path})`}`,
   );
@@ -308,9 +380,21 @@ export function renderReport(report: DoctorReport): string {
         `AGENTS.md: ${workspace.agentsFile ? "present" : "missing"}`,
         workspace.cursorRules.length === 0
           ? "cursor rules: none"
-          : `cursor rules: ${workspace.cursorRules.length} .mdc file(s) under .cursor/rules (${workspace.cursorRules.join(", ")})`,
+          : `cursor rules: ${workspace.cursorRules.length} .mdc file(s) under .cursor/rules (${workspace.cursorRules.join(", ")})${workspace.agentsFile ? "; DSH only reads AGENTS.md" : ""}`,
         ...(workspace.hint === undefined ? [] : [`hint: ${workspace.hint}`]),
       ];
+  const mcpLines =
+    report.mcpCategories === undefined
+      ? []
+      : [
+          "",
+          "mcp evidence categories:",
+          ...(report.mcpCategories.length === 0
+            ? ["- none"]
+            : report.mcpCategories.map(
+                (entry) => `- ${entry.category}: ${entry.tools.join(", ")}`,
+              )),
+        ];
   return [
     "pstack doctor",
     `platform: ${report.platform}`,
@@ -329,6 +413,7 @@ export function renderReport(report: DoctorReport): string {
     `role file: ${report.roleFile.exists ? "present" : "missing"} (${report.roleFile.path})`,
     "",
     ...workspaceLines,
+    ...mcpLines,
   ].join("\n");
 }
 
@@ -348,6 +433,7 @@ const OUTPUT_SCHEMA: JsonSchemaNode = {
           name: { type: "string" },
           ok: { type: "boolean" },
           version: { type: "string" },
+          authenticated: { type: "boolean" },
         },
         required: ["name", "ok"],
       },
@@ -402,6 +488,21 @@ const OUTPUT_SCHEMA: JsonSchemaNode = {
         hint: { type: "string" },
       },
       required: ["checked", "cursorRules", "agentsFile"],
+    },
+    mcpCategories: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          category: {
+            type: "string",
+            enum: [...MCP_EVIDENCE_CATEGORIES],
+          },
+          tools: { type: "array", items: { type: "string" } },
+        },
+        required: ["category", "tools"],
+      },
     },
   },
   required: [
@@ -459,7 +560,12 @@ export function createPstackDoctorTool(host: DoctorHost): ToolDefinition {
         typeof requested === "string"
           ? requested
           : (host.workspacePath ?? (await host.resolveWorkspace?.(exec)));
-      return collectDoctorReport({ ...host, workspacePath });
+      const toolNames = host.toolNames ?? host.resolveToolNames?.(exec);
+      return collectDoctorReport({
+        ...host,
+        workspacePath,
+        ...(toolNames === undefined ? {} : { toolNames }),
+      });
     },
   };
 }
@@ -484,6 +590,13 @@ export function apply(ctx: PstackDoctorHost): void {
           return await ctx.workingDirectory.ensure(exec.agent, exec.signal);
         } catch {
           return undefined;
+        }
+      },
+      resolveToolNames: (exec) => {
+        try {
+          return ctx.tools.schemas(exec.agent).map((schema) => schema.name);
+        } catch {
+          return [];
         }
       },
     }),

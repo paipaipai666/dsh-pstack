@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 
-import { ageColumn, bucketFor, dirtyColumn, formatSize, lastChatColumn, mergedColumn, prColumn, remoteColumn, renderTable, sizeColumn, sortRows, type AuditRow } from "./worktree-audit.ts";
+import { ageColumn, bucketFor, dirtyColumn, discoverSessions, formatSize, lastChatColumn, mergedColumn, prColumn, remoteColumn, renderTable, sizeColumn, sortRows, type AuditRow } from "./worktree-audit.ts";
 import { expect } from "./support.ts";
 
 const now = Date.UTC(2026, 9, 28, 12, 0, 0) / 1000;
@@ -106,5 +106,46 @@ posixOnly("counts a directory symlink as its own entry and never traverses it", 
     expect(sizeInBytes(sizeColumn(worktree)) < 1024 * 1024).toBe(true);
   } finally {
     rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("auto-discovers sessions from DSH_HOME/sessions and DSH_LIVE_SESSIONS_JSON", () => {
+  const home = mkdtempSync(join(tmpdir(), "worktree-audit-sessions-"));
+  try {
+    const sessionsDir = join(home, "sessions", "nested");
+    mkdirSync(sessionsDir, { recursive: true });
+    writeFileSync(
+      join(sessionsDir, "s1.json"),
+      JSON.stringify({
+        header: { id: "s-1", cwd: "/repo/wt-a", createdAt: 1700000000000 },
+        events: [{ time: 1700001000000 }],
+      }),
+    );
+    writeFileSync(
+      join(home, "sessions", "s2.jsonl"),
+      [
+        JSON.stringify({ id: "s-2", cwd: "/repo/wt-b", createdAt: 1700002000 }),
+        JSON.stringify({ time: 1700003000 }),
+      ].join("\n"),
+    );
+
+    const discovered = discoverSessions({
+      dshHome: home,
+      env: {
+        DSH_LIVE_SESSIONS_JSON: JSON.stringify([
+          { sessionId: "s-1", cwd: "/repo/wt-a", lastEventTime: 1700005000 },
+          { sessionId: "s-3", cwd: "/repo/wt-c", lastEventTime: 1700004000 },
+        ]),
+      },
+    });
+
+    expect(discovered?.length).toBe(3);
+    const byId = Object.fromEntries((discovered ?? []).map((s) => [s.sessionId, s]));
+    expect(byId["s-1"]?.lastEventTime).toBe(1700005000);
+    expect(byId["s-2"]?.lastEventTime).toBe(1700003000);
+    expect(byId["s-3"]?.cwd).toBe("/repo/wt-c");
+    expect(discoverSessions({ env: {} })).toBe(undefined);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
   }
 });

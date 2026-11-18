@@ -96,6 +96,7 @@ export interface ParsedChart {
   readonly classDefs: ReadonlyMap<string, string>;
   readonly direction: "TB" | "LR";
   readonly title?: string;
+  readonly subtitle?: string;
 }
 
 const ENTITY = /#(\d+);/g;
@@ -179,8 +180,26 @@ const DESCRIPTION = /^([\p{L}\p{N}_.-]+)\s*:\s*(.*)$/u;
 const CLASS_DEF = /^classDef\s+([\p{L}\p{N}_.-]+)\s+(.+)$/u;
 const CLASS_APPLY = /^class\s+([\p{L}\p{N}_.,-]+)\s+([\p{L}\p{N}_.-]+)$/u;
 const DIRECTION = /^direction\s+(TB|LR|RL|BT)$/u;
+const FLOWCHART_HEADER = /^flowchart\s+(TD|TB|LR|RL|BT)$/u;
+const FLOW_SUBGRAPH =
+  /^subgraph\s+([\p{L}\p{N}_.-]+)(?:\s*\["((?:[^"\\]|\\.)*)"\]|\s*\[([^\]]*)\]|\s+"((?:[^"\\]|\\.)*)"|\s+(.+))?$/u;
+const FLOW_NODE_SRC =
+  '([\\p{L}\\p{N}_.-]+)(?:\\s*(?:\\["((?:[^"\\\\]|\\\\.)*)"\\]|\\[([^\\]]*)\\]|\\("((?:[^"\\\\]|\\\\.)*)"\\)|\\(([^)]*)\\)))?(?::::([\\p{L}\\p{N}_.-]+))?';
+const FLOW_NODE_ONLY = new RegExp(`^${FLOW_NODE_SRC}$`, "u");
+const FLOW_EDGE_PIPE = new RegExp(
+  `^${FLOW_NODE_SRC}\\s*-->\\|([^|]*)\\|\\s*${FLOW_NODE_SRC}$`,
+  "u",
+);
+const FLOW_EDGE_DASH = new RegExp(
+  `^${FLOW_NODE_SRC}\\s*--\\s+(.+?)\\s+-->\\s*${FLOW_NODE_SRC}$`,
+  "u",
+);
+const FLOW_EDGE_PLAIN = new RegExp(
+  `^${FLOW_NODE_SRC}\\s*-->\\s*${FLOW_NODE_SRC}(?:\\s*:\\s*(.*))?$`,
+  "u",
+);
 
-/** Parse the Mermaid subset the statechart backend emits. */
+/** Parse a Mermaid statechart or flowchart into our internal graph model. */
 export function parseChart(source: string): ParsedChart {
   const items = new Map<string, ChartItem>();
   const children = new Map<string, string[]>();
@@ -189,8 +208,9 @@ export function parseChart(source: string): ParsedChart {
   const classDefs = new Map<string, string>();
   const marks = new Map<string, string[]>();
   const stack: string[] = [""];
-  let regions = new Map<string, number>();
+  const regions = new Map<string, number>();
   let direction: "TB" | "LR" = "TB";
+  let mode: "state" | "flowchart" = "state";
   let seenHeader = false;
   let scopeSeq = 0;
 
@@ -199,6 +219,34 @@ export function parseChart(source: string): ParsedChart {
     if (list === undefined) children.set(parent, [id]);
     else list.push(id);
     if (parent === "") roots.push(id);
+  };
+
+  const addMark = (id: string, cls: string) => {
+    const existing = marks.get(id);
+    if (existing === undefined) marks.set(id, [cls]);
+    else existing.push(cls);
+  };
+
+  const upsertFlowNode = (
+    id: string,
+    rawLabel: string | undefined,
+    inlineMark: string | undefined,
+    scope: string,
+  ): string => {
+    const existing = items.get(id);
+    if (existing === undefined) {
+      items.set(id, {
+        kind: "leaf",
+        id,
+        label: rawLabel === undefined ? id : decodeEntities(rawLabel),
+        parent: scope,
+      });
+      addChild(scope, id);
+    } else if (rawLabel !== undefined && existing.kind === "leaf") {
+      items.set(id, { ...existing, label: decodeEntities(rawLabel) });
+    }
+    if (inlineMark !== undefined) addMark(id, inlineMark);
+    return id;
   };
 
   const ensureMarker = (kind: "start" | "end", scope: string) => {
@@ -213,6 +261,7 @@ export function parseChart(source: string): ParsedChart {
   // statechart writes a YAML front matter block with the title the view returned.
   let first = 0;
   let title: string | undefined;
+  let subtitle: string | undefined;
   const opening = lines.findIndex((line) => line.trim() !== "");
   if (opening !== -1 && lines[opening]?.trim() === "---") {
     let closing = -1;
@@ -225,9 +274,14 @@ export function parseChart(source: string): ParsedChart {
     if (closing === -1)
       throw new ChartSyntaxError(opening + 1, "front matter has no closing `---`");
     for (let index = opening + 1; index < closing; index++) {
-      const value = /^title:\s*(.*)$/.exec(lines[index]?.trim() ?? "")?.[1]?.trim();
-      if (value !== undefined && value !== "") {
-        title = decodeTitle(value.replace(/^"(.*)"$/s, "$1"));
+      const entry = lines[index]?.trim() ?? "";
+      const titleValue = /^title:\s*(.*)$/.exec(entry)?.[1]?.trim();
+      if (titleValue !== undefined && titleValue !== "") {
+        title = decodeTitle(titleValue.replace(/^"(.*)"$/s, "$1"));
+      }
+      const subtitleValue = /^subtitle:\s*(.*)$/.exec(entry)?.[1]?.trim();
+      if (subtitleValue !== undefined && subtitleValue !== "") {
+        subtitle = decodeTitle(subtitleValue.replace(/^"(.*)"$/s, "$1"));
       }
     }
     first = closing + 1;
@@ -239,21 +293,23 @@ export function parseChart(source: string): ParsedChart {
     if (!text || text.startsWith("%%")) continue;
     if (!seenHeader) {
       if (text === "stateDiagram-v2" || text === "stateDiagram") {
+        mode = "state";
         seenHeader = true;
         continue;
       }
-      throw new ChartSyntaxError(line, "expected `stateDiagram-v2` on the first line");
+      const flowHeader = FLOWCHART_HEADER.exec(text);
+      if (flowHeader) {
+        mode = "flowchart";
+        seenHeader = true;
+        direction = flowHeader[1] === "LR" || flowHeader[1] === "RL" ? "LR" : "TB";
+        continue;
+      }
+      throw new ChartSyntaxError(
+        line,
+        "expected `stateDiagram-v2` (or `flowchart TD|LR`) on the first line",
+      );
     }
     const scope = stack[stack.length - 1] ?? "";
-    if (text === "}") {
-      if (stack.length === 1) throw new ChartSyntaxError(line, "unmatched `}`");
-      stack.pop();
-      continue;
-    }
-    if (text === "--") {
-      regions.set(scope, (regions.get(scope) ?? 1) + 1);
-      continue;
-    }
     const directionMatch = DIRECTION.exec(text);
     if (directionMatch) {
       const value = directionMatch[1];
@@ -268,11 +324,103 @@ export function parseChart(source: string): ParsedChart {
     const classApply = CLASS_APPLY.exec(text);
     if (classApply) {
       for (const id of classApply[1]!.split(",")) {
-        const key = id.trim();
-        const existing = marks.get(key);
-        if (existing === undefined) marks.set(key, [classApply[2]!]);
-        else existing.push(classApply[2]!);
+        addMark(id.trim(), classApply[2]!);
       }
+      continue;
+    }
+
+    if (mode === "flowchart") {
+      if (text === "end") {
+        if (stack.length === 1) throw new ChartSyntaxError(line, "unmatched `end`");
+        stack.pop();
+        continue;
+      }
+      const subgraph = FLOW_SUBGRAPH.exec(text);
+      if (subgraph) {
+        const id = subgraph[1]!;
+        if (items.has(id)) throw new ChartSyntaxError(line, `subgraph \`${id}\` is declared twice`);
+        const rawLabel = subgraph[2] ?? subgraph[3] ?? subgraph[4] ?? subgraph[5];
+        const label = decodeEntities(rawLabel !== undefined ? rawLabel.trim() : id);
+        items.set(id, { kind: "group", id, label, parent: scope, regions: 1 });
+        addChild(scope, id);
+        stack.push(id);
+        continue;
+      }
+      const pipeEdge = FLOW_EDGE_PIPE.exec(text);
+      if (pipeEdge) {
+        const from = upsertFlowNode(
+          pipeEdge[1]!,
+          pipeEdge[2] ?? pipeEdge[3] ?? pipeEdge[4] ?? pipeEdge[5],
+          pipeEdge[6],
+          scope,
+        );
+        const label = decodeEntities(pipeEdge[7]!.trim().replace(/^"(.*)"$/s, "$1"));
+        const to = upsertFlowNode(
+          pipeEdge[8]!,
+          pipeEdge[9] ?? pipeEdge[10] ?? pipeEdge[11] ?? pipeEdge[12],
+          pipeEdge[13],
+          scope,
+        );
+        edges.push({ from, to, label, scope });
+        continue;
+      }
+      const dashEdge = FLOW_EDGE_DASH.exec(text);
+      if (dashEdge) {
+        const from = upsertFlowNode(
+          dashEdge[1]!,
+          dashEdge[2] ?? dashEdge[3] ?? dashEdge[4] ?? dashEdge[5],
+          dashEdge[6],
+          scope,
+        );
+        const rawEdgeLabel = dashEdge[7]!.trim().replace(/^"(.*)"$/s, "$1");
+        const label = decodeEntities(rawEdgeLabel);
+        const to = upsertFlowNode(
+          dashEdge[8]!,
+          dashEdge[9] ?? dashEdge[10] ?? dashEdge[11] ?? dashEdge[12],
+          dashEdge[13],
+          scope,
+        );
+        edges.push({ from, to, label, scope });
+        continue;
+      }
+      const plainEdge = FLOW_EDGE_PLAIN.exec(text);
+      if (plainEdge) {
+        const from = upsertFlowNode(
+          plainEdge[1]!,
+          plainEdge[2] ?? plainEdge[3] ?? plainEdge[4] ?? plainEdge[5],
+          plainEdge[6],
+          scope,
+        );
+        const to = upsertFlowNode(
+          plainEdge[7]!,
+          plainEdge[8] ?? plainEdge[9] ?? plainEdge[10] ?? plainEdge[11],
+          plainEdge[12],
+          scope,
+        );
+        const label = decodeEntities(plainEdge[13]?.trim() ?? "");
+        edges.push({ from, to, label, scope });
+        continue;
+      }
+      const nodeOnly = FLOW_NODE_ONLY.exec(text);
+      if (nodeOnly) {
+        upsertFlowNode(
+          nodeOnly[1]!,
+          nodeOnly[2] ?? nodeOnly[3] ?? nodeOnly[4] ?? nodeOnly[5],
+          nodeOnly[6],
+          scope,
+        );
+        continue;
+      }
+      throw new ChartSyntaxError(line, `unsupported line \`${text}\``);
+    }
+
+    if (text === "}") {
+      if (stack.length === 1) throw new ChartSyntaxError(line, "unmatched `}`");
+      stack.pop();
+      continue;
+    }
+    if (text === "--") {
+      regions.set(scope, (regions.get(scope) ?? 1) + 1);
       continue;
     }
     const labelled = STATE_LABEL.exec(text);
@@ -336,8 +484,18 @@ export function parseChart(source: string): ParsedChart {
     }
     throw new ChartSyntaxError(line, `unsupported line \`${text}\``);
   }
-  if (!seenHeader) throw new ChartSyntaxError(1, "expected `stateDiagram-v2` on the first line");
-  if (stack.length !== 1) throw new ChartSyntaxError(lines.length, "unclosed `state` block");
+  if (!seenHeader) {
+    throw new ChartSyntaxError(
+      1,
+      "expected `stateDiagram-v2` (or `flowchart TD|LR`) on the first line",
+    );
+  }
+  if (stack.length !== 1) {
+    throw new ChartSyntaxError(
+      lines.length,
+      mode === "flowchart" ? "unclosed `subgraph` block" : "unclosed `state` block",
+    );
+  }
 
   // A class line may name a state declared later, so apply the marks once everything is read.
   const withMarks = new Map<string, ChartItem>();
@@ -361,9 +519,16 @@ export function parseChart(source: string): ParsedChart {
       if (!withMarks.has(endpoint)) throw new ChartSyntaxError(1, `unknown state \`${endpoint}\``);
     }
   }
-  return title === undefined
-    ? { items: withMarks, roots, children, edges, classDefs, direction }
-    : { items: withMarks, roots, children, edges, classDefs, direction, title };
+  return {
+    items: withMarks,
+    roots,
+    children,
+    edges,
+    classDefs,
+    direction,
+    ...(title === undefined ? {} : { title }),
+    ...(subtitle === undefined ? {} : { subtitle }),
+  };
 }
 
 interface Box {
@@ -598,8 +763,13 @@ const edgePath = (from: Box, to: Box, direction: "TB" | "LR", selfLoop = false) 
   };
 };
 
+const SUBTITLE_STRIP_HEIGHT = 44;
+
 /** Draw a parsed chart. Coordinates are local to each scope and translated on the way out. */
-export function renderChartSvg(chart: ParsedChart): string {
+export function renderChartSvg(
+  chart: ParsedChart,
+  options: { readonly subtitle?: string } = {},
+): string {
   const parts: string[] = [];
   const root = layoutScope(chart, "");
 
@@ -674,20 +844,32 @@ export function renderChartSvg(chart: ParsedChart): string {
     (edge) => itemOf(chart, edge.scope, edge.from) === itemOf(chart, edge.scope, edge.to),
   );
   const loopPad = hasSelfLoop ? 28 : 0;
-  const width = root.width + PAD * 2 + loopPad;
+  const subtitleText = (options.subtitle ?? chart.subtitle)?.trim();
+  const hasSubtitle = subtitleText !== undefined && subtitleText !== "";
   const titleHeight = chart.title === undefined ? 0 : TITLE_HEIGHT;
-  const height = root.height + PAD * 2 + titleHeight + loopPad;
+  const chartHeight = root.height + PAD * 2 + titleHeight + loopPad;
+  const subtitleWidth = hasSubtitle ? charWidth(subtitleText) + PAD * 2 : 0;
+  const width = Math.max(root.width + PAD * 2 + loopPad, subtitleWidth);
+  const height = chartHeight + (hasSubtitle ? SUBTITLE_STRIP_HEIGHT : 0);
   drawScope("", root, PAD, PAD + titleHeight + loopPad);
+  const subtitleParts = hasSubtitle
+    ? [
+        `<line x1="0" y1="${chartHeight}" x2="${Math.ceil(width)}" y2="${chartHeight}" stroke="#e5e7eb" stroke-width="1"/>`,
+        `<rect class="pstack-chart-subtitle-bg" x="0" y="${chartHeight + 1}" width="${Math.ceil(width)}" height="${SUBTITLE_STRIP_HEIGHT - 1}" fill="#f9fafb"/>`,
+        `<text class="pstack-chart-subtitle" x="${Math.ceil(width) / 2}" y="${chartHeight + 27}" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" fill="#111827">${escapeXml(subtitleText)}</text>`,
+      ]
+    : [];
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.ceil(width)}" height="${Math.ceil(height)}" viewBox="0 0 ${Math.ceil(width)} ${Math.ceil(height)}" role="img" aria-label="statechart">`,
-    '<defs><style>@media (prefers-color-scheme: dark) { .pstack-chart-bg { fill: #18181b; } .pstack-chart-title { fill: #f4f4f5; } }</style><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6b7280"/></marker></defs>',
+    '<defs><style>@media (prefers-color-scheme: dark) { .pstack-chart-bg { fill: #18181b; } .pstack-chart-title { fill: #f4f4f5; } .pstack-chart-subtitle-bg { fill: #27272a; } .pstack-chart-subtitle { fill: #f4f4f5; } }</style><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6b7280"/></marker></defs>',
     `<rect class="pstack-chart-bg" width="100%" height="100%" fill="#ffffff"/>`,
     ...(chart.title === undefined
       ? []
       : [
-          `<text class="pstack-chart-title" x="${PAD}" y="${PAD}" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="600" fill="#111827">${escapeXml(chart.title)}</text>`,
+          `<text class="pstack-chart-title" x="${PAD}" y="${PAD + 4}" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="600" fill="#111827">${escapeXml(chart.title)}</text>`,
         ]),
     ...parts,
+    ...subtitleParts,
     "</svg>",
     "",
   ].join("\n");
@@ -743,13 +925,13 @@ const renderChartOutcome = (outcome: ChartOutcome) =>
   ].join("\n");
 
 const TOOL_DESCRIPTION = [
-  "Render a statechart `chart.mmd` to a standalone SVG next to it.",
+  "Render a Mermaid `stateDiagram-v2` or `flowchart` diagram (`chart.mmd`) to a standalone SVG next to it.",
   "",
-  "The statechart script writes colours into the Mermaid text as `classDef`/`class` lines; DSH has no",
-  "Mermaid renderer, so this tool draws the subset the backend emits: states, groups, parallel regions,",
-  "labelled transitions, and the `breaks`/`mayBreak`/`bugPath`/`repeats` marks. It writes `<input>.svg`",
-  "by default and returns the paths and counts. `chart.mmd` stays authoritative; unsupported syntax is",
-  "reported with its line number instead of being guessed.",
+  "DSH has no built-in Mermaid renderer, so this tool draws statecharts and flowcharts directly:",
+  "states, flowchart nodes (`[]`, `()`), `subgraph ... end`, parallel regions, labelled transitions,",
+  "an optional bottom subtitle strip (`subtitle`), and `breaks`/`mayBreak`/`bugPath`/`repeats` or",
+  "group palette marks. It writes `<input>.svg` by default and returns paths and counts.",
+  "`chart.mmd` stays authoritative; unsupported syntax is reported with its line number instead of guessing.",
 ].join("\n");
 
 export function createPstackChartTool(host: ChartHost): ToolDefinition {
@@ -762,10 +944,14 @@ export function createPstackChartTool(host: ChartHost): ToolDefinition {
       type: "object",
       additionalProperties: false,
       properties: {
-        input: { type: "string", description: "Path to the statechart `chart.mmd`." },
+        input: { type: "string", description: "Path to the statechart or flowchart `.mmd` file." },
         output: {
           type: "string",
           description: "Where to write the SVG; defaults to `<input>.svg`.",
+        },
+        subtitle: {
+          type: "string",
+          description: "Optional subtitle rendered in a dedicated strip below the diagram.",
         },
       },
       required: ["input"],
@@ -778,12 +964,19 @@ export function createPstackChartTool(host: ChartHost): ToolDefinition {
     },
     isConcurrencySafe: () => true,
     async execute(args, exec) {
-      const raw = args as { readonly input?: unknown; readonly output?: unknown };
+      const raw = args as {
+        readonly input?: unknown;
+        readonly output?: unknown;
+        readonly subtitle?: unknown;
+      };
       if (typeof raw.input !== "string" || raw.input.trim() === "") {
         throw new Error("`input` must be the path to a chart.mmd file.");
       }
       if (raw.output !== undefined && typeof raw.output !== "string") {
         throw new Error("`output` must be a path when it is given.");
+      }
+      if (raw.subtitle !== undefined && typeof raw.subtitle !== "string") {
+        throw new Error("`subtitle` must be a string when it is given.");
       }
       const workspace = await host.resolveWorkspace?.(exec);
       const base = workspace ?? process.cwd();
@@ -797,7 +990,10 @@ export function createPstackChartTool(host: ChartHost): ToolDefinition {
         throw new Error(`${input} is larger than ${MAX_INPUT_BYTES} bytes.`);
       }
       const chart = parseChart(source);
-      const svg = renderChartSvg(chart);
+      const svg = renderChartSvg(
+        chart,
+        raw.subtitle === undefined ? undefined : { subtitle: raw.subtitle },
+      );
       write(output, svg);
       let states = 0;
       let groups = 0;

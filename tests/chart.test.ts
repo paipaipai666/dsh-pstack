@@ -268,4 +268,43 @@ describe("pstack_chart", () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  it("renders flowchart LR/TD with subgraphs, edge labels, and a dedicated subtitle strip", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "pstack-chart-flow-"));
+    try {
+      const mmd = [
+        "---",
+        'title: "Deployment flow"',
+        'subtitle: "Slide 1 summary"',
+        "---",
+        "flowchart LR",
+        '  subgraph api["API Layer"]',
+        '    gw["Gateway"] -->|"dispatch"| worker(Worker)',
+        "  end",
+        '  worker -- "ack" --> db["Database"]',
+        "  class worker blue",
+      ].join("\n");
+      writeFileSync(join(dir, "flow.mmd"), mmd, "utf8");
+      const chart = parseChart(mmd);
+      expect(chart.direction).toBe("LR");
+      expect(chart.subtitle).toBe("Slide 1 summary");
+      expect(chart.edges).toHaveLength(2);
+      const svgFromFrontmatter = renderChartSvg(chart);
+      expect(svgFromFrontmatter).toContain("API Layer");
+      expect(svgFromFrontmatter).toContain(">dispatch<");
+      expect(svgFromFrontmatter).toContain(">ack<");
+      expect(svgFromFrontmatter).toContain('fill="#c3e0ff"');
+      expect(svgFromFrontmatter).toContain("pstack-chart-subtitle");
+      expect(svgFromFrontmatter).toContain("Slide 1 summary");
+
+      const tool = createPstackChartTool({ resolveWorkspace: async () => dir });
+      const outcome = (await tool.execute(
+        { input: "flow.mmd", subtitle: "Updated slide caption" },
+        { signal: new AbortController().signal } as never,
+      )) as { output: string };
+      expect(readFileSync(outcome.output, "utf8")).toContain("Updated slide caption");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });

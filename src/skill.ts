@@ -23,6 +23,24 @@ export const TOOL_NAME = "pstack_skill";
 
 const SKILL_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+/** Skills carrying upstream `paths:` frontmatter globs for automatic hints/lookup. */
+export const PATH_SCOPED_SKILLS = [
+  {
+    name: "typescript-best-practices",
+    paths: ["**/*.ts", "**/*.tsx"],
+    extensions: [".ts", ".tsx"],
+  },
+] as const;
+
+/** Return path-scoped skill names matching a target workspace file path. */
+export function matchSkillsForPath(filePath: string): readonly string[] {
+  const normalized = filePath.trim().toLowerCase();
+  if (normalized === "") return [];
+  return PATH_SCOPED_SKILLS.filter((entry) =>
+    entry.extensions.some((ext) => normalized.endsWith(ext)),
+  ).map((entry) => entry.name);
+}
+
 export interface SkillResourceResult {
   readonly path: string;
   readonly content: string;
@@ -164,7 +182,7 @@ const OUTPUT_SCHEMA: JsonSchemaNode = {
 const TOOL_DESCRIPTION = [
   "Load the full instructions of any pstack skill by name, including skills hidden from the model catalog.",
   "",
-  "Use this when a pstack skill tells you to route through another pstack skill and the `skill` tool cannot see it because the skill disables model invocation.",
+  "Use this when a pstack skill tells you to route through another pstack skill and the `skill` tool cannot see it because the skill disables model invocation. Pass `forPath` instead of `name` to resolve a path-scoped skill (such as `typescript-best-practices` for `.ts`/`.tsx` files).",
   "",
   "Pass `resource` with a path relative to the skill directory to read one reference or playbook beside its `SKILL.md`. The path cannot leave the skill directory.",
 ].join("\n");
@@ -182,12 +200,16 @@ export function createPstackSkillTool(skills: SkillRegistry): ToolDefinition {
           type: "string",
           description: "Exact kebab-case skill name, such as `how` or `principle-prove-it-works`.",
         },
+        forPath: {
+          type: "string",
+          description:
+            "Optional workspace file path to resolve a path-scoped skill (e.g. `.ts`/`.tsx` -> `typescript-best-practices`) when `name` is omitted.",
+        },
         resource: {
           type: "string",
           description: "Optional path relative to the skill directory.",
         },
       },
-      required: ["name"],
     },
     output: {
       schema: OUTPUT_SCHEMA,
@@ -201,13 +223,25 @@ export function createPstackSkillTool(skills: SkillRegistry): ToolDefinition {
         throw new Error("pstack_skill takes an object argument");
       }
       const args = rawArgs as Record<string, unknown>;
-      const skillName = args["name"];
+      const rawName = args["name"];
+      const forPath = args["forPath"];
       const resource = args["resource"];
-      if (typeof skillName !== "string" || !SKILL_NAME.test(skillName)) {
-        throw new Error(`invalid skill name "${String(skillName)}"`);
+      if (forPath !== undefined && typeof forPath !== "string") {
+        throw new Error("forPath must be a string when present");
       }
       if (resource !== undefined && typeof resource !== "string") {
         throw new Error("resource must be a string when present");
+      }
+      let skillName: unknown = rawName;
+      if (skillName === undefined && typeof forPath === "string") {
+        const matched = matchSkillsForPath(forPath)[0];
+        if (matched === undefined) {
+          throw new Error(`no path-scoped skill matches "${forPath}"`);
+        }
+        skillName = matched;
+      }
+      if (typeof skillName !== "string" || !SKILL_NAME.test(skillName)) {
+        throw new Error(`invalid skill name "${String(skillName)}"`);
       }
       const definition = await skills.get(skillName, {
         signal: exec.signal,

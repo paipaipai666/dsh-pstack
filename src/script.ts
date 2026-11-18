@@ -462,11 +462,53 @@ export const OUTPUT_SCHEMA: JsonSchemaNode = {
   ],
 };
 
+/** Live session projection needed when `worktree-audit` runs without `--sessions`. */
+export interface LiveSessionsHost {
+  list(): readonly {
+    readonly id: string;
+    readonly header: { readonly cwd?: string; readonly createdAt: number };
+    readonly snapshotEvents?: () => readonly { readonly time: number }[];
+  }[];
+}
+
+/** Serialize active Host sessions into `DSH_LIVE_SESSIONS_JSON` entries for `worktree-audit`. */
+export function serializeLiveSessions(
+  sessionsHost: LiveSessionsHost | undefined,
+): string | undefined {
+  if (sessionsHost === undefined) return undefined;
+  let sessions;
+  try {
+    sessions = sessionsHost.list();
+  } catch {
+    return undefined;
+  }
+  if (sessions.length === 0) return undefined;
+  const entries = sessions.map((session) => {
+    let lastTimeMs = session.header.createdAt;
+    const events = session.snapshotEvents?.();
+    if (events !== undefined) {
+      for (const event of events) {
+        if (typeof event.time === "number" && event.time > lastTimeMs) {
+          lastTimeMs = event.time;
+        }
+      }
+    }
+    const seconds = lastTimeMs > 1e11 ? Math.floor(lastTimeMs / 1000) : Math.floor(lastTimeMs);
+    return {
+      sessionId: session.id,
+      ...(session.header.cwd === undefined ? {} : { cwd: session.header.cwd }),
+      lastEventTime: seconds,
+    };
+  });
+  return JSON.stringify(entries);
+}
+
 /** The slices of the Cordis context this tool needs. */
 export interface PstackScriptHost {
   readonly tools: ToolsHost;
   readonly workingDirectory: WorkingDirectoryHost;
   readonly getJobs?: () => JobsHost | undefined;
+  readonly getSessions?: () => LiveSessionsHost | undefined;
 }
 
 /** Build the tool for one row. */
@@ -490,16 +532,28 @@ export function createPstackScriptTool(host: PstackScriptHost): ToolDefinition {
           ? undefined
           : await host.workingDirectory.ensure(exec.agent, exec.signal);
       const cwd = resolveWorkingDirectory(args.cwd, sessionCwd);
+      const liveSessionsJson =
+        args.id === "worktree-audit" &&
+        !args.args.includes("-s") &&
+        !args.args.includes("--sessions")
+          ? serializeLiveSessions(host.getSessions?.())
+          : undefined;
+      const environment =
+        liveSessionsJson === undefined
+          ? undefined
+          : { ...scriptEnvironment(), DSH_LIVE_SESSIONS_JSON: liveSessionsJson };
       if (args.background) {
         return await runBackground(args, {
           jobs: host.getJobs?.(),
           ...(cwd === undefined ? {} : { cwd }),
+          ...(environment === undefined ? {} : { environment }),
           ...(exec.agent === undefined ? {} : { caller: exec.agent.id }),
         });
       }
       return await runForeground(args, {
         signal: exec.signal,
         ...(cwd === undefined ? {} : { cwd }),
+        ...(environment === undefined ? {} : { environment }),
       });
     },
   };
@@ -512,14 +566,13 @@ export const name = "pstack-script";
 export const inject = ["tools", "workingDirectory"];
 
 /** Register `pstack_script` for this row. */
-export function apply(
-  ctx: PstackScriptHost & { get?: (name: string) => JobsHost | undefined },
-): void {
+export function apply(ctx: PstackScriptHost & { get?: (name: string) => unknown }): void {
   ctx.tools.register(
     createPstackScriptTool({
       tools: ctx.tools,
       workingDirectory: ctx.workingDirectory,
-      getJobs: () => ctx.get?.("jobs"),
+      getJobs: () => ctx.get?.("jobs") as JobsHost | undefined,
+      getSessions: () => ctx.get?.("sessions") as LiveSessionsHost | undefined,
     }),
   );
 }

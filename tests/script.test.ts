@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from "vite-plus/test";
 import {
   MAX_TIMEOUT_MS,
   SCRIPT_IDS,
+  createPstackScriptTool,
   parseScriptArgs,
   renderScriptOutcome,
   resolveWorkingDirectory,
@@ -13,6 +14,7 @@ import {
   runForeground,
   scriptEnvironment,
   scriptPath,
+  serializeLiveSessions,
 } from "../src/script.ts";
 
 const directories: string[] = [];
@@ -97,5 +99,35 @@ describe("pstack_script execution", () => {
       }),
     );
     expect(result.exitCode).toBe(0);
+  });
+
+  it("serializes live sessions and passes DSH_LIVE_SESSIONS_JSON to worktree-audit when --sessions is omitted", async () => {
+    const serialized = serializeLiveSessions({
+      list: () => [
+        {
+          id: "live-1",
+          header: { cwd: "/repo/wt-live", createdAt: 1700000000000 },
+          snapshotEvents: () => [{ time: 1700002000000 }],
+        },
+      ],
+    });
+    expect(JSON.parse(serialized ?? "[]")).toEqual([
+      { sessionId: "live-1", cwd: "/repo/wt-live", lastEventTime: 1700002000 },
+    ]);
+    expect(serializeLiveSessions({ list: () => [] })).toBeUndefined();
+
+    if (!existsSync(scriptPath("worktree-audit"))) return;
+    const tool = createPstackScriptTool({
+      tools: {} as never,
+      workingDirectory: { ensure: async () => process.cwd() },
+      getSessions: () => ({
+        list: () => [{ id: "live-1", header: { cwd: process.cwd(), createdAt: 1700000000000 } }],
+      }),
+    });
+    const outcome = (await tool.execute({ id: "worktree-audit", args: ["--help"] }, {
+      signal: new AbortController().signal,
+    } as never)) as { exitCode: number; stdout: string };
+    expect(outcome.exitCode).toBe(0);
+    expect(outcome.stdout).toContain("Usage: worktree-audit.mjs");
   });
 });

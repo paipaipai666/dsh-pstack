@@ -16,7 +16,7 @@ import { spawn, spawnSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { createServer } from "node:net";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -34,9 +34,42 @@ const reset = flags.has("--reset");
 const reinstall = flags.has("--reinstall");
 const prepare = flags.has("--prepare");
 const bin = process.env.DSH_BIN ?? (process.platform === "win32" ? "dsh.cmd" : "dsh");
-const useShell = process.platform === "win32" && /\.cmd$/i.test(bin);
-const launchBin = useShell ? `"${bin}"` : bin;
 const log = (message) => console.log(`[start] ${message}`);
+
+function resolveDshSpawn(commandBin, args, baseEnv = process.env) {
+  if (process.platform === "win32" && /[\\/]dsh\.cmd$/i.test(commandBin)) {
+    const base = dirname(commandBin);
+    const exe = resolve(base, "..", "..", "..", "..", "DeepSeek Harness.exe");
+    const cliJs = resolve(
+      base,
+      "..",
+      "..",
+      "..",
+      "app.asar",
+      "dsh",
+      "node_modules",
+      "@deepseek-ai",
+      "dsh-desktop-host",
+      "lib",
+      "cli.js",
+    );
+    if (existsSync(exe)) {
+      return {
+        command: exe,
+        args: ["--expose-internals", cliJs, ...args],
+        shell: false,
+        env: { ...baseEnv, ELECTRON_RUN_AS_NODE: "1" },
+      };
+    }
+  }
+  const shell = process.platform === "win32" && /\.cmd$/i.test(commandBin);
+  return {
+    command: shell ? `"${commandBin}"` : commandBin,
+    args,
+    shell,
+    env: baseEnv,
+  };
+}
 
 function portState() {
   return new Promise((resolve) => {
@@ -64,7 +97,7 @@ function extractPatchEntries(text, ids) {
   if (current) blocks.push(current);
   return blocks
     .filter((block) => {
-      const match = block[0].match(/^- id:\s*["']?([A-Za-z0-9._-]+)["']?\s*$/);
+      const match = block[0].match(/^- id:\s*["']?([A-Za-z0-9._-]+)["']?(?:\s+#.*)?\s*$/);
       return match && wanted.has(match[1]);
     })
     .map((block) => block.join("\n").replace(/\s+$/, ""));
@@ -99,29 +132,37 @@ function syncCredentials() {
 }
 
 function syncHomePatch() {
-  const source = join(homedir(), ".dsh", "profiles", "web", "cordis.patch.yml");
+  const candidates = process.env.PLAYGROUND_SOURCE_PROFILE
+    ? [process.env.PLAYGROUND_SOURCE_PROFILE]
+    : ["desktop", "web"];
   const dest = join(DSH_HOME, "cordis.patch.yml");
   const header =
     "# Machine-local patch layer for the playground DSH home (regenerated on every start).\n" +
-    "# `start.mjs` copies agent-default-model / llm-pi-ai from the host web profile.\n" +
-    "# Do not commit; edit the host web profile to change model routes.\n";
+    "# `start.mjs` copies agent-default-model / llm-pi-ai from the host profile.\n" +
+    "# Do not commit; edit the host profile to change model routes.\n";
   let body = "";
-  if (existsSync(source)) {
-    body = extractPatchEntries(readFileSync(source, "utf8"), HOME_PATCH_IDS).join("\n");
+  let matchedProfile;
+  for (const profileName of candidates) {
+    const source = join(homedir(), ".dsh", "profiles", profileName, "cordis.patch.yml");
+    if (!existsSync(source)) continue;
+    const extracted = extractPatchEntries(readFileSync(source, "utf8"), HOME_PATCH_IDS).join("\n");
+    if (extracted) {
+      body = extracted;
+      matchedProfile = profileName;
+      break;
+    }
   }
   if (body) {
     writeFileSync(dest, `${header}${body}\n`);
-    log("synced home patch from host web profile (agent-default-model, llm-pi-ai)");
+    log(`synced home patch from host ${matchedProfile} profile (agent-default-model, llm-pi-ai)`);
   } else {
     if (!existsSync(dest)) {
       writeFileSync(
         dest,
-        `${header}# No agent-default-model / llm-pi-ai found in the host web profile.\n# Add provider/model config here so real-session tests can call a model.\n[]\n`,
+        `${header}# No agent-default-model / llm-pi-ai found in the host profile.\n# Add provider/model config here so real-session tests can call a model.\n[]\n`,
       );
     }
-    log(
-      "WARNING: no model config found in the host web profile; kept existing playground home patch",
-    );
+    log("WARNING: no model config found in the host profile; kept existing playground home patch");
   }
 }
 
@@ -132,11 +173,15 @@ function ensureInstall() {
     return;
   }
   log("installing dsh-pstack into the playground profile (pnpm store write access required)…");
-  const result = spawnSync(launchBin, ["plugin", "--profile", PROFILE_NAME, "install"], {
+  const launch = resolveDshSpawn(bin, ["plugin", "--profile", PROFILE_NAME, "install"], {
+    ...process.env,
+    DSH_HOME,
+  });
+  const result = spawnSync(launch.command, launch.args, {
     cwd: REPO_ROOT,
-    env: { ...process.env, DSH_HOME },
+    env: launch.env,
     stdio: "inherit",
-    shell: useShell,
+    shell: launch.shell,
   });
   if (result.error) throw new Error(`failed to run dsh: ${result.error.message}; is dsh on PATH?`);
   if (result.status !== 0) {
@@ -174,11 +219,17 @@ if (prepare) {
 }
 
 log(`launching dsh web on http://${HOST}:${PORT} (DSH_HOME=${DSH_HOME})`);
-const child = spawn(
-  launchBin,
+const webLaunch = resolveDshSpawn(
+  bin,
   ["--profile", PROFILE_NAME, "--port", String(PORT), "--host", HOST, "--no-open"],
-  { cwd: process.cwd(), env: { ...process.env, DSH_HOME }, stdio: "inherit", shell: useShell },
+  { ...process.env, DSH_HOME },
 );
+const child = spawn(webLaunch.command, webLaunch.args, {
+  cwd: process.cwd(),
+  env: webLaunch.env,
+  stdio: "inherit",
+  shell: webLaunch.shell,
+});
 
 child.on("error", (error) => {
   console.error(`[start] failed to launch dsh: ${error.message}; is dsh on PATH?`);

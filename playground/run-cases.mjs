@@ -28,7 +28,7 @@ import {
   symlinkSync,
   writeFileSync,
 } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as yaml from "js-yaml";
 
@@ -261,6 +261,19 @@ function prepareCredentials(config, deployment, routes) {
   if (deployment.parentProvider) providerIds.add(deployment.parentProvider);
   for (const route of routes) providerIds.add(route.provider);
 
+  const credFile = join(DSH_HOME, ".credentials.yaml");
+  let credRefs = {};
+  if (existsSync(credFile)) {
+    try {
+      const parsed = yaml.load(readFileSync(credFile, "utf8"));
+      if (parsed && typeof parsed.refs === "object" && parsed.refs !== null) {
+        credRefs = parsed.refs;
+      }
+    } catch {
+      // Malformed credentials file falls back to config.json / env checks.
+    }
+  }
+
   const missing = [];
   const notes = [];
   for (const providerId of providerIds) {
@@ -275,6 +288,15 @@ function prepareCredentials(config, deployment, routes) {
     if (apiKey.startsWith("<") && apiKey.endsWith(">")) apiKey = "";
     if (!apiKey && apiKeyEnv && process.env[apiKeyEnv]) apiKey = process.env[apiKeyEnv];
     if (apiKeyEnv && !apiKey) {
+      if (
+        Object.hasOwn(credRefs, apiKeyEnv) &&
+        typeof credRefs[apiKeyEnv] === "string" &&
+        credRefs[apiKeyEnv] !== ""
+      ) {
+        process.env[apiKeyEnv] = credRefs[apiKeyEnv];
+        notes.push(`${providerId}=ok(credentials.yaml)`);
+        continue;
+      }
       missing.push(`${providerId}: 缺少 apiKey（config.providers["${providerId}"].apiKey）`);
       notes.push(`${providerId}=MISSING`);
       continue;
@@ -289,22 +311,24 @@ function prepareCredentials(config, deployment, routes) {
 // Headless profile
 // ---------------------------------------------------------------------------
 
+const PACKAGE_NAME = "@paipaipai666/dsh-pstack";
+
 function ensureProfile(profileName, profileDir, patchText) {
-  mkdirSync(join(profileDir, "node_modules"), { recursive: true });
+  mkdirSync(join(profileDir, "node_modules", "@paipaipai666"), { recursive: true });
   const manifest = {
     name: `dsh-profile-${profileName}`,
     private: true,
-    dependencies: { "dsh-pstack": `link:${REPO_ROOT}` },
+    dependencies: { [PACKAGE_NAME]: `link:${REPO_ROOT}` },
     dsh: {
       profile: {
-        bundles: ["@deepseek-ai/dsh-base", "@deepseek-ai/dsh-headless", "dsh-pstack"],
+        bundles: ["@deepseek-ai/dsh-base", "@deepseek-ai/dsh-headless", PACKAGE_NAME],
       },
     },
   };
   writeFileSync(join(profileDir, "package.json"), `${JSON.stringify(manifest, null, 2)}\n`);
   if (patchText !== undefined) writeFileSync(join(profileDir, "cordis.patch.yml"), patchText);
   else rmSync(join(profileDir, "cordis.patch.yml"), { force: true });
-  const link = join(profileDir, "node_modules", "dsh-pstack");
+  const link = join(profileDir, "node_modules", "@paipaipai666", "dsh-pstack");
   let linked = false;
   try {
     linked = lstatSync(link).isSymbolicLink() || lstatSync(link).isDirectory();
@@ -313,26 +337,25 @@ function ensureProfile(profileName, profileDir, patchText) {
   }
   if (!linked) {
     try {
-      symlinkSync(REPO_ROOT, link, "dir");
+      symlinkSync(REPO_ROOT, link, process.platform === "win32" ? "junction" : "dir");
     } catch (error) {
       die(
-        `无法为 ${profileName} 链接 dsh-pstack：${error instanceof Error ? error.message : String(error)}`,
+        `无法为 ${profileName} 链接 ${PACKAGE_NAME}：${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
 }
 
 function ensureHeadlessProfile() {
-  ensureProfile(PROFILE_NAME, PROFILE_DIR);
+  const patch = ["- id: pstack-script-policy", "  config:", "    mode: allow", ""].join("\n");
+  ensureProfile(PROFILE_NAME, PROFILE_DIR, patch);
 }
 
 function ensurePresetProfile() {
   const patch = [
-    "- insert:",
-    "    - id: agent-preset-registry",
-    "      name: '@deepseek-ai/dsh-agent-preset-registry'",
-    "      config:",
-    "        default: poteto-agent",
+    "- id: pstack-agent-preset-registry",
+    "  config:",
+    "    default: poteto-agent",
     "",
   ].join("\n");
   ensureProfile(PRESET_PROFILE_NAME, PRESET_PROFILE_DIR, patch);
@@ -340,11 +363,9 @@ function ensurePresetProfile() {
 
 function ensureRootProfile() {
   const patch = [
-    "- insert:",
-    "    - id: agent-preset-registry",
-    "      name: '@deepseek-ai/dsh-agent-preset-registry'",
-    "      config:",
-    "        default: poteto-mode",
+    "- id: pstack-agent-preset-registry",
+    "  config:",
+    "    default: poteto-mode",
     "",
   ].join("\n");
   ensureProfile(ROOT_PROFILE_NAME, ROOT_PROFILE_DIR, patch);
@@ -406,10 +427,50 @@ if (CASES.length === 0 && !opts.help) {
 // 执行
 // ---------------------------------------------------------------------------
 
+function resolveDshSpawn(commandBin, args, baseEnv = process.env) {
+  if (process.platform === "win32" && /[\\/]dsh\.cmd$/i.test(commandBin)) {
+    const base = dirname(commandBin);
+    const exe = resolve(base, "..", "..", "..", "..", "DeepSeek Harness.exe");
+    const cliJs = resolve(
+      base,
+      "..",
+      "..",
+      "..",
+      "app.asar",
+      "dsh",
+      "node_modules",
+      "@deepseek-ai",
+      "dsh-desktop-host",
+      "lib",
+      "cli.js",
+    );
+    if (existsSync(exe)) {
+      return {
+        command: exe,
+        args: ["--expose-internals", cliJs, ...args],
+        shell: false,
+        env: { ...baseEnv, ELECTRON_RUN_AS_NODE: "1" },
+      };
+    }
+  }
+  const shell = process.platform === "win32" && /\.cmd$/i.test(commandBin);
+  return {
+    command: shell ? `"${commandBin}"` : commandBin,
+    args,
+    shell,
+    env: baseEnv,
+  };
+}
+
 function runHeadless(prompt, profileName = PROFILE_NAME) {
-  const result = spawnSync(DSH_BIN, ["--profile", profileName, "--json", prompt], {
+  const launch = resolveDshSpawn(DSH_BIN, ["--profile", profileName, "--json", prompt], {
+    ...process.env,
+    DSH_HOME,
+  });
+  const result = spawnSync(launch.command, launch.args, {
     cwd: REPO_ROOT,
-    env: { ...process.env, DSH_HOME },
+    env: launch.env,
+    shell: launch.shell,
     encoding: "utf8",
     timeout: CASE_TIMEOUT,
     maxBuffer: 32 * 1024 * 1024,

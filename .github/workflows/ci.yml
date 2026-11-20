@@ -84,6 +84,21 @@ jobs:
           path: artifacts/*.tgz
           if-no-files-found: error
 
+  version-bump:
+    name: Version bump (auto PRs)
+    if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'auto/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Verify release version, changelog, and compatibility tables
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/check-version-bump.mjs
+
   install-smoke:
     name: Install smoke (Linux)
     needs: check

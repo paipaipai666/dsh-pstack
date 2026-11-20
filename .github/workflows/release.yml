@@ -2,6 +2,9 @@ name: Release
 
 on:
   push:
+    branches:
+      - main
+      - fork/main
     tags:
       - "v*"
 
@@ -14,8 +17,37 @@ permissions:
   id-token: write
 
 jobs:
+  prepare:
+    name: Prepare release
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.check.outputs.should_release }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Decide whether this commit needs a release
+        id: check
+        shell: bash
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          SHOULD_RELEASE="false"
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            SHOULD_RELEASE="true"
+          elif ! git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
+            SHOULD_RELEASE="true"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "should_release=$SHOULD_RELEASE" >> "$GITHUB_OUTPUT"
+          echo "Version $VERSION, should_release=$SHOULD_RELEASE"
+
   release:
     name: Release
+    needs: prepare
+    if: needs.prepare.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -50,11 +82,26 @@ jobs:
       - name: Run CI
         run: pnpm run ci
 
+      - name: Tag release commit
+        if: github.ref_type != 'tag'
+        shell: bash
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
+          echo "Created and pushed tag v$VERSION"
+
       - name: Resolve npm dist-tag
         id: dist-tag
         run: |
           VERSION="$(node -p "require('./package.json').version")"
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            TAG_VERSION="${GITHUB_REF_NAME#v}"
+          else
+            TAG_VERSION="$VERSION"
+          fi
           if [ "$TAG_VERSION" != "$VERSION" ]; then
             echo "::error::Tag v$TAG_VERSION does not match package.json version $VERSION"
             exit 1

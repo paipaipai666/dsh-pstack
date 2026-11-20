@@ -154,7 +154,8 @@ describe("pstack_subagent arguments and planning", () => {
     const base = fakeRuntime(home());
     let captured: Record<string, unknown> | undefined;
     const subagents = {
-      ...base.subagents,
+      getProvider: base.subagents.getProvider.bind(base.subagents),
+      resolveMaxDepth: base.subagents.resolveMaxDepth.bind(base.subagents),
       startActivation: async (spec: Record<string, unknown>) => {
         captured = spec;
         return { childId: "child-1" };

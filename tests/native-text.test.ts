@@ -8,7 +8,7 @@ const TREE_ROOT = resolve(import.meta.dirname, "../pstack");
 const ADAPTER = resolve(import.meta.dirname, "../port/dsh.md");
 
 const CURSOR_SLUG =
-  /\b(?:claude-opus-5-5-(?:xhigh|medium|max|high-fast)|claude-fable-5-2-(?:high|max)|gemini-4-carbon-high|grok-4\.7-(?:xhigh|medium)-fast|gpt-5\.6-sol-max|cursor-grok-\*|composer-\*|claude-fable-\*|claude-\*|grok-\*)\b/;
+  /\b(?:claude-opus-5-5-(?:xhigh|medium|max|high-fast)|claude-fable-5-2-(?:high|max)|gemini-4-[a-z]+-(?:high|xhigh)|grok-4\.7-(?:xhigh|medium)-fast|gpt-5\.6-sol-max|cursor-grok-\*|composer-\*|claude-fable-\*|claude-\*|grok-\*)\b/;
 
 /** Cursor names that a shipped skill body must not carry once `toDshText` has run. */
 const TRANSLATED: readonly (readonly [RegExp, string])[] = [
@@ -67,10 +67,20 @@ describe("native skill text translation", () => {
       "the configured code role and the configured judgment role",
     );
     expect(
-      toDshText("claude-opus-5-5-high-fast, claude-fable-5-2-high, and gemini-4-carbon-high"),
+      toDshText("claude-opus-5-5-high-fast, claude-fable-5-2-high, and gemini-4-neon-high"),
     ).toBe(
       "the configured worker role, the configured judgment role, and the configured cross-check role",
     );
+  });
+
+  it("translates any Gemini 4 panel version, not only the current one", () => {
+    // Upstream renames the Gemini panel model across releases (`carbon` → `neon` in 0.15.44), so
+    // the rule keys on the version slot instead of one slug.
+    for (const slug of ["gemini-4-neon-high", "gemini-4-carbon-high", "gemini-4-neon-xhigh"]) {
+      expect(toDshText(`A Gemini seat runs on \`${slug}\`.`)).toBe(
+        "A Gemini seat runs on `the configured cross-check role`.",
+      );
+    }
   });
 
   it("translates the remaining spawn fields", () => {

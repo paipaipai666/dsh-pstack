@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.1
+
+Synchronizes the port with upstream pstack 0.15.44 (commit `e58dd04`). The DSH range and compatibility key `dsh-0.2.2-rc.2+port-v1` are unchanged, so this is a patch release on the same baseline.
+
+### Changed
+
+- Regenerated `pstack/` from upstream 0.15.44, which moves the Gemini panel seat from `gemini-4-carbon-high` to `gemini-4-neon-high` in the `arena` runners and cross-judge defaults, `poteto-mode`, and `setup-pstack`, and drops the claim that the seat's slug is Gemini's top effort.
+- Native text translation (`src/native-text.ts`) rewrites the whole `gemini-4-*` slug family instead of one version, so a later upstream rename needs no code change.
+- `port/dsh.md` and `port/dsh.zh.md` now state the full role-file migration: a retired role name, a leftover `# budget: unlimited` line, and an old `gemini-4-*` panel entry each get reported to the user, the panel entry carried over to the route that role now targets. The generated `pstack/docs/harness/dsh.md` follows.
+- The audit lock moves to baseline `dsh-0.2.2-rc.2@pstack-e58dd04` as a normal update. Only `CAP-023` (Claude slug) changed source; its decision and recommendation are unchanged.
+
 ## 0.5.0
 
 Graduates the `0.5.0-beta.*` series to a stable release synchronized with upstream pstack `0.15.43` and DSH `>=0.2.2-rc.2`.

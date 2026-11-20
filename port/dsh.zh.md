@@ -45,7 +45,7 @@ pstack 技能沿用 Cursor 名称。在 DeepSeek Harness 中，每个会话先�
 
 - 探测。枚举 `pstack_models` 返回的路由，写成 `<provider>/<model> [effort]`。effort 必须是该路由声明的 token。探测不到时让用户粘贴路由，不要写未确认的路由。`inherit-parent` 与 `auto` 始终有效。
 - 默认值。按模型表把默认 Cursor slug 换成 `pstack_models` 返回的真实路由。按预算调整 effort：`large`、`medium`、`small` 对应 `xhigh`、`high`、`medium`，且没有路由高于 `xhigh`。模型没有该 token 时选不高于目标的最高可用 effort 并说明；所有 effort 都高于目标时让用户选择；没有 effort 时保留不带方括号的路由并说明。
-- 写入。写 `$DSH_HOME/pstack-models.mdc`，不要 frontmatter；先写注释行、`# defaults: 3` 行、`# budget:` 行，再写每个角色一行。覆盖整个文件，保证重跑幂等。删除某行就是让该角色继承父路由。未知或已退休的角色行按行号报告、从新文件删除并告诉用户。不要把角色行写进 `AGENTS.md` 或 `CLAUDE.md`。
+- 写入。写 `$DSH_HOME/pstack-models.mdc`，不要 frontmatter；先写注释行、`# defaults: 3` 行、`# budget:` 行，再写每个角色一行。覆盖整个文件，保证重跑幂等。删除某行就是让该角色继承父路由。未知或已退休的角色行按行号报告、从新文件删除并告诉用户。旧文件里还可能有已退休的角色名、预算撤销前写下的 `# budget: unlimited` 行，或上游后来替换掉的旧 Gemini 面板条目（例如当前版本之外的 `gemini-4-*` slug）。逐行报告，把值换成该角色现在对应的路由，没有对应角色的直接删除，并告诉用户改了什么。不要把角色行写进 `AGENTS.md` 或 `CLAUDE.md`。
 
 ## 路径
 

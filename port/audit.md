@@ -6,8 +6,8 @@
 
 - DSH：`@deepseek-ai/dsh` 0.2.2-rc.2。
 - 能力基线：DSH Web profile 的标准模式。headless 只用于 playground 自动化，不参与能力判定。
-- pstack：`upstream/cursor-plugins` 提交 `2f87c854fe3e2fcda44ca86b46ede35aad3c46b7`，插件版本 0.15.43。上一个基线为 `bf0c7cd80abdbf7fe47b634978a7d1b4071f71a7`（0.15.42），本轮为破坏性更新（`breaking`）。
-- 审核日期：2026-11-17。
+- pstack：`upstream/cursor-plugins` 提交 `e58dd043600587dbaf58ba315e7f2b38373eeb43`，插件版本 0.15.44。上一个基线为 `2f87c854fe3e2fcda44ca86b46ede35aad3c46b7`（0.15.43），本轮为普通更新（`normal`），沿用兼容键 `dsh-0.2.2-rc.2+port-v1`。
+- 审核日期：2026-11-18。
 - 工具清单取自运行时 `Tool.listTools`。官方插件状态取自当前 Web profile 的 `dsh.profile.bundles`。
 - `list_subagent_models` 由 `@deepseek-ai/dsh-tool-subagent` 的 `modelDiscovery` 注册。`modelDiscovery` 为 false 时工具根本不注册，不是隐藏或空列表。默认 false，Web 与 Desktop 标准预设设为 true，headless、SDK、ACP 不包含。
 - `subagent` 的 `agent_preset` 由 `allowedAgentPresets` 开启。预设是 Cordis 插件组合，子代理启动时按所选预设挂载，系统提示与工具随组合加载。
@@ -15,7 +15,7 @@
 
 ## 处置状态
 
-本轮已确认处置 67 项。上游在普通更新中删除了 `check-plan`，对应 CAP-059 标为已移除并从活动 lock 删除，历史只留在 Git 提交里。
+本轮已确认处置 67 项，沿用 0.15.43 基线的处置结论。0.15.43 的普通更新删除了 `check-plan`，其能力此前已标为已移除并从活动 lock 删除，历史只留在 Git 提交里；0.15.44 没有删除或新增能力。
 
 - `直接映射`：DSH 标准模式已经提供。
 - `官方插件`：启用 DSH 随附的官方插件即可。
@@ -179,6 +179,17 @@
 
 本仓库采用同样的边界。DSH 有对应能力的，按标准模式或官方插件映射。DSH 没有的，按舍弃处理并写入 `dsh.md`。不为 Cursor 云服务或平台能力编造等价物。
 
+## 本轮变化（0.15.43 → 0.15.44）
+
+普通更新，兼容键不变。上游提交 `e58dd043600587dbaf58ba315e7f2b38373eeb43` 只做一件事：把 Gemini 面板席位从 `gemini-4-carbon-*` 换成 `gemini-4-neon-*`。`vpx port/scan.mjs --check-lock` 只有 CAP-023（`claude-slug`）源 digest 变化，其余 67 项源未变，按能力 key 与 `sourceDigest` 直接沿用。扫描器仍为 115 个 Markdown 文件与 48 个脚本或配置文件。
+
+| 变化 | 观察 | 处置影响 |
+|:--|:--|:--|
+| 面板席位默认模型换为 `gemini-4-neon-high` | `skills/arena/SKILL.md:17`、`skills/arena/SKILL.md:28`、`skills/poteto-mode/SKILL.md:92`、`skills/setup-pstack/SKILL.md:64`、`skills/setup-pstack/SKILL.md:65`、`skills/setup-pstack/SKILL.md:67` 的默认 slug 由 `gemini-4-carbon-high` 改为 `gemini-4-neon-high` | CAP-023 标为待复核后按新基线复核，处置与推荐不变；`src/native-text.ts` 的 slug 转译规则改为按版本位匹配 `gemini-4-*`，测试同步 |
+| Gemini 上限不再是该 slug 本身 | `skills/poteto-mode/SKILL.md:96` 由「never runs above `gemini-4-carbon-high`, its top slug」改为「never runs above `gemini-4-neon-high`」，删去「top slug」的说法，因为 Neon 另有 `xhigh` slug | 与无路由高于 `xhigh` 的预算规则一致；CAP-023 与 CAP-029 的既有处置覆盖，无新增能力 |
+| 旧规则迁移 | `skills/setup-pstack/SKILL.md:20` 新增一段：面板角色里 `gemini-4-neon-*` 以外的 `gemini-4-*` 条目算旧默认，逐条换成 `gemini-4-neon-high` 并告知用户 | 属于 setup-pstack 的迁移流程，走 CAP-029；本仓的中文覆盖版跳过上游 slug 步骤，见该小节 |
+| `docs/harness/claude-code.md` 同步换 slug | `docs/harness/claude-code.md:46` 的默认映射表 | 上游的 Claude Code 适配文档，不进入生成树；只体现 CAP-023 与 CAP-029 的既有处置，不新增能力 |
+
 ## 本轮变化（0.15.42 → 0.15.43）
 
 普通更新。上游提交 `2f87c854fe3e2fcda44ca86b46ede35aad3c46b7` 做了三件事：把大量技能正文缩短、删除几项能力、调整默认模型路由。按 `port/AGENTS.md` 的审核继承规则，39 项源变化重新比对，其余 29 项源未变直接沿用。
@@ -227,7 +238,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/automate-me/SKILL.md:17`、`skills/poteto-mode/playbooks/autonomous-run.md:9`、`skills/setup-pstack/SKILL.md:30`、`docs/harness/claude-code.md:10` |
+| 📍 使用位置 | `skills/automate-me/SKILL.md:17`、`skills/poteto-mode/playbooks/autonomous-run.md:9`、`skills/setup-pstack/SKILL.md:32`、`docs/harness/claude-code.md:10` |
 | 🖱️ Cursor 行为 | `AskQuestion` 用于给用户多选项确认，例如 automates-me 的偏好采集与 setup-pstack 的预算选择。 |
 | 🧰 标准模式 | `ask_user_question` 支持 `header`、`options`、`multi_select`、自定义回答。`multi_select` 对应 Cursor 的 `allow_multiple`。空选择表示跳过，不视为同意。 |
 | 🧩 官方插件 | 无。 |
@@ -625,7 +636,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/poteto-mode/SKILL.md:90`、`skills/arena/SKILL.md:17`、`agents/poteto-agent.md:5` |
+| 📍 使用位置 | `skills/poteto-mode/SKILL.md:90`、`skills/arena/SKILL.md:17`、`agents/poteto-agent.md:5`、`skills/setup-pstack/SKILL.md:64` |
 | 🖱️ Cursor 行为 | 技能默认使用 `claude-opus-5-5-xhigh` 等 Cursor 模型 slug，并带 `-fast` 后缀与推理档位。 |
 | 🧰 标准模式 | `list_subagent_models` 只在 `modelDiscovery: true` 的 `dsh-tool-subagent` 实例上注册，Web 标准预设已开启；关闭时工具不存在。没有记录模型选择策略时只返回父会话当前路由；开启子代理模型选择后按 Session 记录的路由列表返回。`subagent` 接受 `provider`、`model`、`reasoning_effort`。 |
 | 🧩 官方插件 | 无。 |
@@ -633,7 +644,7 @@
 | 🛠️ 插件要求与验收 | 插件提供 `pstack_models` 工具枚举完整 provider、model 与 effort。角色配置把 Cursor `claude-*` slug 映射到实际路由；未配置映射时报错，不照抄 slug。验收：`pstack_models` 返回完整列表，角色配置解析出实际 `provider`、`model`、`reasoning_effort`。 |
 | ⚔️ 冲突 | DSH 的模型选择设置会记录会话路由，插件角色配置（见 CAP-028）又会覆盖每个角色的路由。两个来源同时生效时以插件角色配置为准，但用户在界面改的模型可能被静默覆盖。 |
 | 🚧 最终遗留 | Cursor slug 与实际路由之间需要维护映射表，DSH 升级或供应商变化后要重新映射。 |
-| 💡 推荐 | 🟠 插件实现。调用时用插件 `pstack_models` 返回的实际路由填 `provider`、`model`、`reasoning_effort`。`list_subagent_models` 只在 Web 与 Desktop 标准预设提供，不能作为唯一来源。Cursor slug 到实际路由的映射写进角色配置，见 CAP-028。 |
+| 💡 推荐 | 🟠 插件实现。调用时用插件 `pstack_models` 返回的实际路由填 `provider`、`model`、`reasoning_effort`。`list_subagent_models` 只在 Web 与 Desktop 标准预设提供，不能作为唯一来源。Cursor slug 到实际路由的映射写进角色配置，见 CAP-028。技能正文里的 slug 由 `toDshText` 统一译成角色名；发布目录中的 `gemini-4-*` 版本位由 `src/native-text.ts` 的转译规则匹配，所以上游再换 Gemini 面板版本（`carbon` → `neon` → 之后任一版本）不必改规则。 |
 | ✅ 处置 | 插件实现 |
 
 [返回审核清单](#审核清单)
@@ -741,7 +752,7 @@
 | 🖱️ Cursor 行为 | `setup-pstack` 检测可用模型，按预算把每个角色映射到模型，写入 always-applied 规则。 |
 | 🧰 标准模式 | `list_subagent_models` 只在 `modelDiscovery: true` 的 `dsh-tool-subagent` 实例上注册，Web 标准预设已开启；关闭时工具不存在。没有记录模型选择策略时只列父路由。没有配置界面与预算映射。 |
 | 🧩 官方插件 | 无。 |
-| 🕳️ 剩余缺口 | 需要插件提供完整的模型列表工具、配置入口与角色映射，对应本地扩展中的插件配置入口与角色模型配置。 |
+| 🕳️ 剩余缺口 | 需要插件提供完整的模型列表工具、配置入口与角色映射，对应本地扩展中的插件配置入口与角色模型配置。上游 0.15.44 把面板席的旧 Gemini 条目当作旧默认，逐条换成 `gemini-4-neon-high` 并告知用户；本仓的覆盖版只写 `inherit-parent`，不写 slug，所以直接沿用第 2 步现有的「旧文件迁移」规则，不引入 slug 迁移步骤。 |
 | 🛠️ 插件要求与验收 | 插件提供 `pstack_models` 工具，枚举 LLM 服务注册的全部 provider、model 与 effort，不依赖 `list_subagent_models` 或 `modelDiscovery`。插件提供角色配置页或配置命令，列出角色、当前路由、可选路由与预算，写回角色配置文件。验收：在 `modelDiscovery` 关闭的 profile 中 `pstack_models` 仍返回完整路由；Web UI 修改一个角色并保存，重启后仍生效。 |
 | ⚔️ 冲突 | 无。`setup-pstack` 和设置页都写同一份角色配置文件，以最后写入的值为准。 |
 | 🚧 最终遗留 | 同一角色的路由没有版本历史，后写覆盖先写。 |

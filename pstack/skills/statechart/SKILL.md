@@ -18,7 +18,7 @@ Work in a scratch folder outside the repo. Write a TLA+ spec and its config. The
 pstack_script({ id: "statechart", args: ["SPEC.tla", "--config", "FILE", "--view", "FILE", "--out", "DIR"] })
 ```
 
-The `pstack_script` `statechart` id runs the shipped JavaScript under the Host's Node runtime.
+The `pstack_script` `statechart` id runs the shipped JavaScript under the Host's Node runtime, on every platform. It needs no launcher: `pstack_script` starts Node itself, so the POSIX `scripts/statechart` and the native Windows command above do not apply.
 
 The first run installs TLC and Java with mise and needs the network.
 

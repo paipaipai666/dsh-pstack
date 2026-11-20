@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.2
+
+Synchronizes the port with upstream pstack 0.15.46 (commit `0b46ec3`). The DSH range and compatibility key `dsh-0.2.2-rc.2+port-v1` are unchanged, so this is a patch release on the same baseline.
+
+### Changed
+
+- Regenerated `pstack/` from upstream 0.15.46. `/statechart` no longer spawns `/bin/sh`: the process-group kill and the janitor are Node scripts (`scripts/kill.ts`, `scripts/janitor.ts`), `java` and `mise` start with `windowsHide`, and the janitor spares a reused Windows pid once the worker exits. Line readers split on `\r?\n`, so TLC's Windows line ends no longer hide a broken rule. `skills/statechart/SKILL.md` now names the native Windows command.
+- The Gemini panel seat defaults move from `gemini-4-neon-high` to `gemini-4-neon-xhigh` in the `arena` runners and cross-judge defaults, `poteto-mode`, and `setup-pstack`. A panel seat now takes its own budget target, and `/setup-pstack` treats the old `gemini-4-neon-high` default as one to replace. Native text translation already rewrites the whole `gemini-4-*` family, so no code changed.
+- `port/patches/skills.md` replaces the statechart runtime paragraph as a whole, so the generated line states that `pstack_script` needs no launcher and the POSIX and native Windows commands do not apply.
+- The audit lock moves to baseline `dsh-0.2.2-rc.2@pstack-0b46ec3` as a normal update. Only `CAP-023` (Claude slug) and `CAP-063` (statechart scripts) changed source; their decisions and recommendations are unchanged.
+
 ## 0.5.1
 
 Synchronizes the port with upstream pstack 0.15.44 (commit `e58dd04`). The DSH range and compatibility key `dsh-0.2.2-rc.2+port-v1` are unchanged, so this is a patch release on the same baseline.

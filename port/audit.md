@@ -6,12 +6,12 @@
 
 - DSH：`@deepseek-ai/dsh` 0.2.2-rc.2。
 - 能力基线：DSH Web profile 的标准模式。headless 只用于 playground 自动化，不参与能力判定。
-- pstack：`upstream/cursor-plugins` 提交 `e58dd043600587dbaf58ba315e7f2b38373eeb43`，插件版本 0.15.44。上一个基线为 `2f87c854fe3e2fcda44ca86b46ede35aad3c46b7`（0.15.43），本轮为普通更新（`normal`），沿用兼容键 `dsh-0.2.2-rc.2+port-v1`。
-- 审核日期：2026-11-18。
+- pstack：`upstream/cursor-plugins` 提交 `0b46ec399d55f2829e88822998f53b84944837d3`，插件版本 0.15.46。上一个基线为 `e58dd043600587dbaf58ba315e7f2b38373eeb43`（0.15.44），本轮为普通更新（`normal`），沿用兼容键 `dsh-0.2.2-rc.2+port-v1`。
+- 审核日期：2026-11-19。
 - 工具清单取自运行时 `Tool.listTools`。官方插件状态取自当前 Web profile 的 `dsh.profile.bundles`。
 - `list_subagent_models` 由 `@deepseek-ai/dsh-tool-subagent` 的 `modelDiscovery` 注册。`modelDiscovery` 为 false 时工具根本不注册，不是隐藏或空列表。默认 false，Web 与 Desktop 标准预设设为 true，headless、SDK、ACP 不包含。
 - `subagent` 的 `agent_preset` 由 `allowedAgentPresets` 开启。预设是 Cordis 插件组合，子代理启动时按所选预设挂载，系统提示与工具随组合加载。
-- 扫描器：`vpx port/scan.mjs` 输出 `.audit/scan/capability-scan.tsv`，覆盖 115 个 Markdown 文件与 48 个脚本或配置文件。`vpx port/scan.mjs --check port/audit.md` 校验本文件引用的行号。
+- 扫描器：`vpx port/scan.mjs` 输出 `.audit/scan/capability-scan.tsv`，覆盖 115 个 Markdown 文件与 50 个脚本或配置文件。`vpx port/scan.mjs --check port/audit.md` 校验本文件引用的行号。
 
 ## 处置状态
 
@@ -178,6 +178,23 @@
 `/loop` 与 `create-skill` 是 Cursor 内置能力，claude-code.md 没有为它们写映射行。技能里依赖它们的地方在 Claude Code 上没有替代路径。脚本在适配文档中完全没有出现，上游也没有为脚本提供运行时替代，脚本的环境要求只能在技能正文和 README 里说明。
 
 本仓库采用同样的边界。DSH 有对应能力的，按标准模式或官方插件映射。DSH 没有的，按舍弃处理并写入 `dsh.md`。不为 Cursor 云服务或平台能力编造等价物。
+
+## 本轮变化（0.15.44 → 0.15.46）
+
+普通更新，兼容键不变。上游提交 `0b46ec399d55f2829e88822998f53b84944837d3`（pstack 0.15.46）跨过中间版本号 0.15.45，pstack 树只有这一个提交的变化：`/statechart` 在原生 Windows 上不再依赖 `/bin/sh`，并让 TLC 的 `\r\n` 行尾不再掩盖被破坏的规则；同时把 Gemini 面板席位的默认档位抬到 `xhigh`。`vpx port/scan.mjs --check-lock` 只有 CAP-023（`claude-slug`）与 CAP-063（`statechart`）源 digest 变化，其余 66 项源未变，按能力 key 与 `sourceDigest` 直接沿用。扫描器变为 115 个 Markdown 文件与 50 个脚本或配置文件，多出的两个是新增的 `scripts/janitor.ts` 与 `scripts/kill.ts`。
+
+| 变化 | 观察 | 处置影响 |
+|:--|:--|:--|
+| 行读取按 `\r?\n` 切分 | `skills/statechart/scripts/frontends/dot.ts:38` 新增 `splitLines`，`skills/statechart/scripts/run.ts:58`、`skills/statechart/scripts/run.ts:61`、`skills/statechart/scripts/run.ts:137`、`skills/statechart/scripts/run.ts:140` 改用它 | CAP-063 标为待复核后按新基线复核，属于脚本内部修复，处置与推荐不变 |
+| janitor 与进程组终止脱离 `/bin/sh` | 新增 `skills/statechart/scripts/kill.ts:3`（Windows 用 `taskkill`，其余平台 `process.kill(-pid)`）与 `skills/statechart/scripts/janitor.ts:4`；`skills/statechart/scripts/statechart.ts:119` 的 janitor 改为用当前 Node 启动 `janitor.ts`，并在 worker 退出后补写 `exited` | CAP-063 复核；`janitor.ts` 只在 Windows 上对已退出的 worker 跳过终止，其余平台语义与旧 shell 版一致。随包树运行的是 `runtime/` 的编译产物，本仓不需要跟随 |
+| `java` 与 `mise` 以 `windowsHide` 启动 | `skills/statechart/scripts/run.ts:85` 的 `runChild` 增加 `windowsHide: true`，临时目录同时设置 `TEMP` 与 `TMP` | CAP-055、CAP-057 的引用行号随之下移，能力本身不变 |
+| 原生 Windows 运行方式写入技能正文 | `skills/statechart/SKILL.md:19` 说明 `scripts/statechart` 是 POSIX shell 启动器，原生 Windows 用 `node --disable-warning=ExperimentalWarning scripts/statechart.ts`（Node 22.18–22.x 或 23.6+） | 本仓走 `pstack_script` 的 `statechart` id，不经过该启动器，也不进入 Windows 分支；`port/patches/skills.md` 的 `Find` 文本仍与上游一致，暂不触发新适配 |
+| 新增 Windows 行尾回归 | `skills/statechart/scripts/test/cli.test.ts`、`skills/statechart/scripts/test/messages.test.ts` 新增语料重放 | 测试目录不在扫描范围；本仓 `runtime/` 有自己的行尾测试，不需要移植上游测试 |
+| Gemini 面板席位默认改为 `gemini-4-neon-xhigh` | `skills/arena/SKILL.md:17`、`skills/arena/SKILL.md:28`、`skills/poteto-mode/SKILL.md:92`、`skills/setup-pstack/SKILL.md:64`、`skills/setup-pstack/SKILL.md:65`、`skills/setup-pstack/SKILL.md:67` 的默认 slug 由 `gemini-4-neon-high` 改为 `gemini-4-neon-xhigh` | CAP-023 标为待复核后按新基线复核，处置与推荐不变；`src/native-text.ts` 已按 `gemini-4-*` 家族匹配，`xhigh` 规则与测试早已覆盖，无需改代码 |
+| 面板席位按预算取档 | `skills/poteto-mode/SKILL.md:96` 由「never runs above `gemini-4-neon-high`」改为「runs at `gemini-4-neon-xhigh` unless its line names another level」；`skills/setup-pstack/SKILL.md:38` 说明 Gemini 4 Neon 有 `low` 到 `xhigh` 的 slug、面板角色按预算取 `xhigh`/`high`/`medium` | CAP-029 的既有处置覆盖；本仓覆盖版只写 `inherit-parent`，角色档位由 `src/budget.ts` 计算，不引入 slug 迁移步骤 |
+| 旧规则迁移扩到 `gemini-4-neon-high` | `skills/setup-pstack/SKILL.md:20` 把面板角色里的 `gemini-4-neon-high` 也算旧默认，逐条换成 `gemini-4-neon-xhigh`，其他档位的 Neon 条目视为用户选择并保留 | 走 CAP-029 的迁移流程；`port/dsh.md` 与 `port/dsh.zh.md` 的「旧 Gemini 面板条目」一句已按「当前版本之外的 `gemini-4-*` slug」表述，对新旧默认都成立，不改 |
+| `docs/harness/claude-code.md` 同步换 slug | `docs/harness/claude-code.md:46` 的默认映射表 | 上游的 Claude Code 适配文档，不进入生成树；只体现 CAP-023 与 CAP-029 的既有处置，不新增能力 |
+| 上游 README 业务插件条目更新 | `third_party/quickbooks-online` 与根 `README.md` 的 QuickBooks 说明 | 不进入本仓移植范围，无影响 |
 
 ## 本轮变化（0.15.43 → 0.15.44）
 
@@ -1266,7 +1283,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/statechart/scripts/run.ts:197`、`skills/statechart/scripts/run.ts:198`、`skills/statechart/scripts/run.ts:200`、`skills/statechart/scripts/run.ts:203` |
+| 📍 使用位置 | `skills/statechart/scripts/run.ts:189`、`skills/statechart/scripts/run.ts:190`、`skills/statechart/scripts/run.ts:192`、`skills/statechart/scripts/run.ts:195` |
 | 🖱️ Cursor 行为 | `statechart` 首次运行用 mise 安装 TLC 与 Java。 |
 | 🧰 标准模式 | 本机有 mise。 |
 | 🧩 官方插件 | 无。 |
@@ -1302,7 +1319,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/statechart/scripts/run.ts:69`、`skills/statechart/scripts/run.ts:196`、`skills/statechart/scripts/run.ts:200`、`skills/statechart/scripts/run.ts:206` |
+| 📍 使用位置 | `skills/statechart/scripts/run.ts:69`、`skills/statechart/scripts/run.ts:188`、`skills/statechart/scripts/run.ts:192`、`skills/statechart/scripts/run.ts:198` |
 | 🖱️ Cursor 行为 | `statechart` 的 `ConfigOracle.java` 与 TLC 需要 Java。statechart 首选 `java@temurin-25`。 |
 | 🧰 标准模式 | 本机有 Temurin 17，statechart 会通过 mise 安装 `java@temurin-25`。 |
 | 🧩 官方插件 | 无。 |
@@ -1396,9 +1413,9 @@
 |:--|:--|
 | 📍 使用位置 | `skills/create-formal-verification-skill/SKILL.md:35`、`skills/poteto-help/SKILL.md:92`、`skills/statechart/scripts/package.json:2`、`docs/guide/06-verify-and-ship.md:118` |
 | 🖱️ Cursor 行为 | TLA+ 模型检查与 Mermaid 状态图生成，入口是 `scripts/statechart`。 |
-| 🧰 标准模式 | `sh` 启动器选择 TypeScript 运行时，调用 `statechart.ts`。首次运行用 mise 安装 TLC 与 Java。 |
+| 🧰 标准模式 | `sh` 启动器选择 TypeScript 运行时，调用 `statechart.ts`；原生 Windows 没有该启动器，改用 Node 直接运行 `statechart.ts`（`--disable-warning=ExperimentalWarning`，Node 22.18–22.x 或 23.6+）。进程组终止与 janitor 由 Node 脚本承担（`scripts/kill.ts`、`scripts/janitor.ts`），不再依赖 `/bin/sh`；TLC 输出按 `\r?\n` 切行。首次运行用 mise 安装 TLC 与 Java。 |
 | 🧩 官方插件 | 无。 |
-| 🕳️ 剩余缺口 | 依赖 Bun 或 Node 的 TypeScript 执行、mise、TLC、Java 与网络。TLC 缺失时正式检查不可用。 |
+| 🕳️ 剩余缺口 | 依赖 Bun 或 Node 的 TypeScript 执行、mise、TLC、Java 与网络。TLC 缺失时正式检查不可用。上游的 Windows 运行方式不适用于本仓：`pstack_script` 的 `statechart` id 直接用 Host Node 运行编译产物。 |
 | ⚔️ 冲突 | `statechart` 输出 Mermaid 文本，不提供图片渲染；需要图片时由用户在插件之外生成。 |
 | 🚧 最终遗留 | TLC 与 Java 需要 mise 安装，首次运行依赖网络。 |
 | 💡 推荐 | 🟢 直接映射。`statechart` 原样运行。TLC、Java 或网络缺失时报告不可用，只输出 Mermaid 文本，不声称完成形式化检查。 |

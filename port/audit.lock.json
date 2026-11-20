@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "baseline": {
-    "id": "dsh-0.2.2-rc.2@pstack-e58dd043600587dbaf58ba315e7f2b38373eeb43",
+    "id": "dsh-0.2.2-rc.2@pstack-0b46ec399d55f2829e88822998f53b84944837d3",
     "compatibilityKey": "dsh-0.2.2-rc.2+port-v1",
-    "previous": "dsh-0.2.2-rc.2@pstack-2f87c854fe3e2fcda44ca86b46ede35aad3c46b7",
+    "previous": "dsh-0.2.2-rc.2@pstack-e58dd043600587dbaf58ba315e7f2b38373eeb43",
     "transition": "normal"
   },
   "items": {
@@ -223,7 +223,7 @@
       "requirement": "插件提供 `pstack_models` 工具枚举完整 provider、model 与 effort。角色配置把 Cursor `claude-*` slug 映射到实际路由；未配置映射时报错，不照抄 slug。验收：`pstack_models` 返回完整列表，角色配置解析出实际 `provider`、`model`、`reasoning_effort`。",
       "conflict": "DSH 的模型选择设置会记录会话路由，插件角色配置（见 CAP-028）又会覆盖每个角色的路由。两个来源同时生效时以插件角色配置为准，但用户在界面改的模型可能被静默覆盖。",
       "residual": "Cursor slug 与实际路由之间需要维护映射表，DSH 升级或供应商变化后要重新映射。技能正文的 slug 由 `toDshText` 按命名族转译，新增命名族（不是 `claude-*`、`gemini-*`、`grok-*`、`gpt-*`）时要补一条规则，否则会在发布目录里残留。",
-      "sourceDigest": "sha256:8c0a3bea664dc8dcca9b2784c85f2a6f8b9a8831b4fdb157c5067b3540b2e25a"
+      "sourceDigest": "sha256:3068ea0d84be9ffe2a93a7ee1baf21752bb8c3a069a556518a050a58ab515e62"
     },
     "CAP-024": {
       "key": "grok-slug",
@@ -595,7 +595,7 @@
       "recommendation": "🟢 直接映射。`statechart` 原样运行。TLC、Java 或网络缺失时报告不可用，只输出 Mermaid 文本，不声称完成形式化检查。",
       "conflict": "`statechart` 与 Pele 都能出图，Pele 是外部渲染器，Mermaid 是内置文本。",
       "residual": "TLC 与 Java 需要 mise 安装，首次运行依赖网络。",
-      "sourceDigest": "sha256:1826262df2e99eb81bcdfd96e7fbbb7452dc8245c6230039638a90ae241d4a5c"
+      "sourceDigest": "sha256:6da733d5eb00cf28a87d5d14b51d2a0e16c3da738a1368da8da8c84ed9f1f271"
     },
     "CAP-064": {
       "key": "bootstrap.ts",

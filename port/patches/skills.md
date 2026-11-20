@@ -135,13 +135,13 @@ pstack_script({ id: "statechart", args: ["SPEC.tla", "--config", "FILE", "--view
 **Find**
 
 ```text
-`scripts/statechart.ts` is TypeScript, so run it with a runtime that can execute TypeScript.
+`scripts/statechart.ts` is TypeScript, so run it with a runtime that can execute TypeScript. `scripts/statechart` is a POSIX shell script that picks one. On native Windows, run `node --disable-warning=ExperimentalWarning <skill dir>/scripts/statechart.ts` with Node 22.18 to 22.x, or Node 23.6 or later.
 ```
 
 **Replace**
 
 ```text
-The `pstack_script` `statechart` id runs the shipped JavaScript under the Host's Node runtime.
+The `pstack_script` `statechart` id runs the shipped JavaScript under the Host's Node runtime, on every platform. It needs no launcher: `pstack_script` starts Node itself, so the POSIX `scripts/statechart` and the native Windows command above do not apply.
 ```
 
 ## `skills/statechart/SKILL.md`

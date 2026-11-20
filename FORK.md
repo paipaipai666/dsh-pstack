@@ -33,16 +33,18 @@ shipped tree under `dist/pstack/skills/<skill>/scripts/`, dropping the compiled 
 
 The statechart script carries two small Windows fixes that upstream never needed because it only
 runs them there on macOS and Linux: the janitor and process-group kill avoid `/bin/sh`, and the TLC
-output parser tolerates CRLF. They stay confined to `runtime/`, so re-merging upstream still shows
-as a clean diff. The chart renderer in `src/chart.ts` carries a third Windows fix: it accepts the
-front matter block statechart writes.
+output parser tolerates CRLF. Upstream 0.15.46 fixed the same three defects, so the generated
+`pstack/skills/statechart/scripts/` now matches it. The two fixes live in `runtime/`, which is the
+built and shipped source, so an upstream re-merge shows as a clean diff on the generated tree only.
+The chart renderer in `src/chart.ts` carries a third Windows fix: it accepts the front matter block
+statechart writes.
 
 ## Current status
 
 - GitHub fork created on 2026-11-06: `paipaipai666/dsh-pstack`.
 - `fork/upstream-0.3.1` carries the rebase onto upstream `0.3.1`; `fork/main` is the integration
   branch that gets pushed.
-- The package is named `@paipaipai666/dsh-pstack` and reports version `0.5.1`.
+- The package is named `@paipaipai666/dsh-pstack` and reports version `0.5.2`.
 - The generated tree is committed at `pstack/` and is rewritten as a whole by
   `vpx port/generate.mjs`. It is generated from `upstream/cursor-plugins` plus the adapter source
   `port/dsh.md`, so the 58 skills are reviewable in the repository instead of being generated during

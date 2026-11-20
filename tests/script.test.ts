@@ -1,6 +1,7 @@
 import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
 import {
@@ -23,6 +24,36 @@ afterEach(() => {
   for (const directory of directories.splice(0))
     rmSync(directory, { recursive: true, force: true });
 });
+
+/** The shipped statechart frontends, imported from the tree `pstack_script` runs. */
+const shippedStatechart = async () => {
+  const scripts = dirname(scriptPath("statechart"));
+  const from = (file: string) => pathToFileURL(join(scripts, file)).href;
+  return {
+    messages: await import(from("frontends/messages.mjs")),
+    verdict: await import(from("frontends/verdict.mjs")),
+    plainText: await import(from("backends/plain-text.mjs")),
+  };
+};
+
+/** What TLC's `-tool` mode prints for a run where the rule `NotOne` breaks. */
+const tlcReport = [
+  "@!@!@STARTMSG 2262:0 @!@!@",
+  "TLC2 Version 2.19",
+  "@!@!@ENDMSG 2262 @!@!@",
+  "@!@!@STARTMSG 2190:0 @!@!@",
+  "Finished computing initial states: 1 distinct state generated.",
+  "@!@!@ENDMSG 2190 @!@!@",
+  "@!@!@STARTMSG 2110:1 @!@!@",
+  "Invariant NotOne is violated.",
+  "@!@!@ENDMSG 2110 @!@!@",
+  "@!@!@STARTMSG 2199:0 @!@!@",
+  "2 states generated, 2 distinct states found, 0 states left on queue.",
+  "@!@!@ENDMSG 2199 @!@!@",
+].join("\n");
+
+/** An INVARIANT is not a PROPERTY, so the report names the rule that broke. */
+const brokenRule = { broke: { kind: "invariant", name: "NotOne" }, distinct: 2, initial: 1 };
 
 describe("pstack_script arguments", () => {
   it("accepts only the shipped script ids", () => {
@@ -99,6 +130,21 @@ describe("pstack_script execution", () => {
       }),
     );
     expect(result.exitCode).toBe(0);
+  });
+
+  it("reads the shipped statechart's TLC output with Windows line ends as it reads Unix ones", async () => {
+    if (!existsSync(scriptPath("statechart")))
+      throw new Error(
+        `missing shipped script at ${scriptPath("statechart")}; run \`vp run build\` before \`vp test\``,
+      );
+    const { messages, verdict, plainText } = await shippedStatechart();
+    const unix = messages.readMessages(tlcReport);
+    const windows = messages.readMessages(tlcReport.replaceAll("\n", "\r\n"));
+    expect(verdict.readVerdict(unix)).toEqual(brokenRule);
+    expect(verdict.readVerdict(windows)).toEqual(brokenRule);
+    expect([...plainText.plainText(windows)].join("")).toEqual(
+      [...plainText.plainText(unix)].join(""),
+    );
   });
 
   it("serializes live sessions and passes DSH_LIVE_SESSIONS_JSON to worktree-audit when --sessions is omitted", async () => {

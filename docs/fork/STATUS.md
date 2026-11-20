@@ -1,7 +1,7 @@
 # Fork status
 
 Updated 2026-11-18. Base: upstream `dsh-pstack 0.3.1` (`2d577b1`). Package: `@paipaipai666/dsh-pstack`
-`0.5.0`.
+`0.5.1`. Bundled pstack: upstream `0.15.44` (`e58dd04`).
 
 ## A. Fork foundation
 
@@ -112,14 +112,15 @@ These `QF` ids are the fork's quality-fix completion record. They are independen
   residual-Cursor-vocabulary list. Guide and README prose are not machine-translated; their Cursor
   residue is fixed with generation-time patches.
 - Coverage gate: none. `vite.config.ts` has no coverage thresholds; CI only runs `vp test`.
-- Port audit: `port/audit.lock.json` covers 68 capabilities; `port/scan.mjs --check port/audit.md`
+- Port audit: `port/audit.lock.json` covers 67 capabilities; `port/scan.mjs --check port/audit.md`
   verifies every referenced line still exists.
 - Full audit: [AUDIT.md](AUDIT.md).
 
 ## Publishing
 
 - `@paipaipai666/dsh-pstack@0.5.0-beta.7` is the last published beta. The local package is now
-  `0.5.0`; publish it with the OIDC or staged flow below before claiming a registry install.
+  `0.5.1`, after the `0.5.0` stable release; publish it with the OIDC or staged flow below before
+  claiming a registry install.
 - `0.5.0-beta.2` exists only because the `0.5.0-beta.1` tarball left out `docs/remote-worker.md`;
   `package.json#files` now lists that document.
   The later betas followed the same staged flow: beta.3 added the doctor workspace check and

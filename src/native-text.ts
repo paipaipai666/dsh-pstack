@@ -53,7 +53,10 @@ const REPLACEMENTS: readonly (readonly [RegExp, string])[] = [
   [/\bclaude-opus-5-5-high-fast\b/g, "the configured worker role"],
   [/\bclaude-fable-5-2-max\b/g, "the configured judgment role"],
   [/\bclaude-fable-5-2-high\b/g, "the configured judgment role"],
-  [/\bgemini-4-carbon-high\b/g, "the configured cross-check role"],
+  // The Gemini panel slug is versioned per upstream release; rewrite the whole family so a bumped
+  // version cannot slip through. `high` is the only effort upstream gives it.
+  [/\bgemini-4-[a-z]+-high\b/g, "the configured cross-check role"],
+  [/\bgemini-4-[a-z]+-xhigh\b/g, "the configured cross-check role"],
   [/\bgpt-5\.6-sol-max\b/g, "the configured judgment role"],
   [/\b(?:cursor-grok|composer)-\*/g, "the configured code role family"],
   [/\bclaude-fable-\*/g, "the configured deep-reasoning role family"],

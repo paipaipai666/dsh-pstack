@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "baseline": {
-    "id": "dsh-0.2.2-rc.2@pstack-2f87c854fe3e2fcda44ca86b46ede35aad3c46b7",
+    "id": "dsh-0.2.2-rc.2@pstack-e58dd043600587dbaf58ba315e7f2b38373eeb43",
     "compatibilityKey": "dsh-0.2.2-rc.2+port-v1",
-    "previous": "dsh-0.2.2-rc.1@pstack-2f87c854fe3e2fcda44ca86b46ede35aad3c46b7",
-    "transition": "breaking"
+    "previous": "dsh-0.2.2-rc.2@pstack-2f87c854fe3e2fcda44ca86b46ede35aad3c46b7",
+    "transition": "normal"
   },
   "items": {
     "CAP-001": {
@@ -219,11 +219,11 @@
       "key": "claude-slug",
       "origin": "override",
       "decision": "插件实现",
-      "recommendation": "🟠 插件实现。调用时用插件 `pstack_models` 返回的实际路由填 `provider`、`model`、`reasoning_effort`。`list_subagent_models` 只在 Web 与 Desktop 标准预设提供，不能作为唯一来源。Cursor slug 到实际路由的映射写进角色配置，见 CAP-028。",
+      "recommendation": "🟠 插件实现。调用时用插件 `pstack_models` 返回的实际路由填 `provider`、`model`、`reasoning_effort`。`list_subagent_models` 只在 Web 与 Desktop 标准预设提供，不能作为唯一来源。Cursor slug 到实际路由的映射写进角色配置，见 CAP-028。技能正文里的 slug 由 `toDshText` 统一译成角色名；发布目录中的 `gemini-4-*` 版本位由 `src/native-text.ts` 的转译规则匹配，所以上游再换 Gemini 面板版本（`carbon` → `neon` → 之后任一版本）不必改规则。",
       "requirement": "插件提供 `pstack_models` 工具枚举完整 provider、model 与 effort。角色配置把 Cursor `claude-*` slug 映射到实际路由；未配置映射时报错，不照抄 slug。验收：`pstack_models` 返回完整列表，角色配置解析出实际 `provider`、`model`、`reasoning_effort`。",
       "conflict": "DSH 的模型选择设置会记录会话路由，插件角色配置（见 CAP-028）又会覆盖每个角色的路由。两个来源同时生效时以插件角色配置为准，但用户在界面改的模型可能被静默覆盖。",
-      "residual": "Cursor slug 与实际路由之间需要维护映射表，DSH 升级或供应商变化后要重新映射。",
-      "sourceDigest": "sha256:c45bc8ba2cdf1fd3123509d3f93f4e4d1ba9f55856216e125fb0c46a0b3b0b06"
+      "residual": "Cursor slug 与实际路由之间需要维护映射表，DSH 升级或供应商变化后要重新映射。技能正文的 slug 由 `toDshText` 按命名族转译，新增命名族（不是 `claude-*`、`gemini-*`、`grok-*`、`gpt-*`）时要补一条规则，否则会在发布目录里残留。",
+      "sourceDigest": "sha256:8c0a3bea664dc8dcca9b2784c85f2a6f8b9a8831b4fdb157c5067b3540b2e25a"
     },
     "CAP-024": {
       "key": "grok-slug",

@@ -10,6 +10,8 @@ function files(overrides = {}) {
     "CHANGELOG.md": "# Changelog\n\n## 0.5.1\n\n- Automated task.\n",
     "README.md": "| Release |\n|---|\n| `0.5.1` |\n",
     "README.zh.md": "| 发布 |\n|---|\n| `0.5.1` |\n",
+    "FORK.md": "The package reports version `0.5.1`.\n",
+    "docs/fork/STATUS.md": "The local package is `0.5.1`.\n",
     ...overrides,
   };
 }
@@ -44,6 +46,18 @@ describe("checkVersionBump", () => {
   it("rejects a compatibility table missing the version", () => {
     expect(() => check({ "README.zh.md": "no version here\n" })).toThrow(
       "README.zh.md compatibility table does not mention 0.5.1",
+    );
+  });
+
+  it("rejects a stale status document", () => {
+    expect(() => check({ "docs/fork/STATUS.md": "The local package is `0.5.0`.\n" })).toThrow(
+      "docs/fork/STATUS.md does not mention package version 0.5.1",
+    );
+  });
+
+  it("rejects a stale fork overview", () => {
+    expect(() => check({ "FORK.md": "The package reports version `0.5.0`.\n" })).toThrow(
+      "FORK.md does not mention package version 0.5.1",
     );
   });
 });

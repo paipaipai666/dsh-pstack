@@ -90,6 +90,14 @@ pnpm exec vpx port/scan.mjs --check port/audit.md
 pnpm exec vp run compatibility:check
 ```
 
+On a small Linux host where `vp check`/oxlint cannot allocate its worker pool, use
+`pnpm run vps:check`. It runs formatting, typecheck, build, tests, runtime and audit gates, but
+leaves the full lint gate to GitHub Actions.
+
+After an upstream sync changes an existing capability's source text, refresh the lock digests with
+`pnpm run audit:lock`; the script reports new or missing capability keys instead of silently
+changing the lock.
+
 Four runtime tests spawn a POSIX shell (`sh`) or create a directory symlink. They are skipped on
 Windows and run on the Linux job.
 

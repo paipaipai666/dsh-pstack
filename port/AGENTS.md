@@ -81,7 +81,7 @@
 5. 用 `port/generate.mjs` 生成根 `pstack/`，用 `--check` 检查生成漂移。
 6. 验证生成树中的链接、适配提示和已确认行为。
 
-随包脚本由 `runtime/` 下的 TypeScript 源码构建，`scripts/replace-runtime-scripts.mjs` 在打包时用 `runtime/dist` 的产物替换生成树里的上游脚本。四个固定入口统一经 `pstack_script` 调用，由 Host 自己的 Node 运行时执行，不依赖 `PATH` 上的 `node`、`bun` 或 `bash`。为每个脚本登记用途、解释器、外部命令和限制。非常用能力不默认提供插件内补偿。环境不满足时明确报告不可用，不将跳过算作适配成功。
+随包脚本由 `runtime/` 下的 TypeScript 源码构建，`scripts/replace-runtime-scripts.mjs` 在打包时用 `runtime/dist` 的产物替换生成树里的上游脚本。四个固定入口统一经 `pstack_script` 调用，由 Host 自己的 Node 运行时执行，不依赖 `PATH` 上的 `node`、`bun` 或 `bash`。为每个脚本登记用途、解释器、外部命令和限制。非常用能力不默认提供插件内补偿。环境不满足时明确报告不可用，不将跳过算作适配成功。`port/patches/*.md` 的 `Find` 锚点必须覆盖整个将被替换的自然段，上游整段改写时不能只锚一句话；生成器按字节匹配，局部锚点会在上游改写后失效。
 
 ### 脚本登记
 

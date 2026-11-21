@@ -91,7 +91,7 @@ export function checkVersionBump(root, baseRevision, options = {}) {
     }
   }
 
-  for (const file of ["FORK.md", "docs/fork/STATUS.md"]) {
+  for (const file of ["FORK.md", "docs/fork/STATUS.md", "docs/fork/AUDIT.md"]) {
     const text = readFile(join(root, file));
     if (!text.includes(`\`${current}\``)) {
       throw new Error(`${file} does not mention package version ${current}`);

@@ -12,6 +12,7 @@ function files(overrides = {}) {
     "README.zh.md": "| 发布 |\n|---|\n| `0.5.1` |\n",
     "FORK.md": "The package reports version `0.5.1`.\n",
     "docs/fork/STATUS.md": "The local package is `0.5.1`.\n",
+    "docs/fork/AUDIT.md": "Current package: `0.5.1`.\n",
     ...overrides,
   };
 }
@@ -58,6 +59,12 @@ describe("checkVersionBump", () => {
   it("rejects a stale fork overview", () => {
     expect(() => check({ "FORK.md": "The package reports version `0.5.0`.\n" })).toThrow(
       "FORK.md does not mention package version 0.5.1",
+    );
+  });
+
+  it("rejects a stale audit document", () => {
+    expect(() => check({ "docs/fork/AUDIT.md": "Current package: `0.5.0`.\n" })).toThrow(
+      "docs/fork/AUDIT.md does not mention package version 0.5.1",
     );
   });
 });

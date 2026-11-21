@@ -94,6 +94,10 @@ export default defineConfig({
         dependsOn: ["build"],
         cache: false,
       },
+      "runtime:check": {
+        command: "node scripts/check-runtime-overrides.mjs",
+        cache: false,
+      },
       typecheck: {
         command: "tsc --noEmit -p tsconfig.json",
       },

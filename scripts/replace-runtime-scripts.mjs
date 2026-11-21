@@ -21,6 +21,7 @@
 import { copyFileSync, existsSync, mkdirSync, readdirSync, rmSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { RUNTIME_REPLACED_SKILLS } from "./runtime-skills.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -31,7 +32,7 @@ const BUILT = join(ROOT, "runtime", "dist");
 const SHIPPED_SKILLS = join(ROOT, "dist", "pstack", "skills");
 
 /** The skills whose scripts the runtime replaces. */
-const REPLACED = ["poteto-mode", "show-me-your-work", "statechart"];
+const REPLACED = RUNTIME_REPLACED_SKILLS;
 
 if (!existsSync(BUILT)) {
   console.error(`replace-runtime-scripts: ${BUILT} is missing; run \`vp pack\` first`);

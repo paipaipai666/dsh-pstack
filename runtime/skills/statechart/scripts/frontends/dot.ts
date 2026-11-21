@@ -35,14 +35,10 @@ export const parseState = (label: string, parsed = new Map<string, [string, Valu
 
 export type Lines = string | Iterable<string>;
 
-const trimmedLine = (line: string) => (line.endsWith("\r") ? line.slice(0, -1) : line);
+export const splitLines = (text: string) =>
+  (text.endsWith("\r") ? text.slice(0, -1) : text).split(/\r?\n/);
 
-export const linesOf = (input: Lines): Iterable<string> =>
-  typeof input === "string"
-    ? input.split("\n").map(trimmedLine)
-    : (function* () {
-        for (const line of input) yield trimmedLine(line);
-      })();
+export const linesOf = (input: Lines) => (typeof input === "string" ? splitLines(input) : input);
 
 export function parseDot(input: Lines): Graph {
   const states = new Map<string, State>();

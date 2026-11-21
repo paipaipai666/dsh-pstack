@@ -13,13 +13,14 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 
-// The worker ends itself with `sh -c ... kill -s KILL`, so its end-to-end run needs a
-// POSIX shell. The Linux job exercises it; Windows reports it as skipped.
+// The end-to-end run downloads and starts TLC, so keep it on the Linux job. The
+// janitor and kill unit behavior is exercised separately by tests/runtime-shipping.test.ts.
 const posixOnly = process.platform === "win32" ? test.skip : test;
 import { inspect } from "node:util";
 
 import { checkView, json } from "./frontends/view.ts";
 import { readConfig } from "./frontends/config.ts";
+import { splitLines } from "./frontends/dot.ts";
 import { readMessages } from "./frontends/messages.ts";
 import { readChecks } from "./frontends/spec.ts";
 import { plainText } from "./backends/plain-text.ts";
@@ -61,6 +62,11 @@ function resultWithBreak(): CheckResult {
     messages: ["TLC finished"],
   };
 }
+
+test("splits CRLF and LF lines without hiding a trailing carriage return", () => {
+  assert.deepEqual([...splitLines("one\r\ntwo\r\n")], ["one", "two", ""]);
+  assert.deepEqual([...splitLines("one\ntwo\n")], ["one", "two", ""]);
+});
 
 test("reads the TLA+ value grammar the skill documents", () => {
   assert.deepEqual(json(parseValue('<<1, "a", <<>>>>')), { 1: 1, 2: "a", 3: {} });

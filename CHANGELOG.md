@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.5.3
+
+Tracks DSH `0.2.2-rc.5` without moving the baseline. `engines.dsh` and the compatibility key `dsh-0.2.2-rc.2+port-v1` are unchanged, because every `@deepseek-ai/*` package this plugin imports kept its signatures between rc.3 and rc.5.
+
+### Added
+
+- `pstack_doctor` reports the `dsh` CLI version against the package's own `engines.dsh` range, so a below-range CLI shows up as the activation refusal it becomes instead of as a silent no-op.
+- `pnpm preset:drift --source=<@deepseek-ai/dsh-web-app presets>` compares the vendored preset fixtures with what the pinned host ships and exits non-zero on drift. `tests/preset-drift.test.ts` covers the normalization, the multiset diff, and the newest-fixture pick.
+- `pstack_subagent` names `CONTENT_REFUSED`: the failure says the model refused on content-safety grounds, the attempt was billed, and the same prompt refuses again.
+- The poteto-mode brief tells the agent not to retry a refused brief verbatim.
+
+### Changed
+
+- `tests/preset-parity.test.ts` compares every shared row of both root presets as a whole block against a new `tests/fixtures/dsh-0.2.2-rc.5` fixture, instead of six hand-listed config blocks. The old rc.1 fixture had been stale since rc.2: `tool-office`, the `skill-filesystem` `customSkillDirs` config, and `tool-subagent-control` `interrupt: false` were all missing, and the test could not see them.
+- The `poteto-mode` preset now carries `tool-office` and the same `customSkillDirs` and `interrupt: false` rows the shipped `standard` preset does; `poteto-mode-creator` already matched.
+- CI installs `@deepseek-ai/dsh@0.2.2-rc.5` for the tarball smoke.
+- Docs refreshed to rc.5: `docs/fork/COMPATIBILITY.md` records the package-by-package comparison, `AUDIT.md`, `BACKLOG.md`, and `REVIEW.md` no longer name rc.1, and `docs/automations.md` pins the rc.5 webhook packages.
+
 ## 0.5.2
 
 Synchronizes the port with upstream pstack 0.15.46 (commit `0b46ec3`). The DSH range and compatibility key `dsh-0.2.2-rc.2+port-v1` are unchanged, so this is a patch release on the same baseline.

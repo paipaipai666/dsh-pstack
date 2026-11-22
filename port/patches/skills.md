@@ -506,6 +506,22 @@ since a hand-typed `myrepo-worktrees/x` misses one that lives at a hidden path s
 6. Simulators and other reclaimers. On macOS, simulators are usually the next-biggest win: `xcrun simctl --set testing delete all` (XCTestDevices clones), `xcrun simctl delete unavailable`, and `xcrun simctl runtime list` then `runtime delete <id>` for old runtimes, plus Xcode `DerivedData` and `iOS DeviceSupport`. On any platform, package caches (pnpm, uv, brew, yarn) and old build artifacts are safe reclaimers. Skip the simulator and Xcode steps off macOS. Clear only caches the user has not said to keep.
 ```
 
+## `skills/poteto-mode/SKILL.md`
+
+**Find**
+
+```text
+You own every subagent's work. Review the diff and write your own summary. A second opinion is the same prompt on another vendor's model.
+```
+
+**Replace**
+
+```text
+You own every subagent's work. Review the diff and write your own summary. A second opinion is the same prompt on another vendor's model.
+
+A subagent that fails with `CONTENT_REFUSED` was refused by DeepSeek's content-safety check. The attempt was billed, and repeating the same prompt refuses again, so rewrite the brief or switch models instead of retrying it verbatim.
+```
+
 ## `skills/poteto-mode/playbooks/worktree-cleanup.md`
 
 **Find**

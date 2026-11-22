@@ -7,12 +7,34 @@
 | Installed app | `D:\DeepSeek Harness\DeepSeek Harness.exe` |
 | App / Electron | Electron `44.7.0` |
 | DSH CLI | `D:\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd` |
-| DSH version | `0.2.2-rc.1` |
+| DSH version | `0.2.2-rc.5` |
 | Bundled runtime Node | `v24.21.0` |
 | Fork source | `l246804/dsh-pstack` `v0.3.0-beta.1` |
 | Upstream pstack | `0.15.36` |
 
-## Verified on 2026-11-06
+## Verified on 2026-11-22
+
+- `@deepseek-ai/dsh` `0.2.2-rc.5` is the newest published host; the Desktop build on this
+  machine is still `0.2.2-rc.3`.
+- Every `@deepseek-ai/*` package this plugin imports was compared rc.3 → rc.5. The only type
+  change anywhere is `CONTENT_REFUSED` in `@deepseek-ai/dsh-llm`'s `LLM_FAILURE_CODES`;
+  `dsh-api-remotes` ships a regenerated client bundle with no exported type change. No package
+  pstack imports moved a signature, so rc.5 needs no migration.
+- `presets/standard.patch.yml` and `presets/cordis.patch.yml` are byte-identical between rc.3
+  and rc.5. They had already drifted from the rc.1 fixture: `tool-office`, a
+  `skill-filesystem` `config.customSkillDirs`, and `tool-subagent-control`
+  `config.interrupt: false`. The fork now mirrors all three and tests against an rc.5 fixture.
+- rc.5 changes behavior rather than contracts: official DeepSeek requests carry
+  `safety_check { level: high }`, and a refusal arrives as `CONTENT_REFUSED`, billed and never
+  retried. `pstack_subagent` names that code instead of passing the provider message through,
+  and the poteto-mode brief says not to retry the same brief.
+- `engines.dsh` stays `>=0.2.2-rc.2`: nothing pstack calls is new in rc.5, so the baseline and
+  its compatibility key `dsh-0.2.2-rc.2+port-v1` do not move.
+
+Run `pnpm preset:drift --source=<extracted @deepseek-ai/dsh-web-app presets>` after a host bump
+to compare the vendored fixtures with the shipped presets; it exits non-zero on drift.
+
+## Verified on 2026-11-06 (rc.1, superseded)
 
 - `dsh --version` returns `0.2.2-rc.1`.
 - A temporary `DSH_HOME` installed the published baseline `dsh-pstack@0.2.1`.

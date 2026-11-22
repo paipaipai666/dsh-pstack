@@ -1,9 +1,9 @@
 /**
  * `pstack_doctor`: a read-only preflight for the local prerequisites pstack playbooks use.
  *
- * It checks the commands that must exist on PATH, the five bundled script artefacts, and
- * the role configuration file. It never installs anything and never reads model routes;
- * `pstack_models` owns those.
+ * It checks the commands that must exist on PATH, the five bundled script artefacts,
+ * the role configuration file, and the `dsh` CLI against the declared `engines.dsh`
+ * range. It never installs anything and never reads model routes; `pstack_models` owns those.
  */
 
 import { spawnSync } from "node:child_process";
@@ -18,7 +18,7 @@ import type {
   WorkingDirectoryHost,
 } from "./host-contract.ts";
 import { OPTIONAL_PLUGINS, type OptionalPluginId } from "./optional-plugins.ts";
-import { PORT_ROOT } from "./paths.ts";
+import { PACKAGE_ROOT, PORT_ROOT } from "./paths.ts";
 import { modelsFilePath, resolveDshHome } from "./role-config.ts";
 import { SCRIPT_ENTRIES } from "./script-registry.ts";
 
@@ -80,6 +80,7 @@ export interface OptionalPluginCheck {
 export interface DoctorReport {
   readonly platform: string;
   readonly node: string;
+  readonly dsh: DshCheck;
   readonly dshHome: string;
   readonly commands: readonly CommandCheck[];
   readonly scripts: readonly ScriptCheck[];
@@ -90,6 +91,20 @@ export interface DoctorReport {
   };
   readonly workspace: WorkspaceCheck;
   readonly mcpCategories?: readonly McpCategoryMatch[];
+}
+
+/**
+ * The DSH CLI that will load this plugin, measured against the `engines.dsh`
+ * range in this package's manifest. DSH refuses to activate a plugin below that
+ * range, so a stale CLI explains most "the plugin does nothing" reports.
+ */
+export interface DshCheck {
+  /** The first line of `dsh --version`, minus a leading `v`. */
+  readonly version?: string;
+  /** The `engines.dsh` range; `"unspecified"` when the manifest carries none. */
+  readonly range: string;
+  /** `undefined` when no version was found or the range cannot be compared. */
+  readonly ok?: boolean;
 }
 
 /** What a Cursor project would carry into DSH, and what DSH actually reads. */
@@ -110,6 +125,8 @@ export interface DoctorHost {
   readonly dshHome: string;
   readonly profileDir?: string;
   readonly workspacePath?: string;
+  /** Override the declared `engines.dsh` range; tests and forks use this. */
+  readonly dshRange?: string;
   readonly runCommand?: CommandRunner;
   readonly exists?: (path: string) => boolean;
   readonly readFile?: (path: string) => string | undefined;
@@ -123,6 +140,74 @@ const VERSION_ARGS: Readonly<Record<string, readonly (readonly string[])[]>> = {
   ffmpeg: [["-version"], ["--version"]],
   java: [["--version"], ["-version"]],
 };
+
+/** `0.2.2-rc.3` and `0.2.2` are the shapes `dsh --version` and `engines.dsh` use. */
+const VERSION_TEXT = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/;
+
+interface ParsedVersion {
+  readonly major: number;
+  readonly minor: number;
+  readonly patch: number;
+  readonly prerelease: readonly string[];
+}
+
+function parseVersionText(text: string): ParsedVersion | undefined {
+  const match = VERSION_TEXT.exec(text.trim());
+  if (match === null) return undefined;
+  const [, major = "", minor = "", patch = "", prerelease] = match;
+  return {
+    major: Number(major),
+    minor: Number(minor),
+    patch: Number(patch),
+    prerelease: prerelease === undefined ? [] : prerelease.split("."),
+  };
+}
+
+/** Semver precedence: a release outranks its prereleases, numeric ids sort below text. */
+function compareVersions(left: ParsedVersion, right: ParsedVersion): number {
+  const core = left.major - right.major || left.minor - right.minor || left.patch - right.patch;
+  if (core !== 0) return core;
+  if (left.prerelease.length === 0 || right.prerelease.length === 0) {
+    return left.prerelease.length === right.prerelease.length
+      ? 0
+      : left.prerelease.length === 0
+        ? 1
+        : -1;
+  }
+  const shared = Math.min(left.prerelease.length, right.prerelease.length);
+  for (let index = 0; index < shared; index += 1) {
+    const a = left.prerelease[index] ?? "";
+    const b = right.prerelease[index] ?? "";
+    if (a === b) continue;
+    const numeric = /^\d+$/.test(a);
+    if (numeric !== /^\d+$/.test(b)) return numeric ? -1 : 1;
+    return numeric ? Number(a) - Number(b) : a < b ? -1 : 1;
+  }
+  return left.prerelease.length - right.prerelease.length;
+}
+
+/** Only `>=`, `>`, and a bare version are meaningful in an `engines.dsh` range. */
+function satisfiesRange(version: ParsedVersion, range: string): boolean | undefined {
+  const match = /^(>=|>)?\s*(.+)$/.exec(range.trim());
+  if (match === null) return undefined;
+  const bound = parseVersionText(match[2] ?? "");
+  if (bound === undefined) return undefined;
+  const comparison = compareVersions(version, bound);
+  return match[1] === ">" ? comparison > 0 : comparison >= 0;
+}
+
+/** The `engines.dsh` range this package declares, read from its own manifest. */
+function declaredDshRange(readFile: (path: string) => string | undefined): string {
+  const manifest = readFile(join(PACKAGE_ROOT, "package.json"));
+  if (manifest === undefined) return "unspecified";
+  try {
+    const engines = (JSON.parse(manifest) as { engines?: { dsh?: unknown } }).engines;
+    const range = engines?.dsh;
+    return typeof range === "string" && range.trim() !== "" ? range.trim() : "unspecified";
+  } catch {
+    return "unspecified";
+  }
+}
 
 /** Run one command and return its first output line, or undefined when it is unavailable. */
 export function runCommandVersion(
@@ -304,6 +389,20 @@ export function classifyMcpTools(toolNames: readonly string[]): readonly McpCate
   });
 }
 
+function collectDshCheck(
+  host: DoctorHost,
+  run: CommandRunner | undefined,
+  readFile: (path: string) => string | undefined,
+): DshCheck {
+  const range = host.dshRange ?? declaredDshRange(readFile);
+  const output = run !== undefined ? run("dsh", ["--version"]) : runCommandVersion("dsh");
+  const version = output?.split(/\r?\n/, 1)[0]?.trim().replace(/^v/, "");
+  if (version === undefined || version === "") return { range };
+  const parsed = parseVersionText(version);
+  if (parsed === undefined || range === "unspecified") return { version, range };
+  return { version, range, ok: satisfiesRange(parsed, range) };
+}
+
 /** Build the report without touching any external service. */
 export function collectDoctorReport(host: DoctorHost): DoctorReport {
   const exists = host.exists ?? existsSync;
@@ -349,6 +448,7 @@ export function collectDoctorReport(host: DoctorHost): DoctorReport {
   return {
     platform: process.platform,
     node: process.versions.node,
+    dsh: collectDshCheck(host, run, readFile),
     dshHome: host.dshHome,
     commands,
     scripts,
@@ -360,6 +460,13 @@ export function collectDoctorReport(host: DoctorHost): DoctorReport {
 }
 
 export function renderReport(report: DoctorReport): string {
+  const requires = report.dsh.range === "unspecified" ? "" : ` (requires ${report.dsh.range})`;
+  const dshLine =
+    report.dsh.version === undefined
+      ? `dsh: not found on PATH${requires}`
+      : report.dsh.ok === false
+        ? `dsh: ${report.dsh.version} is older than the required ${report.dsh.range}`
+        : `dsh: ${report.dsh.version}${requires}`;
   const commandLines = report.commands.map((command) => {
     if (!command.ok) return `- ${command.name}: MISSING`;
     const suffix = command.authenticated === false ? " (unauthenticated)" : "";
@@ -399,6 +506,7 @@ export function renderReport(report: DoctorReport): string {
     "pstack doctor",
     `platform: ${report.platform}`,
     `node: ${report.node}`,
+    dshLine,
     `DSH home: ${report.dshHome}`,
     "",
     "commands:",
@@ -423,6 +531,16 @@ const OUTPUT_SCHEMA: JsonSchemaNode = {
   properties: {
     platform: { type: "string" },
     node: { type: "string" },
+    dsh: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        version: { type: "string" },
+        range: { type: "string" },
+        ok: { type: "boolean" },
+      },
+      required: ["range"],
+    },
     dshHome: { type: "string" },
     commands: {
       type: "array",
@@ -520,10 +638,12 @@ const OUTPUT_SCHEMA: JsonSchemaNode = {
 const TOOL_DESCRIPTION = [
   "Check the local prerequisites pstack playbooks use: git, gh, node, ffmpeg, mise, java,",
   "the five bundled script artefacts, the role configuration file, the optional plugin",
-  "state recorded in the current profile manifest, and what the workspace itself expects.",
+  "state recorded in the current profile manifest, what the workspace itself expects,",
+  "and the `dsh` CLI version measured against this package's `engines.dsh` range.",
   "",
   "Read-only. It reports what is present, never installs anything, and never reads model routes.",
   "Missing commands are reported with their name; a missing script lists the expected path.",
+  "A `dsh` below the declared range is called out because DSH refuses to activate the plugin.",
   "The five scripts run on the host's own Node. `gh` matters to `watch-pr`, `mise` and `java`",
   "to `statechart`'s TLC run, and `git` to `worktree-audit`; no bundled script needs `bun` or `jq`.",
   "Optional plugin status is enabled, installed, partial, missing, or unknown.",

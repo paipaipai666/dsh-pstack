@@ -751,6 +751,23 @@ function isDepth(value: unknown): value is number {
   return isNonNegativeInteger(value) && value >= 1;
 }
 
-function describeError(error: unknown): string {
+function describeErrorText(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * DSH 0.2.2-rc.5 reports a provider content-safety refusal as `CONTENT_REFUSED`:
+ * a billed response the model declined to produce, deliberately absent from the
+ * retryable codes because the same prompt refuses again. Name it, or the caller
+ * only sees a provider message and retries the identical prompt.
+ */
+function isContentRefused(error: unknown): boolean {
+  const code = (error as { code?: unknown } | null | undefined)?.code;
+  return code === "CONTENT_REFUSED" || describeErrorText(error).includes("CONTENT_REFUSED");
+}
+
+function describeError(error: unknown): string {
+  const message = describeErrorText(error);
+  if (!isContentRefused(error)) return message;
+  return `${message} (CONTENT_REFUSED: the model refused on content-safety grounds; the attempt was billed and retrying the same prompt repeats the refusal — revise the prompt or switch models)`;
 }

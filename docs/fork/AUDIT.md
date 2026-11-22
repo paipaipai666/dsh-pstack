@@ -1,10 +1,10 @@
 # pstack 上游对照与质量审查
 
-> 当前包：`@paipaipai666/dsh-pstack` `0.5.2`（本文为 2026-11-06 历史审查记录，部分数字未随线更新）
+> 当前包：`@paipaipai666/dsh-pstack` `0.5.3`（本文为 2026-11-06 历史审查记录，部分数字未随线更新）
 > 审查时间：2026-11-06  
 > 上游基线：`cursor/plugins` 的 `pstack` 0.15.36（提交 `ae5650f`，由 `pstack/README.md` 记录）  
 > 当前 fork：`l246804/dsh-pstack` v0.3.0-beta.1 + 本仓修复  
-> 目标宿主：DeepSeek Harness `0.2.2-rc.2`
+> 目标宿主：DeepSeek Harness `0.2.2-rc.5`（2026-11-22 复核 rc.3 → rc.5：无契约变化，兼容基线仍为 `0.2.2-rc.2`）
 
 ## 1. 资产盘点
 
@@ -76,7 +76,7 @@
 
 - Linux：typecheck → build → `vp test` → `vp run test:runtime` → generated-tree check → port audit → compatibility check → package tarball
 - Windows：typecheck → build → 全量 test → `vp run test:runtime`（四个脚本的真实执行）→ generated-tree check
-- Install smoke (Linux)：安装真实 `@deepseek-ai/dsh@0.2.2-rc.1`，把 tarball 装入隔离 `DSH_HOME`，校验 bundle 行（含 `pstack-remote`、`pstack-chart`）和五个 preset 行
+- Install smoke (Linux)：安装真实 `@deepseek-ai/dsh@0.2.2-rc.5`，把 tarball 装入隔离 `DSH_HOME`，校验 bundle 行（含 `pstack-remote`、`pstack-chart`）和五个 preset 行
 - Playground case definitions：`tests/playground-cases.test.mjs` 加载全部 17 个 case 文件，校验 id、prompt 与 verify；真实模型执行仍不进 CI
 - 最新 CI：`42177703239` 全部通过
 

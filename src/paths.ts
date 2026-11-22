@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 
 /** The package root, from a bundled entry in `dist/`. */
-const PACKAGE_ROOT = resolve(here, "..");
+export const PACKAGE_ROOT = resolve(here, "..");
 
 /** The shipped output tree. */
 const DIST_ROOT = join(PACKAGE_ROOT, "dist");

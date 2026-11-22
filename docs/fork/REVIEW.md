@@ -77,7 +77,7 @@
 - 最新 CI 全绿，运行 [42164834366](https://github.com/paipaipai666/dsh-pstack/actions/runs/42164834366)
   - Linux typecheck、build、test、generated-tree check、tarball
   - Windows typecheck、build、script smoke
-  - Linux Install smoke 使用真实 `@deepseek-ai/dsh@0.2.2-rc.1` 安装 tarball 到隔离 `DSH_HOME`
+  - Linux Install smoke 使用真实 `@deepseek-ai/dsh@0.2.2-rc.5` 安装 tarball 到隔离 `DSH_HOME`
 - 资产盘点与上游一致，58 skills、23 playbooks、24 principles、2 agents、11 guide pages
 - 测试规模 22 个文件、约 138 个用例
 

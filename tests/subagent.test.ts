@@ -221,6 +221,34 @@ describe("pstack_subagent arguments and planning", () => {
     expect(rendered[0]?.text).toContain("activation limit");
   });
 
+  it("turns a content-safety refusal into guidance instead of a bare code", async () => {
+    const dshHome = home("arena runners: cpa/model-a, cpa/model-b\n");
+    let starts = 0;
+    const base = fakeRuntime(dshHome);
+    const subagents = {
+      getProvider: base.subagents.getProvider.bind(base.subagents),
+      resolveMaxDepth: base.subagents.resolveMaxDepth.bind(base.subagents),
+      startActivation: async () => {
+        starts += 1;
+        if (starts === 1) return { childId: "child-1" };
+        throw Object.assign(new Error("request refused"), { code: "CONTENT_REFUSED" });
+      },
+    };
+    const runtime = { ...base, subagents } as unknown as DelegationRuntime;
+    const plan = planDelegation(args({ role: "arena runners" }), runtime);
+    const result = await startPlannedChildren(
+      { options: {} } as unknown as Agent,
+      plan,
+      runtime,
+      new AbortController().signal,
+    );
+    const reason = result.kind === "partial" ? result.failure.reason : "";
+    expect(reason).toContain("CONTENT_REFUSED");
+    expect(reason).toMatch(/content.safety/i);
+    expect(reason).toMatch(/billed/i);
+    expect(reason).toMatch(/retry/i);
+  });
+
   it("selects a list entry and reports the selection", () => {
     const runtime = fakeRuntime(home("swarm workers: cpa/model-a, cpa/model-b\n"));
     const plan = planDelegation(args({ role: "swarm workers", roleIndex: 1 }), runtime);

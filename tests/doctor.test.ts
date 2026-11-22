@@ -33,6 +33,27 @@ describe("pstack_doctor", () => {
     expect(report.roleFile.exists).toBe(true);
   });
 
+  it("reports the DSH CLI version against the engine range the package declares", () => {
+    const current = collectDoctorReport({
+      ...host,
+      runCommand: (command: string) =>
+        command === "dsh" ? "0.2.2-rc.3" : command === "git" ? "git version 2.51.0" : undefined,
+    });
+    expect(current.dsh).toEqual({ version: "0.2.2-rc.3", range: ">=0.2.2-rc.2", ok: true });
+    expect(renderReport(current)).toContain("dsh: 0.2.2-rc.3 (requires >=0.2.2-rc.2)");
+
+    const stale = collectDoctorReport({
+      ...host,
+      runCommand: (command: string) => (command === "dsh" ? "0.2.1" : undefined),
+    });
+    expect(stale.dsh.ok).toBe(false);
+    expect(renderReport(stale)).toContain("is older than the required >=0.2.2-rc.2");
+
+    const absent = collectDoctorReport(host);
+    expect(absent.dsh).toEqual({ range: ">=0.2.2-rc.2", ok: undefined });
+    expect(renderReport(absent)).toContain("dsh: not found on PATH (requires >=0.2.2-rc.2)");
+  });
+
   it("returns the same report from the tool", async () => {
     const tool = createPstackDoctorTool(host);
     const result = (await tool.execute({}, {

@@ -5,7 +5,7 @@ import { describe, expect, it } from "vite-plus/test";
 import { readPatch } from "./patch-name.ts";
 
 const ROOT = process.cwd();
-const BASELINE = join(ROOT, "tests", "fixtures", "dsh-0.2.2-rc.1");
+const BASELINE = join(ROOT, "tests", "fixtures", "dsh-0.2.2-rc.5");
 const PATCH = readPatch(join(ROOT, "cordis.patch.yml"));
 
 interface PluginRow {
@@ -13,11 +13,33 @@ interface PluginRow {
   name: string;
   indent: number;
   disabled?: string;
+  /** The row's own lines plus everything nested under it, dedented. */
+  block: readonly string[];
 }
 
+/** Rows pstack adds to the root picker presets. */
 const PSTACK_ROWS: PluginRow[] = [
-  { id: "poteto-mode-section", name: "dsh-pstack/poteto-mode", indent: 10 },
+  {
+    id: "poteto-mode-section",
+    name: "dsh-pstack/poteto-mode",
+    indent: 10,
+    block: ["- id: poteto-mode-section", "  name: dsh-pstack/poteto-mode"],
+  },
 ];
+
+/**
+ * Rows whose own block is expected to differ from the DSH baseline:
+ *
+ * - `persona` carries the poteto-mode preamble.
+ * - `delegation` is a group whose children differ by design: the baseline ships
+ *   `tool-subagent`/`tool-subagent-fork`, and pstack replaces both with the
+ *   bundle-level `pstack-subagent` rows. Its remaining children are compared
+ *   individually below.
+ */
+const CONTAINER_DELTAS = new Set(["persona", "delegation"]);
+
+/** Rows the baseline ships and pstack intentionally replaces at bundle level. */
+const REPLACED_ROWS = new Set(["tool-subagent", "tool-subagent-fork"]);
 
 function clean(value: string): string {
   return value.trim().replace(/^["'](.*)["']$/, "$1");
@@ -31,111 +53,112 @@ function presetLines(source: string, presetId: string): string[] {
   return lines.slice(start, end < 0 ? undefined : end);
 }
 
-function pluginRows(source: string, presetId: string): PluginRow[] {
-  const lines = presetLines(source, presetId);
-  const pluginsAt = lines.findIndex((line) => line === "        plugins:");
-  if (pluginsAt < 0) throw new Error(`preset "${presetId}" has no plugins list`);
-
-  const rows: PluginRow[] = [];
-  let current: PluginRow | undefined;
-  for (const line of lines.slice(pluginsAt + 1)) {
-    const match = line.match(/^(\s*)- id:\s*(.+)$/);
-    if (match !== null) {
-      current = { id: clean(match[2]), name: "", indent: match[1].length };
-      rows.push(current);
-      continue;
-    }
-    const name = line.match(/^\s*name:\s*(.+)$/)?.[1];
-    if (name !== undefined && current !== undefined && current.name === "") {
-      current.name = clean(name);
-    }
-    const disabled = line.match(/^\s*disabled:\s*(.+)$/)?.[1];
-    if (disabled !== undefined && current !== undefined && current.disabled === undefined) {
-      current.disabled = disabled.trim();
-    }
-  }
-  return rows;
-}
-
-function baselineRows(file: string, presetId: string): PluginRow[] {
-  return pluginRows(readFileSync(join(BASELINE, file), "utf8"), presetId);
-}
-
 function lineIndent(line: string): number {
   return line.length - line.trimStart().length;
 }
 
-/** Extract one plugin row's full config block, dedented and without comments or blank lines. */
-function pluginConfigBlock(source: string, presetId: string, pluginId: string): string {
+/** Parse the plugin rows of one preset, keeping each row's full nested block. */
+function presetRows(source: string, presetId: string): PluginRow[] {
   const lines = presetLines(source, presetId);
   const pluginsAt = lines.findIndex((line) => line === "        plugins:");
   if (pluginsAt < 0) throw new Error(`preset "${presetId}" has no plugins list`);
 
   const body = lines.slice(pluginsAt + 1);
-  const start = body.findIndex((line) => {
-    const match = line.match(/^(\s*)- id:\s*(.+)$/);
-    return match !== null && clean(match[2]) === pluginId;
-  });
-  if (start < 0) throw new Error(`plugin "${pluginId}" was not found in preset "${presetId}"`);
-  const indent = lineIndent(body[start]!);
+  const rows: PluginRow[] = [];
+  for (let index = 0; index < body.length; index += 1) {
+    const match = body[index]!.match(/^(\s*)- id:\s*(.+)$/);
+    if (match === null) continue;
 
-  const block: string[] = [body[start]!];
-  for (const line of body.slice(start + 1)) {
-    const sibling = line.match(/^(\s*)- id:\s*(.+)$/);
-    if (sibling !== null && sibling[1].length <= indent) break;
-    if (line.trim() !== "" && lineIndent(line) <= indent && !line.trimStart().startsWith("#")) {
-      break;
+    const indent = match[1]!.length;
+    const block: string[] = [body[index]!];
+    for (let next = index + 1; next < body.length; next += 1) {
+      const sibling = body[next]!.match(/^(\s*)- id:\s*(.+)$/);
+      if (sibling !== null && sibling[1]!.length <= indent) break;
+      if (body[next]!.trim() !== "" && lineIndent(body[next]!) <= indent) break;
+      block.push(body[next]!);
     }
-    block.push(line);
-  }
 
-  return block
-    .filter((line) => line.trim() !== "" && !line.trimStart().startsWith("#"))
-    .map((line) => line.slice(indent).replace(/\s+$/, ""))
-    .join("\n");
+    const rest = block.slice(1);
+    const name = rest.find((line) => /^\s*name:/.test(line));
+    const disabled = rest.find((line) => /^\s*disabled:/.test(line));
+    const dedented = block.map((line) => line.slice(indent).replace(/\s+$/, ""));
+    rows.push({
+      id: clean(match[2]!),
+      name: name === undefined ? "" : clean(name.replace(/^\s*name:\s*/, "")),
+      indent,
+      ...(disabled === undefined ? {} : { disabled: disabled.trim() }),
+      block: dedented.filter((line) => line.trim() !== "" && !line.trimStart().startsWith("#")),
+    });
+  }
+  return rows;
 }
 
-/** Plugin ids whose config is shared verbatim with the DSH root picker presets. */
-const SHARED_CONFIG_BLOCKS = [
-  "tool-fs",
-  "tool-fs-search",
-  "tool-web",
-  "tool-todo",
-  "planning",
-  "compaction",
-] as const;
+function baselineRows(file: string, presetId: string): PluginRow[] {
+  return presetRows(readFileSync(join(BASELINE, file), "utf8"), presetId);
+}
 
-function expectSharedConfigBlocks(
+/**
+ * A row's comparable form: quotes around a `name:` value are YAML spelling, not
+ * behaviour, so they are dropped; everything else (indentation, block-scalar
+ * line breaks) is compared verbatim.
+ */
+function comparable(block: readonly string[]): string {
+  return block.map((line) => line.replace(/^(\s*name:\s*)["'](.*)["']$/, "$1$2")).join("\n");
+}
+
+function expectedRows(baseline: readonly PluginRow[]): PluginRow[] {
+  return [...baseline.filter((row) => !REPLACED_ROWS.has(row.id)), ...PSTACK_ROWS];
+}
+
+function expectPresetParity(
   targetPreset: string,
   fixtureFile: string,
   fixturePreset: string,
 ): void {
-  const fixture = readFileSync(join(BASELINE, fixtureFile), "utf8");
-  for (const id of SHARED_CONFIG_BLOCKS) {
-    expect(pluginConfigBlock(PATCH, targetPreset, id)).toBe(
-      pluginConfigBlock(fixture, fixturePreset, id),
-    );
-  }
-}
+  const actual = presetRows(PATCH, targetPreset);
+  const expected = expectedRows(baselineRows(fixtureFile, fixturePreset));
 
-function expectedRootRows(baseline: PluginRow[]): PluginRow[] {
-  return [
-    ...baseline.filter((row) => row.id !== "tool-subagent" && row.id !== "tool-subagent-fork"),
-    ...PSTACK_ROWS,
-  ];
+  expect(
+    actual.map((row) => ({
+      id: row.id,
+      name: row.name,
+      indent: row.indent,
+      disabled: row.disabled,
+    })),
+  ).toEqual(
+    expected.map((row) => ({
+      id: row.id,
+      name: row.name,
+      indent: row.indent,
+      disabled: row.disabled,
+    })),
+  );
+
+  const byId = new Map(expected.map((row) => [row.id, row]));
+  for (const row of actual) {
+    if (CONTAINER_DELTAS.has(row.id)) continue;
+    const counterpart = byId.get(row.id);
+    if (counterpart === undefined) continue;
+    expect({ id: row.id, block: comparable(row.block) }).toEqual({
+      id: row.id,
+      block: comparable(counterpart.block),
+    });
+  }
 }
 
 describe("poteto-mode preset parity", () => {
   it("matches the standard preset with only the documented delegation delta", () => {
-    expect(pluginRows(PATCH, "preset-poteto-mode")).toEqual(
-      expectedRootRows(baselineRows("standard.patch.yml", "preset-standard")),
-    );
+    expectPresetParity("preset-poteto-mode", "standard.patch.yml", "preset-standard");
   });
 
   it("matches the Creator preset with only the documented delegation delta", () => {
-    expect(pluginRows(PATCH, "preset-poteto-mode-creator")).toEqual(
-      expectedRootRows(baselineRows("cordis.patch.yml", "preset-cordis")),
-    );
+    expectPresetParity("preset-poteto-mode-creator", "cordis.patch.yml", "preset-cordis");
+  });
+
+  it("hands the standard preset's Office tools to Poteto mode", () => {
+    const ids = presetRows(PATCH, "preset-poteto-mode").map((row) => row.id);
+    expect(ids).toContain("tool-office");
+    expect(ids.indexOf("tool-office")).toBe(ids.indexOf("present") + 1);
   });
 
   it("keeps the pstack skills and prompt section in both root presets", () => {
@@ -155,13 +178,5 @@ describe("poteto-mode preset parity", () => {
       expect(source).not.toContain("id: pstack-subagent");
       expect(source).not.toContain("id: pstack-skill");
     }
-  });
-
-  it("matches the standard preset's shared config blocks", () => {
-    expectSharedConfigBlocks("preset-poteto-mode", "standard.patch.yml", "preset-standard");
-  });
-
-  it("matches the Creator preset's shared config blocks", () => {
-    expectSharedConfigBlocks("preset-poteto-mode-creator", "cordis.patch.yml", "preset-cordis");
   });
 });

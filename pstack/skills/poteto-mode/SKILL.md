@@ -99,6 +99,8 @@ Read the leaf skill in full for any principle you apply. Each entry names when i
 
 You own every subagent's work. Review the diff and write your own summary. A second opinion is the same prompt on another vendor's model.
 
+A subagent that fails with `CONTENT_REFUSED` was refused by DeepSeek's content-safety check. The attempt was billed, and repeating the same prompt refuses again, so rewrite the brief or switch models instead of retrying it verbatim.
+
 **Fresh subagents by default.** Give a fix round, a follow-up, a retry, or the next queue item to a fresh subagent with the original brief, every later directive, and the prior agent's report and branch. Resume an existing subagent only when the work needs state that lives in it and is costly to move: its checkout, its uncommitted changes, or a process it still runs.
 
 ## Writing the reply

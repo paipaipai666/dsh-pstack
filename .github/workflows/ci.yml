@@ -123,7 +123,7 @@ jobs:
           node-version: 24.22.1
 
       - name: Install DSH CLI
-        run: pnpm add -g @deepseek-ai/dsh@0.2.2-rc.3
+        run: pnpm add -g @deepseek-ai/dsh@0.2.2-rc.5
 
       - name: Install fork into isolated DSH_HOME
         env:

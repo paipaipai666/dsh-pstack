@@ -1,6 +1,6 @@
 {
   "name": "@paipaipai666/dsh-pstack",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "pstack for DeepSeek Harness: rigorous agent workflows ported from cursor/plugins.",
   "keywords": [
     "agent-skills",
@@ -79,6 +79,7 @@
     "fork:check": "node scripts/fork-check.mjs",
     "upstream:check": "node scripts/check-upstream.mjs",
     "version:check": "node scripts/check-version-bump.mjs",
+    "preset:drift": "node scripts/preset-drift.mjs",
     "audit:lock": "node scripts/update-audit-lock.mjs --write",
     "fork:bootstrap": "git submodule update --init --recursive && pnpm install --frozen-lockfile",
     "smoke:install": "node scripts/smoke-install.mjs",

@@ -44,7 +44,7 @@ the worked example: a second WebServer binds `127.0.0.1:3081`, accepts `POST /gi
 signature, and starts a session only when one of your rules matches.
 
 ```powershell
-dsh plugin --profile web add "@deepseek-ai/dsh-webhook@0.2.2-rc.1" "@deepseek-ai/dsh-webhook-github@0.2.2-rc.1"
+dsh plugin --profile web add "@deepseek-ai/dsh-webhook@0.2.2-rc.5" "@deepseek-ai/dsh-webhook-github@0.2.2-rc.5"
 dsh web --patch "$env:DSH_HOME\profiles\web\node_modules\@deepseek-ai\dsh-webhook-github\examples\github-review\cordis.yml"
 ```
 

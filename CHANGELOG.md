@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.4
+
+`@deepseek-ai/dsh-agent-preset` and `@deepseek-ai/dsh-agent-preset-registry` were runtime dependencies even though the plugin only imports them as types. Installing the plugin into a profile therefore pulled a second, version-pinned copy of the host runtime into that profile: `0.2.2-rc.3` here, with `dsh-app-boot`, `dsh-official-bundles`, and `dsh-package-manifest` along for the ride. Once the app moved to `0.2.2-rc.5`, the stale copy answered the host's client API, and the window failed with `client api: agentPresets/list failed: transport failure for /api/agentPresets/list: HTTP 404`.
+
+### Fixed
+
+- Both host preset packages are development dependencies now, so a profile install no longer drops a pinned host runtime beside the app. `tests/package-deps.test.ts` fails if a `@deepseek-ai/*` package returns to `dependencies`; `@deepseek-ai/schemastery` stays allowed because `preset.ts` imports it as a value and it is a library, not a host service.
+- A profile that already holds the stale copies recovers by removing them after the upgrade and restarting the app. `pstack_doctor` reports the loaded DSH version, so the next mismatch is visible instead of silent.
+
 ## 0.5.3
 
 Tracks DSH `0.2.2-rc.5` without changing the compatibility key. `engines.dsh` stays `>=0.2.2-rc.2` and the key stays `dsh-0.2.2-rc.2+port-v1`, because every `@deepseek-ai/*` package this plugin imports kept its signatures between rc.3 and rc.5. The audit baseline id follows the re-audit.

@@ -325,12 +325,6 @@ importers:
 
   .:
     dependencies:
-      '@deepseek-ai/dsh-agent-preset':
-        specifier: catalog:types
-        version: 0.2.2-rc.3(@deepseek-ai/cordis-plugin-loader@1.1.0)(@deepseek-ai/cordis@4.1.0)(@deepseek-ai/dsh-agent-preset-registry@0.2.2-rc.3(8f5b61d2f9c86cb6be66a07350d73825))
-      '@deepseek-ai/dsh-agent-preset-registry':
-        specifier: catalog:types
-        version: 0.2.2-rc.3(8f5b61d2f9c86cb6be66a07350d73825)
       '@deepseek-ai/schemastery':
         specifier: catalog:runtime
         version: 3.19.0
@@ -347,6 +341,12 @@ importers:
       '@deepseek-ai/dsh-agent':
         specifier: catalog:types
         version: 0.2.2-rc.3(5a66ed30ebfeae025fb260d2c5c96077)
+      '@deepseek-ai/dsh-agent-preset':
+        specifier: catalog:types
+        version: 0.2.2-rc.3(@deepseek-ai/cordis-plugin-loader@1.1.0)(@deepseek-ai/cordis@4.1.0)(@deepseek-ai/dsh-agent-preset-registry@0.2.2-rc.3(8f5b61d2f9c86cb6be66a07350d73825))
+      '@deepseek-ai/dsh-agent-preset-registry':
+        specifier: catalog:types
+        version: 0.2.2-rc.3(8f5b61d2f9c86cb6be66a07350d73825)
       '@deepseek-ai/dsh-api-gateway':
         specifier: catalog:types
         version: 0.2.2-rc.3(@deepseek-ai/cordis@4.1.0)

@@ -4,7 +4,7 @@
 > 审查时间：2026-11-06  
 > 上游基线：`cursor/plugins` 的 `pstack` 0.15.36（提交 `ae5650f`，由 `pstack/README.md` 记录）  
 > 当前 fork：`l246804/dsh-pstack` v0.3.0-beta.1 + 本仓修复  
-> 目标宿主：DeepSeek Harness `0.2.2-rc.5`（2026-11-22 复核 rc.3 → rc.5：无契约变化，兼容基线仍为 `0.2.2-rc.2`）
+> 目标宿主：DeepSeek Harness `0.2.2-rc.5`（2026-11-22 复核 rc.2 → rc.5：无契约变化，审核基线已转到 rc.5，兼容键仍为 `dsh-0.2.2-rc.2+port-v1`）
 
 ## 1. 资产盘点
 

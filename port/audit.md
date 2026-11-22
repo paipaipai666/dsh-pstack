@@ -4,18 +4,35 @@
 
 ## 本轮基线
 
-- DSH：`@deepseek-ai/dsh` 0.2.2-rc.2。
+- DSH：`@deepseek-ai/dsh` 0.2.2-rc.5。
 - 能力基线：DSH Web profile 的标准模式。headless 只用于 playground 自动化，不参与能力判定。
-- pstack：`upstream/cursor-plugins` 提交 `0b46ec399d55f2829e88822998f53b84944837d3`，插件版本 0.15.46。上一个基线为 `e58dd043600587dbaf58ba315e7f2b38373eeb43`（0.15.44），本轮为普通更新（`normal`），沿用兼容键 `dsh-0.2.2-rc.2+port-v1`。
-- 审核日期：2026-11-19。
+- pstack：`upstream/cursor-plugins` 提交 `0b46ec399d55f2829e88822998f53b84944837d3`，插件版本 0.15.46。上游源自上一轮未变，67 项能力不重算。上一个审核基线为 `dsh-0.2.2-rc.2@pstack-0b46ec399d55f2829e88822998f53b84944837d3`，本轮为普通更新（`normal`），沿用兼容键 `dsh-0.2.2-rc.2+port-v1`。
+- 审核日期：2026-11-22。
 - 工具清单取自运行时 `Tool.listTools`。官方插件状态取自当前 Web profile 的 `dsh.profile.bundles`。
 - `list_subagent_models` 由 `@deepseek-ai/dsh-tool-subagent` 的 `modelDiscovery` 注册。`modelDiscovery` 为 false 时工具根本不注册，不是隐藏或空列表。默认 false，Web 与 Desktop 标准预设设为 true，headless、SDK、ACP 不包含。
 - `subagent` 的 `agent_preset` 由 `allowedAgentPresets` 开启。预设是 Cordis 插件组合，子代理启动时按所选预设挂载，系统提示与工具随组合加载。
 - 扫描器：`vpx port/scan.mjs` 输出 `.audit/scan/capability-scan.tsv`，覆盖 115 个 Markdown 文件与 50 个脚本或配置文件。`vpx port/scan.mjs --check port/audit.md` 校验本文件引用的行号。
 
+## 本轮运行时复核（DSH 0.2.2-rc.2 → 0.2.2-rc.5）
+
+本轮只换 DSH 运行时基线，上游 pstack 源未变：`vpx port/scan.mjs --check-lock` 的 67 项 `sourceDigest` 全部沿用，`vpx port/scan.mjs --check port/audit.md` 的 217 条引用全部成立，因此 67 项能力的上游事实与处置不重算，只复核 DSH 侧判定。复核取 rc.5 的 npm 产物与运行时，逐文件比对，不沿用 rc.2 的满足性判断。
+
+- 本插件导入的 22 个 `@deepseek-ai/*` 包 rc.3 → rc.5 只有两处实现差异：`dsh-llm` 的 `lib/types/error.js`、`lib/index.js`，以及 `dsh-api-remotes` 的 `lib/client.js`（typert 信息表重新生成）。类型面唯一变化是 `dsh-llm` 的 `lib/types/error.d.ts` 新增 `CONTENT_REFUSED`。
+- 其余包（含 `dsh-tools`、`dsh-subagent`、`dsh-skill`、`dsh-agent`、`dsh-session`、`dsh-settings`、`dsh-working-directory`）逐文件相同，标准模式的工具面与 schema 不变。
+- `@deepseek-ai/dsh-official-bundles` 的 rc.3 与 rc.5 逐文件相同，官方插件清单不变，CAP-041、CAP-046、CAP-050 的「官方插件」依据不变。
+- `dsh-web-app` 的 `presets/standard.patch.yml` 与 `presets/cordis.patch.yml` 在 rc.3 与 rc.5 逐字节相同；它们比 rc.2 多出 `tool-office`、`skill-filesystem` 的 `customSkillDirs` 与 `tool-subagent-control` 的 `interrupt: false`，本仓根预设已按 rc.5 对齐（见 `cordis.patch.yml` 与 `tests/preset-parity.test.ts`）。
+
+| 变化 | 观察 | 处置影响 |
+|:--|:--|:--|
+| 官方 DeepSeek 请求强制内容安全审查 | `llm-deepseek` 对每次官方请求带 `safety_check {level: high}`；拒答以 `CONTENT_REFUSED` 上报，该码不在 `retryChoice` 集合内，且失败前已记 billed usage | 不新增能力项：拒答属于模型侧行为，标准模式已按错误返回。插件在 `src/subagent.ts` 的失败摘要里点名该码，说明「已计费、重试同一提示词会再拒、改写或换模型」，poteto-mode 指令同步一句；CAP-001 等子代理派发项的处置与推荐不变 |
+| LiveShare 桌面 tunnel worker 改用 `ELECTRON_RUN_AS_NODE` | `dsh-liveshare` 只在桌面端分享链路生效 | 与 pstack 能力无关，67 项均不涉及 |
+| Web 端 DeepSeek 模型默认使用服务端 Messages 搜索 | 搜索由 DSH 默认行为决定，不按次收费；其他模型仍走 DeepSeek Search API | 上游 pstack 没有映射 Web 搜索工具，`port/dsh.md` 与任何处置都不需要改 |
+
+本轮不改 `package.json` 的 `engines.dsh`（仍为 `>=0.2.2-rc.2`）与 `baseline.compatibilityKey`：rc.5 没有移除或改变任何被映射的 API，兼容范围不变。`baseline.id` 更新为 `dsh-0.2.2-rc.5@pstack-0b46ec399d55f2829e88822998f53b84944837d3`。
+
 ## 处置状态
 
-本轮已确认处置 67 项，沿用 0.15.43 基线的处置结论。0.15.43 的普通更新删除了 `check-plan`，其能力此前已标为已移除并从活动 lock 删除，历史只留在 Git 提交里；0.15.44 没有删除或新增能力。
+本轮已确认处置 67 项，沿用 0.15.43 基线的处置结论。0.15.43 的普通更新删除了 `check-plan`，其能力此前已标为已移除并从活动 lock 删除，历史只留在 Git 提交里；0.15.44 没有删除或新增能力。本轮 DSH rc.5 复核没有新增或删除能力，`直接映射` 36、`官方插件` 3、`插件实现` 21、`舍弃` 8 的分布不变。
 
 - `直接映射`：DSH 标准模式已经提供。
 - `官方插件`：启用 DSH 随附的官方插件即可。

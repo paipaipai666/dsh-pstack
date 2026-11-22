@@ -58,6 +58,9 @@ jobs:
       - name: Test and coverage
         run: pnpm exec vp test run --coverage
 
+      - name: Shipped presets match the fixture
+        run: pnpm run preset:drift --fetch
+
       - name: Test compiled bundled scripts
         run: pnpm exec vp run test:runtime
 

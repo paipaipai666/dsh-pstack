@@ -10,7 +10,7 @@
 | DSH version | `0.2.2-rc.5` |
 | Bundled runtime Node | `v24.21.0` |
 | Fork source | `l246804/dsh-pstack` `v0.3.0-beta.1` |
-| Upstream pstack | `0.15.36` |
+| Upstream pstack | `0.15.46` |
 
 ## Verified on 2026-11-22
 
@@ -28,11 +28,15 @@
   `safety_check { level: high }`, and a refusal arrives as `CONTENT_REFUSED`, billed and never
   retried. `pstack_subagent` names that code instead of passing the provider message through,
   and the poteto-mode brief says not to retry the same brief.
-- `engines.dsh` stays `>=0.2.2-rc.2`: nothing pstack calls is new in rc.5, so the baseline and
-  its compatibility key `dsh-0.2.2-rc.2+port-v1` do not move.
+- `engines.dsh` stays `>=0.2.2-rc.2`: nothing pstack calls is new in rc.5, so the compatibility
+  key `dsh-0.2.2-rc.2+port-v1` does not move. The audit baseline does move: `port/audit.md` and
+  `port/audit.lock.json` are re-stamped to `dsh-0.2.2-rc.5@pstack-0b46ec3...` as a `normal`
+  transition, because the per-capability `sourceDigest`s and all 217 references are unchanged and
+  only the DSH-side facts were re-verified.
 
-Run `pnpm preset:drift --source=<extracted @deepseek-ai/dsh-web-app presets>` after a host bump
-to compare the vendored fixtures with the shipped presets; it exits non-zero on drift.
+`pnpm preset:drift` compares the vendored fixtures with the shipped presets and exits non-zero on
+drift. Pass `--source=<dir>` to point at an extracted `@deepseek-ai/dsh-web-app` package; CI runs
+`--fetch`, which downloads the tarball for the fixture's version from npm and checks that copy.
 
 ## Verified on 2026-11-06 (rc.1, superseded)
 

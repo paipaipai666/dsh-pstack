@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "baseline": {
-    "id": "dsh-0.2.2-rc.2@pstack-0b46ec399d55f2829e88822998f53b84944837d3",
+    "id": "dsh-0.2.2-rc.5@pstack-0b46ec399d55f2829e88822998f53b84944837d3",
     "compatibilityKey": "dsh-0.2.2-rc.2+port-v1",
-    "previous": "dsh-0.2.2-rc.2@pstack-e58dd043600587dbaf58ba315e7f2b38373eeb43",
+    "previous": "dsh-0.2.2-rc.2@pstack-0b46ec399d55f2829e88822998f53b84944837d3",
     "transition": "normal"
   },
   "items": {

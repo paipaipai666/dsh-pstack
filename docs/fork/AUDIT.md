@@ -1,6 +1,6 @@
 # pstack 上游对照与质量审查
 
-> 当前包：`@paipaipai666/dsh-pstack` `0.5.4`（本文为 2026-11-06 历史审查记录，部分数字未随线更新）
+> 当前包：`@paipaipai666/dsh-pstack` `0.5.5`（本文为 2026-11-06 历史审查记录，部分数字未随线更新）
 > 审查时间：2026-11-06  
 > 上游基线：`cursor/plugins` 的 `pstack` 0.15.36（提交 `ae5650f`，由 `pstack/README.md` 记录）  
 > 当前 fork：`l246804/dsh-pstack` v0.3.0-beta.1 + 本仓修复  

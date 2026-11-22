@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.5.5
+
+Automated pull requests now have to show what they actually ran, and two gates keep the repository from drifting back to "trust the agent".
+
+### Added
+
+- `scripts/check-comments.mjs` (npm script `comment:check`) rejects new prose comments in source files, allowing only machine directives such as `eslint-`, `@ts-`, and `<reference`. The `Version bump (auto PRs)` job runs it against the pull request base, and `vps:check` runs it too, where it skips without `BASE_SHA`.
+- `docs/fork/FEATURE-MAP.md` maps the port's four layers, what has to move together when one changes, and which gate proves it.
+
+### Changed
+
+- `pnpm run vps:check` ends with the comment gate, so a branch that adds commentary fails the same way it would in CI.
+- Upstream sync and release issues now state `Done means:` and `Evidence to attach:`, so an automated task cannot close by asserting success.
+
 ## 0.5.4
 
 `@deepseek-ai/dsh-agent-preset` and `@deepseek-ai/dsh-agent-preset-registry` were runtime dependencies even though the plugin only imports them as types. Installing the plugin into a profile therefore pulled a second, version-pinned copy of the host runtime into that profile: `0.2.2-rc.3` here, with `dsh-app-boot`, `dsh-official-bundles`, and `dsh-package-manifest` along for the ride. Once the app moved to `0.2.2-rc.5`, the stale copy answered the host's client API, and the window failed with `client api: agentPresets/list failed: transport failure for /api/agentPresets/list: HTTP 404`.

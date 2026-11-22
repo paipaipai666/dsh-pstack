@@ -102,6 +102,11 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: node scripts/check-version-bump.mjs
 
+      - name: Reject new prose comments in source files
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/check-comments.mjs
+
   install-smoke:
     name: Install smoke (Linux)
     needs: check

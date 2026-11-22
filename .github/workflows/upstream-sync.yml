@@ -66,6 +66,18 @@ jobs:
           - Upstream pstack: \`${LATEST}\`
           - Upstream commit: \`${LATEST_COMMIT}\`
 
+          Done means:
+
+          - \`pstack/plugin.json\` reports \`${LATEST}\` and \`node port/generate.mjs --check\` is quiet.
+          - \`pnpm run vps:check\` passes on the branch, and the packaged statechart scripts come from
+            \`runtime/\` rather than the generated tree.
+          - The draft PR body carries the recorded exit code and output of every verification command.
+
+          Evidence to attach:
+
+          - The \`vps:check\` summary line and any gate that had to be repaired.
+          - The upstream commit range used for the sync.
+
           This issue is the sync queue item. The VPS auto-sync worker will pick it up, create a
           draft pull request, and report the result here. Review the upstream changes at
           https://github.com/cursor/plugins/commits/main/pstack.
@@ -120,4 +132,8 @@ jobs:
             - Current fork version: \`${CURRENT}\`
             - Upstream latest release: \`${LATEST}\`
 
-            Review the upstream diff, rebase \`fork/main\`, regenerate the pstack tree, and run CI."
+            Done means: \`fork/main\` is rebased or merged onto the release, the pstack tree is
+            regenerated, and CI is green on the resulting branch.
+
+            Evidence to attach: the upstream tag or commit, the regenerated tree diff summary, and
+            the CI run URL."

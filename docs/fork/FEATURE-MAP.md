@@ -40,6 +40,10 @@
 - `vp run compatibility:check`：README 兼容性表与包版本、上游版本是否一致。
 - `node scripts/check-comments.mjs`：自动 PR 不得新增解释性注释；只放行 `eslint`、`@ts-`、
   `<reference` 这类机器指令。理由写在提交信息、`CHANGELOG.md` 或 `docs/fork/`。
+- `node scripts/check-dsh-pins.mjs`：catalog、CI 安装版本、审计基线、`engines.dsh`、`port/audit.md`
+  必须指向同一个 DSH 版本；任何一处单独动都会红。
+- `scripts/gate-surface.mjs`（CI 的 `Gate surface` job）：改门禁面本身（`scripts/`、`.github/`、
+  `package.json` 等）要人工打 `gate-approved`。四层门禁的分工见 [GATES.md](GATES.md)。
 
 ## 已知边界
 

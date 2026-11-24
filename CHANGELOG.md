@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.6
+
+### Added
+
+- `scripts/check-dsh-pins.mjs` (`pnpm run dsh:pins`, wired into `ci` and `vps:check`) that proves the workspace catalog, the DSH version CI installs, the audit baseline, `engines.dsh`, and `port/audit.md` all name the same release. It immediately found a real drift: the catalog compiled against `0.2.2-rc.3` while CI installed and the audit recorded `0.2.2-rc.5`. The catalog is now `0.2.2-rc.5`, so the types we compile and the runtime we verify are the same release.
+- `scripts/gate-surface.mjs` and a `Gate surface` job that fails any pull request touching `scripts/`, `.github/`, `package.json`, `pnpm-workspace.yaml`, `vite.config.ts`, `port/generate.mjs`, `port/scan.mjs`, or `model/` until a maintainer adds the `gate-approved` label: a change must not be able to rewrite the checks that judge it without a human saying so.
+
 ## 0.5.5
 
 Automated pull requests now have to show what they actually ran, and two gates keep the repository from drifting back to "trust the agent".

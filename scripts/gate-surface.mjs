@@ -10,6 +10,8 @@ export const PROTECTED_PATTERNS = [
   /^port\/generate\.mjs$/,
   /^port\/scan\.mjs$/,
   /^model\//,
+  /^docs\/fork\/dsh-api-surface\.json$/,
+  /^docs\/fork\/BREAKING-CHECKLIST\.md$/,
 ];
 
 export const APPROVAL_LABEL = "gate-approved";

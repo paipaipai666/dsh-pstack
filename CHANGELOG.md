@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- 差分预言机（第五层门禁）：`scripts/pin-dsh-version.mjs` 把 catalog 里 22 个 `@deepseek-ai/dsh*` 条目整体改到指定版本或 npm `next`；`scripts/dsh-api-surface.mjs` 记录我们从 16 个 DSH 包里导入的每个符号与该包当前的导出，写进 `docs/fork/dsh-api-surface.json`，`--check` 会在任何导入过的符号不再被导出时失败并点名。`ci` 与 `vps:check` 末尾都跑这条检查。
+- `Next DSH (observe)` job：在 npm `next` 版本上跑 `typecheck` 与 `test`，把「上游下一个版本会不会弄坏我们」变成编译错误而不是运行时惊喜；目前 `continue-on-error: true`，只观察不阻断。
+- `docs/fork/BREAKING-CHECKLIST.md`：16 条按路径触发的破坏面清单，每条写清触发路径、必须确认什么、哪次事故证明了它（runtime 与生成树不一致、DSH API 拍平、版本漂移、租约围栏、证据门禁、任务日志泄露等）。
+- `scripts/check-breaking.mjs`：读清单的机器块，从本次 diff 的文件列表里挑出命中的项（真实 diff 上命中 7 项，改 `cordis.patch.yml` 只命中 `preset-rows`），输出可直接塞进 review 提示的报告；`pnpm run breaking:check` 以 `origin/fork/main` 为基线。
+- `docs/fork/REVIEW-METRICS.md` 与 `scripts/review-metrics.mjs`：门禁的三档（`enforce` / `observe` / `off`）、评审自身的四个指标（合并率、被拒率、回滚率、合并耗时中位数），以及为什么高合并率 + 低回滚率也可能是「什么都没查」。
+
+### Changed
+
+- CI 的 `Check (Linux)` 里新增 `Report the breaking surfaces this diff touches` 步骤：PR 上打印本次命中的清单项，作为 review 的输入。
+- `docs/fork/dsh-api-surface.json` 与 `docs/fork/BREAKING-CHECKLIST.md` 加入 `scripts/gate-surface.mjs` 的保护面：删条目同样需要 `gate-approved` 标签，否则检查可以被自己的输入改绿。
+
+### Fixed
+
+- `docs/fork/GATES.md` 更正为实测结论：`required_status_checks` 同样拦直接推 `fork/main`（`2 of 2 required status checks are expected`），因此 ruleset 保留维护者本人的 bypass；并补上第五层、observe 档与版本号规则的说明。
+
+### Notes
+
+- 清单只报不判：判定仍然是 review 节点的事，这里只保证「该看的那几项」不会因为上下文太长被跳过。
+- 这一批全是工具链与文档，不进发布包（`package.json` 的 `files` 里没有 `scripts/`、`tests/`、`docs/fork/`），所以不占用版本号，等下一次有 `dist/` 变化的发布一起带走。
 ## 0.5.6
 
 ### Added

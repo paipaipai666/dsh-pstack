@@ -152,6 +152,14 @@ Do not use the upstream `dsh-pstack` npm package for this fork. It is a differen
 
 ## Releasing this fork
 
+A version number moves when the published package moves. `package.json` ships only
+`dist/`, `assets/`, `cordis.patch.yml`, `locale/`, the two READMEs, and the two shipped docs; a
+change confined to CI, `scripts/`, `tests/`, or `docs/fork/` reaches nobody who installs the
+package, so it belongs under `## Unreleased` in `CHANGELOG.md` and rides along with the next
+release that does change the package. `Version bump (auto PRs)` enforces a bump only on `auto/*`
+branches, which is where the rule came from — it was never a rule for direct pushes, and a
+version number is not a marker for effort.
+
 The package name is already scoped:
 
 ```json

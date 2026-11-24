@@ -15,6 +15,9 @@ describe("gate surface", () => {
     expect(isProtectedPath("vite.config.ts")).toBe(true);
     expect(isProtectedPath("port/generate.mjs")).toBe(true);
     expect(isProtectedPath("model/IssueAutomation.tla")).toBe(true);
+    expect(isProtectedPath("docs/fork/dsh-api-surface.json")).toBe(true);
+    expect(isProtectedPath("docs/fork/BREAKING-CHECKLIST.md")).toBe(true);
+    expect(isProtectedPath("docs/fork/GATES.md")).toBe(false);
   });
 
   it("leaves ordinary source changes alone", () => {

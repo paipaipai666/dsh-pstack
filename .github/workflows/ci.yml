@@ -73,6 +73,12 @@ jobs:
           pnpm exec vpx port/scan.mjs --check-lock
           pnpm exec vpx port/scan.mjs --check port/audit.md
 
+      - name: Report the breaking surfaces this diff touches
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/check-breaking.mjs --base "$BASE_SHA"
+
       - name: Compatibility tables are current
         run: pnpm exec vp run compatibility:check
 
@@ -204,3 +210,47 @@ jobs:
 
       - name: Generated tree is current
         run: pnpm exec vp run generate:check
+
+  dsh-next:
+    name: Next DSH (observe)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          submodules: false
+
+      - name: Authenticate the submodule fetch
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          git config --global url."https://x-access-token:${TOKEN}@github.com/".insteadOf "https://github.com/"
+          git submodule update --init --depth 1 upstream/cursor-plugins
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          version: 12.15.0
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.22.1
+          cache: pnpm
+
+      - name: Pin the next DSH release
+        run: node scripts/pin-dsh-version.mjs next
+
+      - name: Install
+        run: pnpm install --no-frozen-lockfile --ignore-scripts
+
+      - name: Typecheck against next
+        run: pnpm exec vp run typecheck
+
+      - name: Test against next
+        run: pnpm exec vp test
+
+      - name: Report the API surface drift
+        run: node scripts/dsh-api-surface.mjs --check

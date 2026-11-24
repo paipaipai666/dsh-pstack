@@ -13,7 +13,9 @@
 
 `required_status_checks` 只对 PR 生效，直接推 `fork/main` 不受它约束。这是有意保留的：本地维护者仍然可以直接推，而自动化任务的产物一律走 PR，因此对自动化来说闸门是硬的。如果要连直接推也禁掉，给 `fork-main` ruleset 加一条 `pull_request` 规则即可，代价是维护者自己也得开 PR。
 
-`bypass_actors` 为空、`current_user_can_bypass` 为 `never`，所以没有"管理员绕过"这条后门。
+`required_status_checks` 对直接推 `fork/main` 也生效（GitHub 会报 `2 of 2 required status checks are expected` 并拒绝推送），因此 ruleset 里保留了一个 bypass：维护者本人（`actor_id 144529574`，`bypass_mode: always`）可以直接推，其余路径一律要过检查。这把"维护者在自动化本身坏掉时还能自救"这条逃生门留下，同时把自动化产物关在 PR 里——worker 从不合并 PR，所以对自动化来说闸门是硬的。
+
+`bypass_actors` 里只有维护者一人，没有管理员组、没有 bot。
 
 ## 第 2 层的威胁模型
 
@@ -41,6 +43,9 @@ gh api repos/paipaipai666/dsh-pstack/rulesets --method POST --input - <<'JSON'
           { "context": "Gate surface" }
         ]
       } }
+  ],
+  "bypass_actors": [
+    { "actor_id": 144529574, "actor_type": "User", "bypass_mode": "always" }
   ]
 }
 JSON

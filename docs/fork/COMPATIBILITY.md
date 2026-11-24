@@ -33,6 +33,10 @@
   `port/audit.lock.json` are re-stamped to `dsh-0.2.2-rc.5@pstack-0b46ec3...` as a `normal`
   transition, because the per-capability `sourceDigest`s and all 217 references are unchanged and
   only the DSH-side facts were re-verified.
+- The 0.15.47 sync request targets the same upstream commit (`0b46ec3`), so the bundled tree stays
+  at `0.15.46`: the re-scan keeps all 67 capability digests and all 217 references, and the lock is
+  unchanged. Upstream's 0.15.47 itself is `2dd5c0cc`, which adds `/reframe` and lands after the
+  target commit, so `/reframe` belongs to the next sync.
 
 `pnpm preset:drift` compares the vendored fixtures with the shipped presets and exits non-zero on
 drift. Pass `--source=<dir>` to point at an extracted `@deepseek-ai/dsh-web-app` package; CI runs

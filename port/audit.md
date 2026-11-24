@@ -6,7 +6,7 @@
 
 - DSH：`@deepseek-ai/dsh` 0.2.2-rc.5。
 - 能力基线：DSH Web profile 的标准模式。headless 只用于 playground 自动化，不参与能力判定。
-- pstack：`upstream/cursor-plugins` 提交 `0b46ec399d55f2829e88822998f53b84944837d3`，插件版本 0.15.46。上游源自上一轮未变，67 项能力不重算。上一个审核基线为 `dsh-0.2.2-rc.2@pstack-0b46ec399d55f2829e88822998f53b84944837d3`，本轮为普通更新（`normal`），沿用兼容键 `dsh-0.2.2-rc.2+port-v1`。
+- pstack：`upstream/cursor-plugins` 提交 `0b46ec399d55f2829e88822998f53b84944837d3`，插件版本 0.15.46。本轮 0.15.47 的任务目标就是上一轮已审核的提交，上游 pstack 树没有变化，67 项能力不重算。上一个审核基线仍为 `dsh-0.2.2-rc.2@pstack-0b46ec399d55f2829e88822998f53b84944837d3`，本轮为普通更新（`normal`），沿用兼容键 `dsh-0.2.2-rc.2+port-v1`。
 - 审核日期：2026-11-22。
 - 工具清单取自运行时 `Tool.listTools`。官方插件状态取自当前 Web profile 的 `dsh.profile.bundles`。
 - `list_subagent_models` 由 `@deepseek-ai/dsh-tool-subagent` 的 `modelDiscovery` 注册。`modelDiscovery` 为 false 时工具根本不注册，不是隐藏或空列表。默认 false，Web 与 Desktop 标准预设设为 true，headless、SDK、ACP 不包含。
@@ -32,7 +32,7 @@
 
 ## 处置状态
 
-本轮已确认处置 67 项，沿用 0.15.43 基线的处置结论。0.15.43 的普通更新删除了 `check-plan`，其能力此前已标为已移除并从活动 lock 删除，历史只留在 Git 提交里；0.15.44 没有删除或新增能力。本轮 DSH rc.5 复核没有新增或删除能力，`直接映射` 36、`官方插件` 3、`插件实现` 21、`舍弃` 8 的分布不变。
+本轮已确认处置 67 项，沿用 0.15.43 基线的处置结论。0.15.43 的普通更新删除了 `check-plan`，其能力此前已标为已移除并从活动 lock 删除，历史只留在 Git 提交里；0.15.44 没有删除或新增能力，0.15.47 的任务目标提交与 0.15.46 相同，同样没有新增或删除能力。本轮 DSH rc.5 复核没有新增或删除能力，`直接映射` 36、`官方插件` 3、`插件实现` 21、`舍弃` 8 的分布不变。
 
 - `直接映射`：DSH 标准模式已经提供。
 - `官方插件`：启用 DSH 随附的官方插件即可。
@@ -195,6 +195,20 @@
 `/loop` 与 `create-skill` 是 Cursor 内置能力，claude-code.md 没有为它们写映射行。技能里依赖它们的地方在 Claude Code 上没有替代路径。脚本在适配文档中完全没有出现，上游也没有为脚本提供运行时替代，脚本的环境要求只能在技能正文和 README 里说明。
 
 本仓库采用同样的边界。DSH 有对应能力的，按标准模式或官方插件映射。DSH 没有的，按舍弃处理并写入 `dsh.md`。不为 Cursor 云服务或平台能力编造等价物。
+
+## 本轮变化（0.15.46 → 0.15.47）
+
+普通更新，兼容键不变。上游 pstack 树没有移动：0.15.47 的任务目标提交 `0b46ec399d55f2829e88822998f53b84944837d3` 就是上一轮已审核的提交，`upstream/cursor-plugins` 的 gitlink 保持不变，`pstack/plugin.json` 的版本仍为 `0.15.46`。上游仓库在该提交之后确实有 `/reframe`：`2dd5c0cc` 新增该技能并把 pstack 版本提到 0.15.47，`9e278fe4` 补充列举步骤并提到 0.15.48。这两个提交都不在目标提交之内，不计入本轮基线；下一轮同步 0.15.47 之后的内容时需要审核 `/reframe` 及其能力项。
+
+| 检查 | 命令 | 结果 |
+|:--|:--|:--|
+| 能力扫描 | `node port/scan.mjs` | 重新生成 `.audit/scan/capability-scan.tsv`，947 行，行数与能力总项不变 |
+| 锁比对 | `node port/scan.mjs --check-lock` | 67 项全部沿用 |
+| 引用校验 | `node port/scan.mjs --check port/audit.md` | 217 条引用全部成立 |
+| 锁刷新 | `node scripts/update-audit-lock.mjs` | `audit lock is current`，0 个 `sourceDigest` 需要更新 |
+| 生成树漂移 | `node port/generate.mjs --check` | `pstack is up to date.` |
+
+因此本轮没有新增、删除或改源的能力项，`直接映射` 36、`官方插件` 3、`插件实现` 21、`舍弃` 8 的分布与各小节的处置均不变；`port/dsh.md`、`port/patches/*.md`、`port/overrides/**` 和 `runtime/` 都不需要改动。本轮没有产生新的基线：`baseline.id`、`baseline.previous` 与 `transition` 都保持上一轮 rc.5 审核写入的值，`previous` 仍为 `dsh-0.2.2-rc.2@pstack-0b46ec3…`。
 
 ## 本轮变化（0.15.44 → 0.15.46）
 

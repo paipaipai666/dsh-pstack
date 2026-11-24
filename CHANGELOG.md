@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.6
+
+Re-runs the port audit for upstream pstack 0.15.47 and finds that the bundled tree does not move: the sync request's target commit `0b46ec3` is the one 0.15.46 already shipped, so `pstack/plugin.json` still reads `0.15.46`. The DSH range and compatibility key `dsh-0.2.2-rc.2+port-v1` are unchanged, so this is a patch release on the same baseline.
+
+### Changed
+
+- `port/scan.mjs` re-scans the upstream tree: 947 scan rows, the same files and the same 67 capabilities as the last audit. `--check-lock` reports all 67 `sourceDigest`s inherited, `--check port/audit.md` validates all 217 references, `scripts/update-audit-lock.mjs` has nothing to write, and `port/generate.mjs --check` still says the tree is up to date. Nothing in `port/dsh.md`, `port/patches/`, `port/overrides/`, or `runtime/` needs to change.
+- `port/audit.md` records this round as a re-scan of the same commit, so `port/audit.lock.json` is unchanged: `baseline.id` stays `dsh-0.2.2-rc.5@pstack-0b46ec3…` and `baseline.previous` stays `dsh-0.2.2-rc.2@pstack-0b46ec3…`, the id that commit replaced.
+- Upstream's own 0.15.47 is `2dd5c0cc`, which adds `/reframe` on top of `0b46ec3` and is not part of this sync; `9e278fe4` follows it as 0.15.48. The next upstream sync has to audit `/reframe`.
+
 ## 0.5.5
 
 Automated pull requests now have to show what they actually ran, and two gates keep the repository from drifting back to "trust the agent".

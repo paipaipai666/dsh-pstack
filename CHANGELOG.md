@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.5.7
+
+Bundled pstack 0.15.46 → 0.15.48 (upstream `0b46ec3` → `9e278fe`). The only pstack change in that range is the new `/reframe` skill, so this release is a content update: no host code, no script, and no compatibility key changes.
+
+### Added
+
+- `/reframe` skill: given a vague description and the user's own files, the agent lists the two or three problems the description could be, ranks 8 to 12 expert terms by how much each would change what gets built, borrows terms from neighbouring fields, and rewrites the description with the new words. It ships like the other hidden skills (`disable-model-invocation: true`), reachable through `pstack_skill` with `name: "reframe"`.
+
+### Changed
+
+- Regenerated `pstack/` from upstream `9e278fe`: `skills/reframe/`, the `/reframe` rows in `pstack/README.md` and `pstack/skills/poteto-help/SKILL.md`, and the `/reframe` section in `pstack/docs/guide/02-poteto-mode.md`. The skill count goes from 58 to 59 and `pstack/plugin.json` reports `0.15.48`.
+- `port/audit.md` re-audited on the new baseline: `baseline.id` is now `dsh-0.2.2-rc.5@pstack-9e278fe4d4ecd8bfe98b1b79bf4be662efb338cc` with `previous` at the 0.15.46 baseline and `transition: normal`. `vpx port/scan.mjs --check-lock` reports only CAP-004 (`Skill`) as changed: `/reframe` is hidden from the model catalog, so it rides the existing `pstack_skill` decision and adds no new capability row. References shifted by the new `/reframe` lines were re-pointed (218 references, all valid), and the skill coverage index gained a `reframe` row.
+- The bilingual compatibility table for `dsh-0.2.2-rc.2+port-v1` now reads `0.5.7` / `0.15.48`.
+
+### Notes
+
+- `/reframe` needs no new tool: its steps are file reads, the model's own retrieval of the cited links, and a rewritten description in the reply, which the standard profile already covers.
+- `port/patches` and `port/overrides` needed no new `Find` block; the upstream diff touched none of their anchors.
+
 ## Unreleased
 
 ### Added

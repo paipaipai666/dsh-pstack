@@ -10,7 +10,7 @@
 | DSH version | `0.2.2-rc.5` |
 | Bundled runtime Node | `v24.21.0` |
 | Fork source | `l246804/dsh-pstack` `v0.3.0-beta.1` |
-| Upstream pstack | `0.15.46` |
+| Upstream pstack | `0.15.48` |
 
 ## Verified on 2026-11-22
 

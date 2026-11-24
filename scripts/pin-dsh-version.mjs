@@ -2,10 +2,9 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 import { join, resolve } from "node:path";
 
-import { execFileSync } from "node:child_process";
-
 const CATALOG_PATH = "pnpm-workspace.yaml";
 const ENTRY = /^(\s*"(@deepseek-ai\/dsh[^"]*)"):\s*(\S+)\s*$/gm;
+const REGISTRY = "https://registry.npmjs.org/@deepseek-ai%2Fdsh";
 
 export function catalogVersions(text) {
   const versions = new Set();
@@ -20,16 +19,27 @@ export function rewriteCatalog(text, version) {
   return text.replace(ENTRY, (_line, prefix, name) => `${prefix}: ${version}`);
 }
 
-export function nextVersion() {
-  const raw = execFileSync("npm", ["view", "@deepseek-ai/dsh@next", "version"], {
-    encoding: "utf8",
-  });
-  const version = raw.trim();
-  if (version === "") throw new Error("npm returned no version for @deepseek-ai/dsh@next");
-  return version;
+export function distTagVersion(packument, tag) {
+  const version = packument?.["dist-tags"]?.[tag];
+  if (typeof version !== "string" || version.trim() === "") {
+    throw new Error(`@deepseek-ai/dsh has no ${tag} dist-tag`);
+  }
+  return version.trim();
 }
 
-function main(argv) {
+export async function fetchNextVersion(fetchImpl = globalThis.fetch) {
+  const response = await fetchImpl(REGISTRY);
+  if (!response.ok) {
+    throw new Error(`registry answered ${response.status} for @deepseek-ai/dsh`);
+  }
+  return distTagVersion(await response.json(), "next");
+}
+
+export async function nextVersion() {
+  return fetchNextVersion();
+}
+
+async function main(argv) {
   const positional = argv.slice(2).filter((arg) => !arg.startsWith("--"));
   const target = positional[0];
   if (target === undefined) {
@@ -39,7 +49,7 @@ function main(argv) {
   const root = resolve(process.cwd());
   const path = join(root, CATALOG_PATH);
   const text = readFileSync(path, "utf8");
-  const version = target === "next" ? nextVersion() : target;
+  const version = target === "next" ? await nextVersion() : target;
   const before = catalogVersions(text);
   const next = rewriteCatalog(text, version);
   if (next === text) {
@@ -57,6 +67,6 @@ function main(argv) {
 if (process.argv[1] !== undefined) {
   const self = process.argv[1].replaceAll("\\", "/");
   if (self.endsWith("scripts/pin-dsh-version.mjs")) {
-    process.exitCode = main(process.argv);
+    process.exitCode = await main(process.argv);
   }
 }

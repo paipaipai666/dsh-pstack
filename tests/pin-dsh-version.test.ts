@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { catalogVersions, rewriteCatalog } from "../scripts/pin-dsh-version.mjs";
+import {
+  catalogVersions,
+  distTagVersion,
+  fetchNextVersion,
+  rewriteCatalog,
+} from "../scripts/pin-dsh-version.mjs";
 
 const catalog = [
   "catalogs:",
@@ -30,5 +35,33 @@ describe("pin the dsh version", () => {
     expect(next).toContain("zod: 4.6.6");
     expect(next).toContain("catalogs:");
     expect(next).toContain("  runtime:");
+  });
+});
+
+describe("resolve the next release", () => {
+  it("reads the version from the dist-tags", () => {
+    const packument = { "dist-tags": { latest: "0.2.2-rc.5", next: "0.2.3-alpha.7" } };
+    expect(distTagVersion(packument, "next")).toBe("0.2.3-alpha.7");
+  });
+
+  it("reports a missing dist-tag instead of returning an empty version", () => {
+    const packument = { "dist-tags": { latest: "0.2.2-rc.5" } };
+    expect(() => distTagVersion(packument, "next")).toThrow(/has no next dist-tag/);
+  });
+
+  it("asks the registry for the package instead of running npm in the repo", async () => {
+    const seen: string[] = [];
+    const fetchImpl = async (url: string) => {
+      seen.push(url);
+      return { ok: true, json: async () => ({ "dist-tags": { next: "0.3.0-rc.1" } }) };
+    };
+    const version = await fetchNextVersion(fetchImpl);
+    expect(version).toBe("0.3.0-rc.1");
+    expect(seen).toEqual(["https://registry.npmjs.org/@deepseek-ai%2Fdsh"]);
+  });
+
+  it("surfaces a registry failure with its status", async () => {
+    const fetchImpl = async () => ({ ok: false, status: 503, json: async () => ({}) });
+    await expect(fetchNextVersion(fetchImpl)).rejects.toThrow(/registry answered 503/);
   });
 });

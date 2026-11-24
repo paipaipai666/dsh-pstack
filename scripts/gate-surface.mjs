@@ -51,7 +51,7 @@ export function decide(files, labels) {
   return {
     ok: false,
     changed,
-    reason: `this pull request changes the checks that judge it (${changed.join(", ")}); a maintainer must add the ${APPROVAL_LABEL} label before it can land`,
+    reason: `this pull request changes the checks that judge it (${changed.join(", ")}); a maintainer must add the ${APPROVAL_LABEL} label before it can merge`,
   };
 }
 

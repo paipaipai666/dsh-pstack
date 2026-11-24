@@ -249,6 +249,9 @@ jobs:
       - name: Typecheck against next
         run: pnpm exec vp run typecheck
 
+      - name: Build against next
+        run: pnpm exec vp run build
+
       - name: Test against next
         run: pnpm exec vp test
 

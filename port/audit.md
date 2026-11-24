@@ -6,8 +6,8 @@
 
 - DSH：`@deepseek-ai/dsh` 0.2.2-rc.5。
 - 能力基线：DSH Web profile 的标准模式。headless 只用于 playground 自动化，不参与能力判定。
-- pstack：`upstream/cursor-plugins` 提交 `0b46ec399d55f2829e88822998f53b84944837d3`，插件版本 0.15.46。上游源自上一轮未变，67 项能力不重算。上一个审核基线为 `dsh-0.2.2-rc.2@pstack-0b46ec399d55f2829e88822998f53b84944837d3`，本轮为普通更新（`normal`），沿用兼容键 `dsh-0.2.2-rc.2+port-v1`。
-- 审核日期：2026-11-22。
+- pstack：`upstream/cursor-plugins` 提交 `0b46ec399d55f2829e88822998f53b84944837d3`，插件版本 0.15.46。上游源未变，67 项能力不重算。上一轮已把审核基线推进到 `dsh-0.2.2-rc.5@pstack-0b46ec399d55f2829e88822998f53b84944837d3`，本轮针对 0.15.45 更新位复核后确认同一基线，沿用兼容键 `dsh-0.2.2-rc.2+port-v1`。
+- 审核日期：2026-11-24（本轮复核）；能力事实取证日期：2026-11-22。
 - 工具清单取自运行时 `Tool.listTools`。官方插件状态取自当前 Web profile 的 `dsh.profile.bundles`。
 - `list_subagent_models` 由 `@deepseek-ai/dsh-tool-subagent` 的 `modelDiscovery` 注册。`modelDiscovery` 为 false 时工具根本不注册，不是隐藏或空列表。默认 false，Web 与 Desktop 标准预设设为 true，headless、SDK、ACP 不包含。
 - `subagent` 的 `agent_preset` 由 `allowedAgentPresets` 开启。预设是 Cordis 插件组合，子代理启动时按所选预设挂载，系统提示与工具随组合加载。
@@ -30,9 +30,19 @@
 
 本轮不改 `package.json` 的 `engines.dsh`（仍为 `>=0.2.2-rc.2`）与 `baseline.compatibilityKey`：rc.5 没有移除或改变任何被映射的 API，兼容范围不变。`baseline.id` 更新为 `dsh-0.2.2-rc.5@pstack-0b46ec399d55f2829e88822998f53b84944837d3`。
 
+## 0.15.45 更新位复核（2026-11-24）
+
+`upstream/cursor-plugins` 的 gitlink 在本轮开始前就指向 `0b46ec399d55f2829e88822998f53b84944837d3`，0.5.2 已按它重新生成，0.5.3 已按 rc.5 重做审核，`baseline.id` 当时即为 `dsh-0.2.2-rc.5@pstack-0b46ec3`。0.15.45 更新位到达时，锁定提交没有变化，本轮核对的是这条基线是否仍然成立。
+
+`vpx port/scan.mjs --check-lock` 仍为「LOCK OK 67 项，全部沿用」，`vpx port/scan.mjs --check port/audit.md` 为 218 条引用全部成立，`node port/generate.mjs --check` 报告 `pstack is up to date`。结论：能力、处置与生成树都不重算，`baseline.compatibilityKey` 不变。
+
+`--check port/audit.md` 的引用总数由 217 变为 218。上一轮把 CAP-055 的 5 条 mise 调用点收成 1 条（`skills/statechart/scripts/run.ts:198`）；那 4 条（`skills/statechart/scripts/run.ts:189`、`run.ts:190`、`run.ts:192`、`run.ts:195`）在 0.15.46 的树里依然是 mise 调用点，收成 1 条会让使用位置少列，本轮补回 4 条。0.15.46 变化表里指向 `skills/arena/SKILL.md`、`skills/poteto-mode/SKILL.md`、`skills/setup-pstack/SKILL.md` 的 8 条引用只有 2 条能通过扫描检查，`--check` 会把另外 6 条判为过期；本轮改成 `skills/arena/SKILL.md:19`、`skills/arena/SKILL.md:30`、`skills/poteto-mode/SKILL.md:94`、`skills/poteto-mode/SKILL.md:98` 与 `skills/setup-pstack/SKILL.md:64`（示例代码块）共 5 条，减 3 条。`skills/statechart/SKILL.md` 与 `skills/setup-pstack/SKILL.md` 的迁移说明改为不写行号的表述，不参与计数。合计 217 + 4 − 3 = 218。
+
+上游没有单独的 0.15.45 发布提交：`0b46ec39`（pstack 0.15.46）之前的 pstack 发布提交是 `e58dd04`（0.15.44），中间没有版本号 0.15.45 的 `pstack/plugin.json`。因此本轮不把 `baseline.previous` 改成当前 id：那样会让锁记录一个从未存在过的前序基线，`normal` 更新的语义也会随之失真。update-audit-lock 因为没有 digest 变化而无需写入。
+
 ## 处置状态
 
-本轮已确认处置 67 项，沿用 0.15.43 基线的处置结论。0.15.43 的普通更新删除了 `check-plan`，其能力此前已标为已移除并从活动 lock 删除，历史只留在 Git 提交里；0.15.44 没有删除或新增能力。本轮 DSH rc.5 复核没有新增或删除能力，`直接映射` 36、`官方插件` 3、`插件实现` 21、`舍弃` 8 的分布不变。
+本轮已确认处置 67 项，沿用 0.15.43 基线的处置结论。0.15.43 的普通更新删除了 `check-plan`，其能力此前已标为已移除并从活动 lock 删除，历史只留在 Git 提交里；0.15.44、0.15.45 与 0.15.46 都没有删除或新增能力。本次复核没有新增或删除能力，`直接映射` 36、`官方插件` 3、`插件实现` 21、`舍弃` 8 的分布不变。
 
 - `直接映射`：DSH 标准模式已经提供。
 - `官方插件`：启用 DSH 随附的官方插件即可。
@@ -50,7 +60,7 @@
 | 待确认处置 | 0 |
 | 技能 | 58 |
 | 脚本入口 | 4 |
-| 引用校验 | 217 |
+| 引用校验 | 218 |
 | 🟢 直接映射 | 36 |
 | 🔵 官方插件 | 3 |
 | 🟠 插件实现 | 21 |
@@ -203,13 +213,13 @@
 | 变化 | 观察 | 处置影响 |
 |:--|:--|:--|
 | 行读取按 `\r?\n` 切分 | `skills/statechart/scripts/frontends/dot.ts:38` 新增 `splitLines`，`skills/statechart/scripts/run.ts:58`、`skills/statechart/scripts/run.ts:61`、`skills/statechart/scripts/run.ts:137`、`skills/statechart/scripts/run.ts:140` 改用它 | CAP-063 标为待复核后按新基线复核，属于脚本内部修复，处置与推荐不变 |
-| janitor 与进程组终止脱离 `/bin/sh` | 新增 `skills/statechart/scripts/kill.ts:3`（Windows 用 `taskkill`，其余平台 `process.kill(-pid)`）与 `skills/statechart/scripts/janitor.ts:4`；`skills/statechart/scripts/statechart.ts:119` 的 janitor 改为用当前 Node 启动 `janitor.ts`，并在 worker 退出后补写 `exited` | CAP-063 复核；`janitor.ts` 只在 Windows 上对已退出的 worker 跳过终止，其余平台语义与旧 shell 版一致。随包树运行的是 `runtime/` 的编译产物，因此 `runtime/skills/statechart/scripts` 同步移植并新增 `janitor.ts`/`kill.ts`，由 `runtime:check` 守住 |
-| `java` 与 `mise` 以 `windowsHide` 启动 | `skills/statechart/scripts/run.ts:85` 的 `runChild` 增加 `windowsHide: true`，临时目录同时设置 `TEMP` 与 `TMP` | CAP-055、CAP-057 的引用行号随之下移，能力本身不变 |
-| 原生 Windows 运行方式写入技能正文 | `skills/statechart/SKILL.md:19` 说明 `scripts/statechart` 是 POSIX shell 启动器，原生 Windows 用 `node --disable-warning=ExperimentalWarning scripts/statechart.ts`（Node 22.18–22.x 或 23.6+） | 本仓走 `pstack_script` 的 `statechart` id，不经过该启动器，也不进入 Windows 分支；`port/patches/skills.md` 的 `Find` 文本仍与上游一致，暂不触发新适配 |
+| janitor 与进程组终止脱离 `/bin/sh` | 新增 `skills/statechart/scripts/kill.ts`（Windows 用 `taskkill`，其余平台 `process.kill(-pid)`）与 `skills/statechart/scripts/janitor.ts:12`；`skills/statechart/scripts/statechart.ts:118` 的 janitor 改为用当前 Node 启动 `janitor.ts`，并在 worker 退出后补写 `exited` | CAP-063 复核；`janitor.ts` 只在 Windows 上对已退出的 worker 跳过终止（`skills/statechart/scripts/janitor.ts:11`），其余平台语义与旧 shell 版一致。随包树运行的是 `runtime/` 的编译产物，因此 `runtime/skills/statechart/scripts` 同步移植并新增 `janitor.ts`/`kill.ts`，由 `runtime:check` 守住 |
+| `java` 与 `mise` 以 `windowsHide` 启动 | `skills/statechart/scripts/run.ts:85` 的 `runChild` 与 `skills/statechart/scripts/run.ts:165` 的 `spawn` 增加 `windowsHide: true`，`skills/statechart/scripts/statechart.ts:116` 的 worker 临时目录同时设置 `TEMP` 与 `TMP` | 随 `run.ts` 的行号下移，CAP-055 的 mise 调用点仍在 `skills/statechart/scripts/run.ts:189` 起，失败提示在 `skills/statechart/scripts/run.ts:198`，能力本身不变 |
+| 原生 Windows 运行方式写入技能正文 | `skills/statechart/SKILL.md` 的 Run 小节说明 `scripts/statechart` 是 POSIX shell 启动器，原生 Windows 用 `node --disable-warning=ExperimentalWarning scripts/statechart.ts`（Node 22.18–22.x 或 23.6+） | 本仓走 `pstack_script` 的 `statechart` id，不经过该启动器，也不进入 Windows 分支；`port/patches/skills.md` 的 `Find` 文本仍与上游一致，暂不触发新适配 |
 | 新增 Windows 行尾回归 | `skills/statechart/scripts/test/cli.test.ts`、`skills/statechart/scripts/test/messages.test.ts` 新增语料重放 | 测试目录不在扫描范围；本仓 `runtime/skills/statechart/scripts/statechart.test.ts` 补充 `splitLines` 的 CRLF 用例，构建后由 `test:runtime` 执行 |
-| Gemini 面板席位默认改为 `gemini-4-neon-xhigh` | `skills/arena/SKILL.md:17`、`skills/arena/SKILL.md:28`、`skills/poteto-mode/SKILL.md:92`、`skills/setup-pstack/SKILL.md:64`、`skills/setup-pstack/SKILL.md:65`、`skills/setup-pstack/SKILL.md:67` 的默认 slug 由 `gemini-4-neon-high` 改为 `gemini-4-neon-xhigh` | CAP-023 标为待复核后按新基线复核，处置与推荐不变；`src/native-text.ts` 已按 `gemini-4-*` 家族匹配，`xhigh` 规则与测试早已覆盖，无需改代码 |
-| 面板席位按预算取档 | `skills/poteto-mode/SKILL.md:96` 由「never runs above `gemini-4-neon-high`」改为「runs at `gemini-4-neon-xhigh` unless its line names another level」；`skills/setup-pstack/SKILL.md:38` 说明 Gemini 4 Neon 有 `low` 到 `xhigh` 的 slug、面板角色按预算取 `xhigh`/`high`/`medium` | CAP-029 的既有处置覆盖；本仓覆盖版只写 `inherit-parent`，角色档位由 `src/budget.ts` 计算，不引入 slug 迁移步骤 |
-| 旧规则迁移扩到 `gemini-4-neon-high` | `skills/setup-pstack/SKILL.md:20` 把面板角色里的 `gemini-4-neon-high` 也算旧默认，逐条换成 `gemini-4-neon-xhigh`，其他档位的 Neon 条目视为用户选择并保留 | 走 CAP-029 的迁移流程；`port/dsh.md` 与 `port/dsh.zh.md` 的「旧 Gemini 面板条目」一句已按「当前版本之外的 `gemini-4-*` slug」表述，对新旧默认都成立，不改 |
+| Gemini 面板席位默认改为 `gemini-4-neon-xhigh` | `skills/arena/SKILL.md:19`、`skills/arena/SKILL.md:30`、`skills/poteto-mode/SKILL.md:94` 的默认 slug 由 `gemini-4-neon-high` 改为 `gemini-4-neon-xhigh` | CAP-023 标为待复核后按新基线复核，处置与推荐不变；`src/native-text.ts` 已按 `gemini-4-*` 家族匹配，`xhigh` 规则与测试早已覆盖，无需改代码 |
+| 面板席位按预算取档 | `skills/poteto-mode/SKILL.md:98` 由「never runs above `gemini-4-neon-high`」改为「runs at `gemini-4-neon-xhigh` unless its line names another level」；`skills/setup-pstack/SKILL.md:38` 说明 Gemini 4 Neon 有 `low` 到 `xhigh` 的 slug、面板角色按预算取 `xhigh`/`high`/`medium` | CAP-029 的既有处置覆盖；本仓覆盖版只写 `inherit-parent`，角色档位由 `src/budget.ts` 计算，不引入 slug 迁移步骤 |
+| 旧规则迁移扩到 `gemini-4-neon-high` | `skills/setup-pstack/SKILL.md` 的默认映射说明把面板角色里的 `gemini-4-neon-high` 也算旧默认，逐条换成 `gemini-4-neon-xhigh`，其他档位的 Neon 条目视为用户选择并保留 | 走 CAP-029 的迁移流程；`port/dsh.md` 与 `port/dsh.zh.md` 的「旧 Gemini 面板条目」一句已按「当前版本之外的 `gemini-4-*` slug」表述，对新旧默认都成立，不改 |
 | `docs/harness/claude-code.md` 同步换 slug | `docs/harness/claude-code.md:46` 的默认映射表 | 上游的 Claude Code 适配文档，不进入生成树；只体现 CAP-023 与 CAP-029 的既有处置，不新增能力 |
 | 上游 README 业务插件条目更新 | `third_party/quickbooks-online` 与根 `README.md` 的 QuickBooks 说明 | 不进入本仓移植范围，无影响 |
 
@@ -1300,7 +1310,7 @@
 
 | 维度 | 内容 |
 |:--|:--|
-| 📍 使用位置 | `skills/statechart/scripts/run.ts:189`、`skills/statechart/scripts/run.ts:190`、`skills/statechart/scripts/run.ts:192`、`skills/statechart/scripts/run.ts:195` |
+| 📍 使用位置 | `skills/statechart/scripts/run.ts:189`、`skills/statechart/scripts/run.ts:190`、`skills/statechart/scripts/run.ts:192`、`skills/statechart/scripts/run.ts:195`、`skills/statechart/scripts/run.ts:198` |
 | 🖱️ Cursor 行为 | `statechart` 首次运行用 mise 安装 TLC 与 Java。 |
 | 🧰 标准模式 | 本机有 mise。 |
 | 🧩 官方插件 | 无。 |

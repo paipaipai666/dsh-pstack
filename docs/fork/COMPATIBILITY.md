@@ -31,8 +31,10 @@
 - `engines.dsh` stays `>=0.2.2-rc.2`: nothing pstack calls is new in rc.5, so the compatibility
   key `dsh-0.2.2-rc.2+port-v1` does not move. The audit baseline does move: `port/audit.md` and
   `port/audit.lock.json` are re-stamped to `dsh-0.2.2-rc.5@pstack-0b46ec3...` as a `normal`
-  transition, because the per-capability `sourceDigest`s and all 217 references are unchanged and
-  only the DSH-side facts were re-verified.
+  transition, because the per-capability `sourceDigest`s were unchanged and only the DSH-side facts
+  were re-verified. The 0.15.45 re-check later restored CAP-055's four mise call sites and moved
+  the change table's `SKILL.md` citations onto lines that carry their capability's scanned term, so
+  the reference check now reports 218 anchors instead of 217.
 
 `pnpm preset:drift` compares the vendored fixtures with the shipped presets and exits non-zero on
 drift. Pass `--source=<dir>` to point at an extracted `@deepseek-ai/dsh-web-app` package; CI runs

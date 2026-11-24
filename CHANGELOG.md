@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.5.6
+
+Re-checks the 0.15.45 baseline. `upstream/cursor-plugins` already pointed at `0b46ec3` before this
+release: 0.5.2 regenerated the tree from it and 0.5.3 re-audited it, while the issue queue still held
+the 0.15.45 slot. Upstream published no 0.15.45: `e58dd04` (0.15.44) is the previous pstack release
+and `0b46ec3` is the next one, so 0.15.46 is what it ships. This release records that baseline
+instead of moving the pin. The DSH range and the compatibility key `dsh-0.2.2-rc.2+port-v1` are
+unchanged.
+
+### Changed
+
+- `port/audit.lock.json` keeps `baseline.previous` at `dsh-0.2.2-rc.2@pstack-0b46ec3` and leaves
+  `baseline.transition` at `normal`. Moving `previous` to the current id would claim a baseline that
+  never existed as its own predecessor; the lock is otherwise unchanged, and `node port/scan.mjs
+  --check-lock` still reports all 67 capabilities inherited.
+- `port/audit.md` re-attests the baseline against the tree it was generated from: all 67 capability
+  digests are unchanged and `node port/generate.mjs --check` reports no drift. Where the change table
+  cited a line that does not carry the term its capability is scanned by, it now cites one that does.
+  CAP-055 keeps its mise call sites (`skills/statechart/scripts/run.ts:189`, `:190`, `:192`, `:195`,
+  `:198`) and stops presenting the failure message on `:198` as the only one. The Gemini slug row
+  moves to `skills/arena/SKILL.md:19` and `:30` and `skills/poteto-mode/SKILL.md:94`, and the
+  per-budget row to `skills/poteto-mode/SKILL.md:98`; rows that used to cite an `SKILL.md` line now
+  name the section. The reference check now counts 218 anchors instead of 217: CAP-055 refs its four
+  remaining mise call sites, and the change table's eight `SKILL.md` citations become five that carry
+  their capability's term, so `--check` no longer reports six of them stale.
+- `port/audit.md` corrects two line anchors in the 0.15.46 change table that drifted when that
+  round's edits were folded in (`skills/statechart/scripts/statechart.ts:118`,
+  `skills/statechart/scripts/janitor.ts:12`).
+- `node scripts/update-audit-lock.mjs --write` was not run, because there are no changed digests to
+  write.
+
 ## 0.5.5
 
 Automated pull requests now have to show what they actually ran, and two gates keep the repository from drifting back to "trust the agent".

@@ -14,8 +14,11 @@
 
 - CI 的 `Check (Linux)` 里新增 `Report the breaking surfaces this diff touches` 步骤：PR 上打印本次命中的清单项，作为 review 的输入。
 - `docs/fork/dsh-api-surface.json` 与 `docs/fork/BREAKING-CHECKLIST.md` 加入 `scripts/gate-surface.mjs` 的保护面：删条目同样需要 `gate-approved` 标签，否则检查可以被自己的输入改绿。
+- `scripts/gate-surface.mjs` 把「`package.json` 只动了 `version`」排除在受保护变更之外。此前 `auto/*` 分支同时受两条门禁约束：`Version bump (auto PRs)` 要求升版本（必须改 `package.json`），而 `Gate surface` 要求任何 `package.json` 改动都带 `gate-approved` 标签 —— worker 无法给自己打标签，于是每个自动化 PR 都卡死在这一对约束里（PR #17 就是这样红的）。版本号不由任何检查读取，升版本本身不是「改自己的判定条件」；改 `scripts`、依赖、`engines` 等仍照旧受保护。
 
 ### Fixed
+
+- worker 提交时不再运行仓库自带的 git hook（`git commit --no-verify`）。VPS 上 husky 的 `vp check --fix` 会因为 oxlint 在 2 GB 机器上崩溃（`crates/oxc_allocator/src/pool/fixed_size.rs:112`）而让提交失败，把一次本可完成的修复变成任务失败。worker 的判定仍由 `verify_commands` 复现，CI 负责 lint。
 
 - `docs/fork/GATES.md` 更正为实测结论：`required_status_checks` 同样拦直接推 `fork/main`（`2 of 2 required status checks are expected`），因此 ruleset 保留维护者本人的 bypass；并补上第五层、observe 档与版本号规则的说明。
 

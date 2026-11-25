@@ -22,6 +22,12 @@
 
 第 4 层的 `vps:check` 在 VPS 上跑的是工作树里的脚本，仍属于"被审对象"；真正兜底的是第 2 层的人工标签与第 1 层的必需检查。
 
+### 自动发布不被自己卡住
+
+`auto/*` 分支同时受两条约束：`Version bump (auto PRs)` 要求 `package.json` 的 `version` 递增，而 `Gate surface` 要求任何 `package.json` 改动都带 `gate-approved` 标签。worker 没有加标签的权限，两条约束合起来就是死锁——PR #17 正是这样红的。
+
+`scripts/gate-surface.mjs` 因此把"`package.json` 只动了 `version`"排除在受保护变更之外：它以 merge base 的 `package.json` 为基线，删掉 `version` 后比较其余字段，全等才放行。版本号不被任何检查读取，升版本不是"改自己的判定条件"；一旦同时改了 `scripts`、依赖、`engines` 或其它字段，仍然需要人工标签。
+
 ## 第 5 层：差分预言机
 
 前四层都是"在当前 pin 的版本上正确"，回答不了"上游下一个版本会不会把我们弄坏"。第 5 层把这件事变成可执行的两步：

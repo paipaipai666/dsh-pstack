@@ -85,6 +85,9 @@ const SYSTEM_PROMPT = [
   "Never invent an id.",
 ].join("\n");
 
+/** Appended to the system prompt for the single repair attempt. */
+const RETRY_SUFFIX = "Answer again with only the JSON object, nothing else.";
+
 /**
  * Read every playbook beside the bundled poteto-mode skill.
  *
@@ -175,7 +178,7 @@ export function latestUserText(messages: readonly PromptMessage[]): string | und
 export function parseRoute(answer: string, known: ReadonlySet<string>): RouteDecision {
   const start = answer.indexOf("{");
   const end = answer.lastIndexOf("}");
-  if (start < 0 || end <= start) return { kind: "invalid", detail: "no JSON object in answer" };
+  if (start < 0 || end <= start) return parseBareRoute(answer, known);
   let parsed: unknown;
   try {
     parsed = JSON.parse(answer.slice(start, end + 1));
@@ -193,6 +196,28 @@ export function parseRoute(answer: string, known: ReadonlySet<string>): RouteDec
   }
   const why = typeof record.why === "string" ? record.why.trim().slice(0, 120) : "";
   return { kind: "playbook", id, why };
+}
+
+/**
+ * Read an answer that has no JSON at all.
+ *
+ * A reasoning model can spend its budget thinking and then answer with the id
+ * alone, or the word null. Accepting exactly one known id — and refusing to
+ * guess when two are named — recovers that answer without turning a slip of the
+ * model into a coin flip.
+ */
+function parseBareRoute(answer: string, known: ReadonlySet<string>): RouteDecision {
+  const text = answer.trim();
+  if (text === "") return { kind: "invalid", detail: "empty answer" };
+  const named = [...known]
+    .filter((id) => new RegExp(`(^|[^a-z0-9-])${id}([^a-z0-9-]|$)`).test(text))
+    .sort((left, right) => left.localeCompare(right));
+  if (named.length === 1) return { kind: "playbook", id: named[0] as string, why: "" };
+  if (named.length > 1) {
+    return { kind: "invalid", detail: `several playbooks named: ${named.join(", ")}` };
+  }
+  if (/^(null|none|no playbook)\b/i.test(text)) return { kind: "none" };
+  return { kind: "invalid", detail: "no JSON object in answer" };
 }
 
 /** The notice appended to the turn when the router picks a playbook. */
@@ -264,29 +289,41 @@ export function apply(ctx: Context, config: Config = {}): void {
       try {
         // A routing call rides the turn's own route, so a preset does not have
         // to name one and a configured role keeps working unchanged.
-        const stream = ctx.llm.stream({
-          provider: modelSelection.provider,
-          model: modelSelection.model,
-          ...(modelSelection.reasoningEffort === undefined
-            ? {}
-            : { reasoningEffort: modelSelection.reasoningEffort }),
-          system: SYSTEM_PROMPT,
-          messages: [
-            {
-              role: "user",
-              content: [
-                { type: "text", text: `${index}\n\n---\n\nRequest:\n${prompt.slice(0, 4000)}` },
+        const ask = async (suffix?: string): Promise<string> =>
+          collectAnswer(
+            ctx.llm.stream({
+              provider: modelSelection.provider,
+              model: modelSelection.model,
+              ...(modelSelection.reasoningEffort === undefined
+                ? {}
+                : { reasoningEffort: modelSelection.reasoningEffort }),
+              system: suffix === undefined ? SYSTEM_PROMPT : `${SYSTEM_PROMPT}\n${suffix}`,
+              messages: [
+                {
+                  role: "user",
+                  content: [
+                    { type: "text", text: `${index}\n\n---\n\nRequest:\n${prompt.slice(0, 4000)}` },
+                  ],
+                },
               ],
-            },
-          ],
-          maxTokens,
-          signal: AbortSignal.any([signal, controller.signal]),
-        });
-        const answer = await collectAnswer(stream);
-        const route = parseRoute(answer, known);
+              maxTokens,
+              signal: AbortSignal.any([signal, controller.signal]),
+            }),
+          );
+
+        let answer = await ask();
+        let route = parseRoute(answer, known);
+        // One repair attempt, because the failure seen in practice is a model
+        // that thinks out loud and never emits the object, not a model that
+        // disagrees about the playbook.
+        if (route.kind === "invalid") {
+          answer = await ask(RETRY_SUFFIX);
+          route = parseRoute(answer, known);
+        }
         trace(config.tracePath, {
           at: new Date().toISOString(),
           decision: route,
+          ...(route.kind === "invalid" ? { answer: answer.slice(0, 400) } : {}),
           latencyMs: Date.now() - started,
           playbooks: playbooks.length,
         });

@@ -85,7 +85,9 @@ describe("latestUserText", () => {
 });
 
 describe("parseRoute", () => {
-  const known = new Set(PLAYBOOKS.map((playbook) => playbook.id));
+  // The real corpus, because a bare-id answer is only readable against the ids
+  // that actually exist.
+  const known = new Set(loadPlaybooks().map((playbook) => playbook.id));
 
   it("reads a plain answer", () => {
     expect(parseRoute('{"playbook":"feature","why":"new UI"}', known)).toEqual({
@@ -108,8 +110,32 @@ describe("parseRoute", () => {
     expect(parseRoute('{"playbook":"deploy"}', known)).toMatchObject({ kind: "invalid" });
   });
 
-  it("rejects prose without JSON", () => {
-    expect(parseRoute("I would pick feature.", known)).toMatchObject({ kind: "invalid" });
+  it("reads an id alone, when the model never emitted the object", () => {
+    expect(parseRoute("multi-phase-plan", known)).toEqual({
+      kind: "playbook",
+      id: "multi-phase-plan",
+      why: "",
+    });
+    expect(parseRoute("I would pick `refactoring` here.", known)).toMatchObject({
+      kind: "playbook",
+      id: "refactoring",
+    });
+  });
+
+  it("refuses to choose between two playbooks named in prose", () => {
+    expect(parseRoute("Either feature or multi-phase-plan.", known)).toMatchObject({
+      kind: "invalid",
+    });
+  });
+
+  it("reads a bare null", () => {
+    expect(parseRoute("null", known)).toEqual({ kind: "none" });
+  });
+
+  it("rejects prose that names no playbook", () => {
+    expect(parseRoute("This is a small change, no plan needed.", known)).toMatchObject({
+      kind: "invalid",
+    });
   });
 });
 

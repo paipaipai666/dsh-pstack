@@ -101,37 +101,50 @@ failure harmless: a wrong name costs one sentence, not an injected playbook body
 
 ### Results
 
-`playground/exp-playbook-router.mjs`, six tasks, `runs` capped at 60 s each, one run per cell. `✓` the
-session opened the expected playbook, `✗` it opened none or a different one.
+`playground/exp-playbook-router.mjs`, six tasks, runs capped at 60 s each, one run per cell. `✓` the
+session opened the expected playbook, `✗` it opened none or a different one. The two `✗` cells in the
+first batch were then re-run after the parser repair described below; the table shows the current state
+of each cell and the notes record what the first run did.
 
 | task | a: baseline | r: router |
 |---|---|---|
-| feature-entry | ✗ none | ✗ multi-phase-plan |
-| bug-entry | ✗ none | ✗ none (route invalid) |
+| feature-entry | ✗ none | ✓ feature (first run: multi-phase-plan) |
+| bug-entry | ✗ none | ✓ bug-fix (first run: route invalid) |
 | refactor-entry | ✗ none | ✓ refactoring |
 | investigate-entry | ✗ none | ✓ investigation |
 | plan-entry | ✗ none | ✓ multi-phase-plan |
 | small-control | ✗ none | ✗ none (correct) |
 
-Non-control hit rate: **a 0/5 · r 3/5**. False positives on the control: 0 in both arms.
+Non-control hit rate: **a 0/5 · r 5/5**. False positives on the control: 0 in both arms.
 
 ### What the numbers say
 
 1. **The baseline never opens a playbook.** Zero reads across six tasks, including the three large ones
    that spent 648k–798k prompt tokens looking around the repository. The routing sentence in
    `poteto-mode` does not fire on its own.
-2. **When the router produces a valid route, the read is deterministic.** Four of four routed runs opened
-   exactly the named playbook as their first playbook read. The gap between "the host decided" and "the
-   model decided" is the whole effect: same model, same prompt, 0 → 4.
-3. **The failure moved upstream, with two distinct causes.** `feature-entry` was routed to
-   `multi-phase-plan` — the session obeyed and read the wrong playbook, which is a top-1 disambiguation
-   problem in the playbook taxonomy (`feature` and `multi-phase-plan` overlap for a large feature).
-   `bug-entry` produced no JSON at all — `{"kind":"invalid","detail":"no JSON object in answer"}` after
-   2.3 s, a robustness problem: a reasoning model can spend its budget thinking and return prose.
-4. **Routing is not expensive.** ~1k prompt tokens and ~1.5 s per turn, and the routed runs were not more
-   expensive than the baseline runs (`plan-entry` 301k routed vs 724k baseline). Both arms are truncated
-   at 60 s, so those totals compare "work done in a minute", not work completed.
-5. **The control stayed quiet.** `small-control` routed `null` in 1.1 s and read nothing.
+2. **When the router produces a valid route, the read is deterministic.** Seven of seven routed runs
+   opened exactly the named playbook as their first playbook read, including the two runs where the name
+   was wrong. The gap between "the host decided" and "the model decided" is the whole effect: same
+   model, same prompt, 0 → 7.
+3. **Every failure is visible as a wrong or missing name, not as silence.** `feature-entry` was first
+   routed to `multi-phase-plan` and the session obediently read the wrong playbook — a top-1
+   disambiguation problem in the playbook taxonomy (`feature` and `multi-phase-plan` overlap for a large
+   feature), not a delivery problem. `bug-entry` produced no JSON at all on the first run
+   (`{"kind":"invalid","detail":"no JSON object in answer"}` after 2.3 s): a reasoning model spent its
+   budget thinking and returned prose.
+4. **One repair attempt plus a bare-id reader fixes the second failure mode.** The router now retries
+   once with "answer again with only the JSON object", and `parseRoute` accepts an answer that names
+   exactly one known id without any JSON (refusing when two are named, so a slip of the model cannot turn
+   into a coin flip). Both re-runs then routed correctly (`feature` after a 3.1 s two-call path,
+   `bug-fix` after 1.7 s), and the read followed.
+5. **Routing is not expensive.** ~1k prompt tokens and ~1.5 s per turn (double only on the repair path),
+   and the routed runs were not more expensive than the baseline runs (`plan-entry` 301k routed vs 724k
+   baseline). Both arms are truncated at 60 s, so those totals compare "work done in a minute", not work
+   completed.
+6. **The control stayed quiet.** `small-control` routed `null` in 1.1 s and read nothing.
+7. **The sample is thin.** One run per cell on one model, and the two repaired cells were re-run rather
+   than repeated under the old code. Treat 5/5 as "the mechanism works and its failure modes are known",
+   not as a rate.
 
 ## Decision this supports
 
@@ -148,11 +161,10 @@ two different lists:
 Neither replaces the other: routing fixes "the session never looked", visibility fixes "the model cannot
 see what it could load". `/name` stays as the manual override.
 
-Before shipping the router, three things need work, in this order: repair an unparseable route (retry
-once, or fall back to no notice); resolve the `feature` / `multi-phase-plan` overlap, or let the routed
-playbook hand off; then record planned-vs-actual loads, because the first two failure modes are invisible
-without a trace.
+Before shipping the router, two things still need work: resolve the `feature` / `multi-phase-plan`
+overlap (or let the routed playbook hand off), and record planned-vs-actual loads, because a wrong name
+is only visible if the trace and the session can be compared afterwards. The repair attempt is in.
 
 `src/skill-index.ts` is the experiment's arm-c/d row. It is built and exported, mounted by no preset,
 and the numbers above argue against shipping it. `src/playbook-router.ts` is the routing row: built,
-tested, mounted by no preset yet.
+tested, and still mounted by no preset.

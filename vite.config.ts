@@ -149,6 +149,10 @@ export default defineConfig({
         command: "vpx playground/exp-playbook-router.mjs",
         cache: false,
       },
+      "ui:auto-preset": {
+        command: "vpx playground/check-auto-preset-ui.mjs",
+        cache: false,
+      },
     },
   },
   lint: {

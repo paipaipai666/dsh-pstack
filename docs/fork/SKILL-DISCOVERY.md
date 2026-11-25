@@ -226,6 +226,13 @@ body comes back. Three runs of the same prompt, 2 steps each:
 | `pstack-auto` (generated tree at custom rank 300) | visible, 10 | `skill:unslop` | 2 |
 
 The pair is the point of the case: the same words fail the assertion without the visible tree, so a pass
-cannot come from a model that already felt like rewriting prose. What no headless case can assert is the
-one thing the preset changes on its own, that a Session is created under `pstack-auto` in the first place;
-that stays a manual check in the web or desktop app.
+cannot come from a model that already felt like rewriting prose.
+
+The half a headless case cannot reach — that a Session is created under `pstack-auto` at all — is covered by
+`playground/check-auto-preset-ui.mjs` (`vp run ui:auto-preset -- '<token URL>'`) against the running
+playground. It opens the picker, checks the item starts with `Poteto 自动模式` and carries `（实验性）`,
+selects it, and asserts the notice reads `实验性预设` with both the caveat and the "换回 Poteto 模式" fallback,
+that `知道了` closes it, and that `pstack:auto-notice-dismissed` then holds this Session's id. It exits 0/1/2,
+so it is a regression rather than a screenshot, and it is the only check that fails if the notice component
+is dropped from the client bundle. Selecting the ordinary `Poteto 模式` instead leaves `[role=dialog]` at
+zero, which is the negative control that keeps the assertion from passing on any dialog at all.

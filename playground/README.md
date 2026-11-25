@@ -29,6 +29,14 @@ vp run playground:browser -- '<token URL>' --click '<界面文本>' --no-shot
 
 helper 输出页面正文、控制台错误和截图。也可以直接使用 `node_modules/.bin/agent-browser` 操作页面。
 
+`pstack-auto` 预设的 UI 回归（预设带实验性标注、选中弹一次提示、`知道了` 记住该 Session）：
+
+```sh
+vp run ui:auto-preset -- '<token URL>' --out .tmp/auto-preset.png
+```
+
+它只在 playground 已启动时运行，退出码 0 通过、1 行为不符、2 参数问题。
+
 ## 无头验证
 
 复制 `playground/config.example.json` 为 `playground/config.json`，填写允许使用的 provider、apiKey、模型和思考等级。该文件已被忽略。

@@ -27,7 +27,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { homedir, tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = dirname(HERE);
@@ -141,8 +141,13 @@ function run(args, env) {
   return result;
 }
 
-function main() {
-  const options = parseArgs(process.argv.slice(2));
+/**
+ * Open one browser session against the playground and return its step runner.
+ *
+ * Exported so a UI case can drive several stages of the same page (open, inspect,
+ * click, re-inspect) instead of collapsing everything into one `--eval` string.
+ */
+export function createBrowserSession({ url, wait = 6000 }) {
   const invocation = browserInvocation();
   if (!existsSync(invocation.file))
     die(`agent-browser binary not found at ${invocation.file}; run \`vp install\``);
@@ -167,8 +172,9 @@ function main() {
 
   const session = `ab-${String(process.pid)}`;
   const base = ["--session", session, "--executable-path", executable, "--args", "--no-sandbox"];
+  const runInSession = (args) => run([...base, ...args], env);
   const step = (args) => {
-    const result = run([...base, ...args], env);
+    const result = runInSession(args);
     if (result.status !== 0) {
       process.stderr.write(result.stderr || "");
       die(`agent-browser ${args[0]} failed with exit ${String(result.status)}`);
@@ -176,34 +182,47 @@ function main() {
     return result.stdout.trim();
   };
 
+  step(["open", url]);
+  step(["wait", String(wait)]);
+  return { step, run: runInSession, close: () => runInSession(["close"]) };
+}
+
+/** Console errors agent-browser collected for the open page. */
+export function consoleErrors(session) {
+  const result = session.run(["console", "--json"]);
+  const errors = [];
+  try {
+    const payload = JSON.parse(result.stdout);
+    for (const message of payload?.data?.messages ?? []) {
+      if (message.type === "error" || message.args?.some?.((arg) => arg?.subtype === "error")) {
+        errors.push(
+          message.text ?? message.args?.map((arg) => arg?.value ?? arg?.description).join(" "),
+        );
+      }
+    }
+  } catch {
+    errors.push(result.stdout.trim());
+  }
+  return errors;
+}
+
+function main() {
+  const options = parseArgs(process.argv.slice(2));
+  const session = createBrowserSession({ url: options.url, wait: options.wait });
+
   let failed = false;
   try {
-    console.log(step(["open", options.url]));
-    step(["wait", String(options.wait)]);
-    for (const text of options.clicks) step(["find", "text", text, "click"]);
+    for (const text of options.clicks) session.step(["find", "text", text, "click"]);
 
     console.log("\n--- body text ---");
-    console.log(step(["eval", "document.body.innerText.slice(0, 4000)"]));
+    console.log(session.step(["eval", "document.body.innerText.slice(0, 4000)"]));
 
     if (options.eval !== undefined) {
       console.log("\n--- eval ---");
-      console.log(step(["eval", options.eval]));
+      console.log(session.step(["eval", options.eval]));
     }
 
-    const consoleJson = run([...base, "console", "--json"], env);
-    const errors = [];
-    try {
-      const payload = JSON.parse(consoleJson.stdout);
-      for (const message of payload?.data?.messages ?? []) {
-        if (message.type === "error" || message.args?.some?.((arg) => arg?.subtype === "error")) {
-          errors.push(
-            message.text ?? message.args?.map((arg) => arg?.value ?? arg?.description).join(" "),
-          );
-        }
-      }
-    } catch {
-      errors.push(consoleJson.stdout.trim());
-    }
+    const errors = consoleErrors(session);
     console.log("\n--- console errors ---");
     console.log(errors.length === 0 ? "(none)" : errors.join("\n"));
     if (errors.length > 0) failed = true;
@@ -215,11 +234,11 @@ function main() {
           join(".tmp", `playground-${new Date().toISOString().replace(/[:.]/g, "-")}.png`),
       );
       mkdirSync(dirname(out), { recursive: true });
-      step(["screenshot", out]);
+      session.step(["screenshot", out]);
       console.log(`\n--- screenshot ---\n${out}`);
     }
   } finally {
-    if (!options.keepOpen) run([...base, "close"], env);
+    if (!options.keepOpen) session.close();
   }
 
   if (failed) {
@@ -228,4 +247,8 @@ function main() {
   }
 }
 
-main();
+if (
+  process.argv[1] !== undefined &&
+  pathToFileURL(resolve(process.argv[1])).href === import.meta.url
+)
+  main();

@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.5.7
+
+同步上游 pstack 0.15.48（`upstream/cursor-plugins` 提交 `9e278fe4`）。DSH 范围与兼容键 `dsh-0.2.2-rc.2+port-v1` 不变，因此是在同一基线上的补丁版本。
+
+### Added
+
+- 上游新增 `/reframe` 技能（59 个技能）：从用户自己的文件与描述出发，逐个给出 8 至 12 个会改变实现方向的领域术语，每个术语列出它命名的那部分描述、一个真实项目或论文及其核对过的链接，并借用相邻领域 2 至 3 个换名解决同一问题的术语，说明类比在哪里失效，最后用新词重写描述。描述可能指向多个问题时，先列出两三个候选问题及各自可区分的标志。`poteto-help` 的路由表与引导页第 2 页同步登记。
+
+### Changed
+
+- `port/audit.md` 与 `port/audit.lock.json` 以普通更新（`normal`）移到基线 `dsh-0.2.2-rc.5@pstack-9e278fe4`。只有 `CAP-004`（`Skill`）的 `sourceDigest` 变化，其余 66 项的能力与处置原样沿用；`Skill` 的推荐与处置不变，因为 `/reframe` 只使用已映射的文件读取、检索与打开链接。审核记录新增本轮变化小节，并把 10 处因上述文件插入内容而后移一行的引用改成新行号。
+- README 徽章与兼容表、`FORK.md`、`docs/fork/STATUS.md`、`docs/fork/AUDIT.md`、`docs/fork/COMPATIBILITY.md` 记录 0.15.48 与包版本 0.5.7；README 首屏、`FORK.md` 与 `docs/fork/STATUS.md` 的技能数由 58 改为 59。
+
+### Notes
+
+- `port/patches/*.md`、`port/overrides/**`、`port/dsh.md`、`port/dsh.zh.md` 都不需要改：上游只动了技能表、引导页与 `poteto-help`，没有改写补丁的 `Find` 段落，也没有引入新的 Cursor 专有名称。
+- 随包脚本（`runtime/`）与 `src/**` 不变；生成脚本目录与 0.15.46 一致。
+
 ## Unreleased
 
 ### Added

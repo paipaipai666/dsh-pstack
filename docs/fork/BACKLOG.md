@@ -65,6 +65,7 @@
 | ADD-07 | 新增 | P2 | Headless/CLI profile 支持：`ask_user_question` 的纯文本 fallback、`agentPresets` 可用性检测 | 当前只以 Web profile 为唯一基准 | `dsh headless` 能跑 `/poteto-mode` 的最小流程 | L | DSH headless 能力有限；可能只支持子集 |
 | ADD-08 | 新增 | P3 | 角色配置页增强：批量导入/导出、角色预设、复制到另一台机器 | 17 个角色逐个配置麻烦 | 导出 JSON/MDC；导入校验；预设模板 | M | UI 工作量大 |
 | ADD-09 | 新增 | P3 | `pstack_status` 健康面板：当前角色路由、可用模型、启用插件、脚本依赖、最近失败 | 排障入口分散 | 一个页面/工具汇总状态 | M | 需要收集多个服务状态 |
+| ADD-10 | 新增 | P1 | 新增 `pstack-auto` 根 preset：额外挂一个 `dsh-skill-filesystem` 行，指向生成树里去掉 `disable-model-invocation` 的少量入口技能，让模型在匹配任务里自己加载 | 58/59 技能默认隐藏，用户必须手动触发，上手成本高；实验证明只有"可见目录"改变行为，索引旁路无效 | 按 `docs/fork/SKILL-DISCOVERY.md`：入口集合的非对照首次命中高于 0/10，固定上下文成本 ≤ +600 token；`playground/cases` 增加一条自动触发回归 | M | 入口集合要逐个调；部分放弃上游"操作者规则手动加载"的意图 |
 
 ## D. 平台边界（PLAT，暂缓/不修）
 
@@ -98,3 +99,4 @@
 | BL-02 | 两个锁文件的分工需要写进文档 | `skills/skills-lock.json` 记录随包发布的 vendored 技能（`skills/.agents/skills/`）的来源与 hash；根 `skills-lock.json` 记录仓库自用技能（`.agents/skills/`，含 `agent-browser`、authored 与 mattpocock 对）；两者由 `tests/skill-sources.test.ts` 双向校验 | 下一次改 vendored 技能时同步，避免再出现单边缺条目 |
 | BL-03 | `computedHash` 的算法没有记录 | 实测既不是 `sha256(原始字节)` 也不是 `sha256(LF 归一)`，只能由 `skills` CLI 生成，手写即伪造 | 重生成锁文件时一并把算法写进本文件 |
 | BL-04 | `typescript-best-practices` 的 `paths` 字段在 DSH 失效 | `dsh-skill-filesystem` 的 frontmatter 只认 `name`、`description` 等字段，`paths` 被忽略；DSH 没有按文件路径自动挂载技能的机制 | 等 DSH 技能清单支持路径条件 |
+| BL-05 | `pstack-skill-index` 索引旁路实测无效 | 每轮多花 2.1–2.3k 固定上下文，非对照任务首次命中只有 3/10（全量可见 5/7、精选 10 个 6/10）；只在提示词字面命中英文触发词时生效 | 已按实验结论搁置，见 `docs/fork/SKILL-DISCOVERY.md`；若改用语义路由再评估 |

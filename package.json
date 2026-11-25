@@ -66,6 +66,7 @@
     "./script-policy": "./dist/script-policy.mjs",
     "./script-registry": "./dist/script-registry.mjs",
     "./skill": "./dist/skill.mjs",
+    "./skill-index": "./dist/skill-index.mjs",
     "./subagent": "./dist/subagent.mjs",
     "./wire-error": "./dist/wire-error.mjs",
     "./package.json": "./package.json",

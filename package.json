@@ -48,6 +48,7 @@
     "./optional-plugins": "./dist/optional-plugins.mjs",
     "./package-name": "./dist/package-name.mjs",
     "./paths": "./dist/paths.mjs",
+    "./playbook-router": "./dist/playbook-router.mjs",
     "./poteto-mode": "./dist/poteto-mode.mjs",
     "./preset": "./dist/preset.mjs",
     "./preset-copy": "./dist/preset-copy.mjs",

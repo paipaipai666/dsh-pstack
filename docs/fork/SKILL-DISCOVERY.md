@@ -184,6 +184,18 @@ The entry set is `architect`, `figure-it-out`, `how`, `interrogate`, `sharpen`, 
 `technical-writing`, `unslop`, `why`. It is the set arm e scored 6/10 with, minus `why` (0 hits at every
 visibility) and minus the execution skills the matrix could not measure.
 
+The preset is marked experimental in two places, because the roster itself has no field for it
+(`AgentPresetRow` carries only `id`, `isDefault`, `name`, `description`, `broken`) and the picker's guide
+dialogs are hardcoded inside the harness package:
+
+- the declared name and description carry "experimental"（`Poteto auto (experimental)` / `Poteto 自动模式（实验性）`）,
+  so the card shows it before the user commits;
+- `src/client/AutoNotice.tsx` registers into `shell.overlay` and shows one dialog per Session that records
+  `agentPreset: "pstack-auto"`, explaining that the route can be wrong and how to fall back. Dismissal is
+  stored per Session id, so a new Session says it once and the old ones stay quiet.
+
+Both are UI surfaces: a headless or terminal-only session never sees the dialog and relies on the name.
+
 ### Verification limit
 
 `dsh-headless` composes no preset roster or one-shot agent-preset registry (see the comment in

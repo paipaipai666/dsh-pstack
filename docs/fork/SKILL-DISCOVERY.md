@@ -212,3 +212,20 @@ to that name and raises the `实验性预设` dialog once, and `知道了` close
 `pstack:auto-notice-dismissed` in `localStorage`. Two fixes came out of that run and are in the helper:
 it now finds OS-installed Chrome (it only looked in `~/.agent-browser/browsers` before) and starts the CLI
 through node on Windows, because `spawnSync` refuses the `.cmd` shim.
+
+### Auto-trigger regression
+
+`CASE-PSTACK-AUTO-SKILL-01` (`playground/cases/pstack-auto-skill.case.mjs`) is the guard for the half that
+headless can measure: it runs the `unslop` prompt under a profile that mounts the generated tree as a
+host-level row, and passes only when the session's first skill load is a `skill` call for `unslop` whose
+body comes back. Three runs of the same prompt, 2 steps each:
+
+| Profile | Skill rows | First skill load | Steps |
+|---|---|---|---|
+| `pstack-headless` (no visible tree) | hidden, 58/59 | none | 1 |
+| `pstack-auto` (generated tree at custom rank 300) | visible, 10 | `skill:unslop` | 2 |
+
+The pair is the point of the case: the same words fail the assertion without the visible tree, so a pass
+cannot come from a model that already felt like rewriting prose. What no headless case can assert is the
+one thing the preset changes on its own, that a Session is created under `pstack-auto` in the first place;
+that stays a manual check in the web or desktop app.

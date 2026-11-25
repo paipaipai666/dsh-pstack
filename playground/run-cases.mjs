@@ -42,6 +42,11 @@ const PRESET_PROFILE_NAME = "pstack-presets";
 const PRESET_PROFILE_DIR = join(DSH_HOME, "profiles", PRESET_PROFILE_NAME);
 const ROOT_PROFILE_NAME = "pstack-root";
 const ROOT_PROFILE_DIR = join(DSH_HOME, "profiles", ROOT_PROFILE_NAME);
+// The pstack-auto preset's visible skill tree, mounted at host level: a headless
+// session composes no preset roster, so the profile carries the row instead.
+const AUTO_PROFILE_NAME = "pstack-auto";
+const AUTO_PROFILE_DIR = join(DSH_HOME, "profiles", AUTO_PROFILE_NAME);
+const AUTO_SKILL_DIR = join(REPO_ROOT, "dist", "pstack", "auto-skills");
 const REPORT_DIR = join(DSH_HOME, "cases-report");
 const CONFIG_FILE = join(HERE, "config.json");
 const DSH_BIN = process.env.DSH_BIN || "dsh";
@@ -371,6 +376,25 @@ function ensureRootProfile() {
   ensureProfile(ROOT_PROFILE_NAME, ROOT_PROFILE_DIR, patch);
 }
 
+function ensureAutoProfile() {
+  const patch = [
+    "- id: pstack-script-policy",
+    "  config:",
+    "    mode: allow",
+    "- insert:",
+    "    - id: pstack-auto-skills",
+    '      name: "@deepseek-ai/dsh-skill-filesystem"',
+    "      config:",
+    "        providerName: pstack-auto",
+    "        includeDefaultRoots: false",
+    "        watch: false",
+    "        customSkillDirs:",
+    `          - ${AUTO_SKILL_DIR.replaceAll("\\", "/")}`,
+    "",
+  ].join("\n");
+  ensureProfile(AUTO_PROFILE_NAME, AUTO_PROFILE_DIR, patch);
+}
+
 // ---------------------------------------------------------------------------
 // 事件流解析
 // ---------------------------------------------------------------------------
@@ -535,6 +559,7 @@ function main() {
   ensureHeadlessProfile();
   ensurePresetProfile();
   ensureRootProfile();
+  ensureAutoProfile();
 
   const results = [];
   for (const c of selected) {
@@ -554,7 +579,9 @@ function main() {
           ? PRESET_PROFILE_NAME
           : built.profile === "root"
             ? ROOT_PROFILE_NAME
-            : PROFILE_NAME,
+            : built.profile === "auto"
+              ? AUTO_PROFILE_NAME
+              : PROFILE_NAME,
       );
       const events = parseEvents(run.stdout);
       const calls = collectToolCalls(events);

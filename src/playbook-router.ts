@@ -17,7 +17,7 @@
  * Rationale and the measured alternatives live in `docs/fork/`.
  */
 
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { appendFileSync, existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -33,6 +33,8 @@ declare module "@deepseek-ai/dsh-llm" {
 }
 
 export const name = "pstack-playbook-router";
+
+export const inject = ["llm"];
 
 /** Default output ceiling for the routing call; the answer is one line of JSON. */
 export const DEFAULT_MAX_TOKENS = 400;
@@ -52,6 +54,8 @@ export interface Config {
   readonly minPromptChars?: number;
   /** Playbook directory; resolved from the package when omitted. */
   readonly playbookDir?: string;
+  /** Append one JSON line per decision here; used by the experiment and audits. */
+  readonly tracePath?: string;
 }
 
 /** One playbook, as the router sees it. */
@@ -223,6 +227,16 @@ export function collectAnswer(
   })();
 }
 
+/** Append one decision to the audit trail, when the operator asked for one. */
+function trace(path: string | undefined, record: Record<string, unknown>): void {
+  if (path === undefined) return;
+  try {
+    appendFileSync(path, `${JSON.stringify(record)}\n`);
+  } catch {
+    // A trace that cannot be written must not cost the turn.
+  }
+}
+
 /** Install the router listener. */
 export function apply(ctx: Context, config: Config = {}): void {
   const maxTokens = config.maxTokens ?? DEFAULT_MAX_TOKENS;
@@ -246,6 +260,7 @@ export function apply(ctx: Context, config: Config = {}): void {
 
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutMs);
+      const started = Date.now();
       try {
         // A routing call rides the turn's own route, so a preset does not have
         // to name one and a configured role keeps working unchanged.
@@ -269,6 +284,12 @@ export function apply(ctx: Context, config: Config = {}): void {
         });
         const answer = await collectAnswer(stream);
         const route = parseRoute(answer, known);
+        trace(config.tracePath, {
+          at: new Date().toISOString(),
+          decision: route,
+          latencyMs: Date.now() - started,
+          playbooks: playbooks.length,
+        });
         const text = renderRouteMessage(route, playbooks);
         if (text === undefined || route.kind !== "playbook") return decision;
         const message = createUserMessage({
@@ -280,8 +301,17 @@ export function apply(ctx: Context, config: Config = {}): void {
           },
         });
         return { ...decision, messages: [...decision.messages, message] };
-      } catch {
+      } catch (error) {
         // A router that breaks the turn is worse than a turn without routing.
+        trace(config.tracePath, {
+          at: new Date().toISOString(),
+          decision: {
+            kind: "error",
+            detail: error instanceof Error ? error.message : String(error),
+          },
+          latencyMs: Date.now() - started,
+          playbooks: playbooks.length,
+        });
         return decision;
       } finally {
         clearTimeout(timer);

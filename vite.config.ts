@@ -145,6 +145,10 @@ export default defineConfig({
         command: "vpx playground/cases-run.mjs --check",
         cache: false,
       },
+      "exp:router": {
+        command: "vpx playground/exp-playbook-router.mjs",
+        cache: false,
+      },
     },
   },
   lint: {

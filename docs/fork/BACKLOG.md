@@ -66,6 +66,7 @@
 | ADD-08 | 新增 | P3 | 角色配置页增强：批量导入/导出、角色预设、复制到另一台机器 | 17 个角色逐个配置麻烦 | 导出 JSON/MDC；导入校验；预设模板 | M | UI 工作量大 |
 | ADD-09 | 新增 | P3 | `pstack_status` 健康面板：当前角色路由、可用模型、启用插件、脚本依赖、最近失败 | 排障入口分散 | 一个页面/工具汇总状态 | M | 需要收集多个服务状态 |
 | ADD-10 | 新增 | P1 | 新增 `pstack-auto` 根 preset：额外挂一个 `dsh-skill-filesystem` 行，指向生成树里去掉 `disable-model-invocation` 的少量入口技能，让模型在匹配任务里自己加载 | 58/59 技能默认隐藏，用户必须手动触发，上手成本高；实验证明只有"可见目录"改变行为，索引旁路无效 | 按 `docs/fork/SKILL-DISCOVERY.md`：入口集合的非对照首次命中高于 0/10，固定上下文成本 ≤ +600 token；`playground/cases` 增加一条自动触发回归 | M | 入口集合要逐个调；部分放弃上游"操作者规则手动加载"的意图 |
+| ADD-11 | 新增 | P1 | 把 `pstack-playbook-router` 接进 `pstack-auto` preset：每条用户消息做一次 playbook 路由，命中就注入一句"该走哪个 playbook 的哪一步"，正文仍由模型自己打开 | 第二轮实验：不路由时 6 个任务 0 次打开 playbook，路由后有路由即读 4/4；路由每次约 1k token、1.1–2.3 s | 非对照任务首次命中 ≥ 3/5 且对照零误报（已达成，见实验）；补上"路由解析失败重试一次"与 `feature`/`multi-phase-plan` 的歧义处置；`playground/cases` 增加一条路由回归 | M | 失败模式已实测两类：路由选错（`feature`→`multi-phase-plan`）、路由不出 JSON（`bug-entry`）；无 trace 时两类都不可见 |
 
 ## D. 平台边界（PLAT，暂缓/不修）
 
@@ -100,3 +101,4 @@
 | BL-03 | `computedHash` 的算法没有记录 | 实测既不是 `sha256(原始字节)` 也不是 `sha256(LF 归一)`，只能由 `skills` CLI 生成，手写即伪造 | 重生成锁文件时一并把算法写进本文件 |
 | BL-04 | `typescript-best-practices` 的 `paths` 字段在 DSH 失效 | `dsh-skill-filesystem` 的 frontmatter 只认 `name`、`description` 等字段，`paths` 被忽略；DSH 没有按文件路径自动挂载技能的机制 | 等 DSH 技能清单支持路径条件 |
 | BL-05 | `pstack-skill-index` 索引旁路实测无效 | 每轮多花 2.1–2.3k 固定上下文，非对照任务首次命中只有 3/10（全量可见 5/7、精选 10 个 6/10）；只在提示词字面命中英文触发词时生效 | 已按实验结论搁置，见 `docs/fork/SKILL-DISCOVERY.md`；若改用语义路由再评估 |
+| BL-06 | `feature` 与 `multi-phase-plan` 的边界没定 | 实测两者对大改动都成立：一个客户端+宿主配置页重写被路由到 `multi-phase-plan`，模型照做，于是"读对了路由、读错了 playbook" | 定 playbook 分类或加一条"由 `feature` 转 `multi-phase-plan`"的交接规则时一并处理 |

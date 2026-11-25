@@ -72,7 +72,7 @@ export function AutoNotice(props: AutoNoticeProps): ReactElement | null {
     <div className="pstack-overlay" role="presentation">
       <div className="pstack-mask" aria-hidden="true" onClick={dismiss} />
       <div
-        className="pstack-panel"
+        className="pstack-panel pstack-notice-panel"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}

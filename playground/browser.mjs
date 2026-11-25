@@ -24,6 +24,7 @@
 // A bare http://127.0.0.1:17353/ returns 401 "dsh web authentication required".
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { homedir, tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -33,12 +34,24 @@ const REPO_ROOT = dirname(HERE);
 // Keep the runtime path short: agent-browser uses it for a Unix socket and
 // rejects paths over 103 bytes (the repo checkout path alone can exceed that).
 const RUNTIME_DIR = join(tmpdir(), `pstack-browser-${String(process.getuid?.() ?? "u")}`);
-const BIN = join(
-  REPO_ROOT,
-  "node_modules",
-  ".bin",
-  process.platform === "win32" ? "agent-browser.cmd" : "agent-browser",
-);
+
+/**
+ * How to start the agent-browser CLI.
+ *
+ * Windows shims are `.cmd` files, which `spawnSync` refuses to launch without a
+ * shell (EINVAL), so there the CLI runs as a JS entry through the current node.
+ */
+function browserInvocation() {
+  if (process.platform !== "win32") {
+    return {
+      file: join(REPO_ROOT, "node_modules", ".bin", "agent-browser"),
+      prefix: [],
+    };
+  }
+  const requireFromRepo = createRequire(join(REPO_ROOT, "package.json"));
+  const packageDir = dirname(requireFromRepo.resolve("agent-browser/package.json"));
+  return { file: process.execPath, prefix: [join(packageDir, "bin", "agent-browser.js")] };
+}
 
 function die(message) {
   console.error(`[browser] ERROR: ${message}`);
@@ -93,11 +106,36 @@ function chromeExecutable() {
     }
   }
   candidates.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
-  return candidates.at(-1)?.binary;
+  const managed = candidates.at(-1)?.binary;
+  if (managed !== undefined) return managed;
+  return systemChrome();
+}
+
+/** Chrome installed by the OS, for machines that never ran `agent-browser install`. */
+function systemChrome() {
+  const windowsBases = [
+    process.env.PROGRAMFILES,
+    process.env["PROGRAMFILES(X86)"],
+    process.env.LOCALAPPDATA,
+  ];
+  const binaries = [
+    ...windowsBases
+      .filter((base) => base !== undefined)
+      .map((base) => join(base, "Google", "Chrome", "Application", "chrome.exe")),
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/usr/bin/google-chrome",
+    "/usr/bin/chromium",
+  ];
+  return binaries.find((binary) => existsSync(binary));
 }
 
 function run(args, env) {
-  const result = spawnSync(BIN, args, { env, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 });
+  const invocation = browserInvocation();
+  const result = spawnSync(invocation.file, [...invocation.prefix, ...args], {
+    env,
+    encoding: "utf8",
+    maxBuffer: 32 * 1024 * 1024,
+  });
   if (result.error)
     die(`failed to run agent-browser: ${result.error.message} (run \`vp install\`)`);
   return result;
@@ -105,7 +143,9 @@ function run(args, env) {
 
 function main() {
   const options = parseArgs(process.argv.slice(2));
-  if (!existsSync(BIN)) die(`agent-browser binary not found at ${BIN}; run \`vp install\``);
+  const invocation = browserInvocation();
+  if (!existsSync(invocation.file))
+    die(`agent-browser binary not found at ${invocation.file}; run \`vp install\``);
 
   const executable = chromeExecutable();
   if (executable === undefined) {

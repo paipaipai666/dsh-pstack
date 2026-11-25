@@ -34,6 +34,12 @@ const CSS = `
 .pstack-panel:focus {
   outline: none;
 }
+/* A one-message panel: no scroll body, so it hugs its content. */
+.pstack-notice-panel {
+  grid-template-rows: auto auto auto;
+  width: 560px;
+  height: auto;
+}
 .pstack-header {
   display: flex;
   align-items: flex-start;

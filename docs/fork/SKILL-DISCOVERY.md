@@ -205,3 +205,10 @@ in the profile patch, not inside a preset. `pstack-auto` is wired exactly like t
 already puts `dsh-doc` in this session's catalog through the same `createRequire(baseUrl)` resolution, so
 the mechanism is the one in daily use; a session-level check of the preset itself needs the web or
 desktop app, where the roster is composed.
+
+Checked in the playground (`vp run playground` + `playground/browser.mjs`, Windows): the preset picker
+lists `Poteto 自动模式（实验性）` with its experimental description, choosing it switches the composer chip
+to that name and raises the `实验性预设` dialog once, and `知道了` closes it and stores the Session id under
+`pstack:auto-notice-dismissed` in `localStorage`. Two fixes came out of that run and are in the helper:
+it now finds OS-installed Chrome (it only looked in `~/.agent-browser/browsers` before) and starts the CLI
+through node on Windows, because `spawnSync` refuses the `.cmd` shim.

@@ -21,9 +21,9 @@ const EN: Record<string, PresetCopy> = {
       "Based on Creator mode, with the same capabilities plus the persistent poteto-mode workflow.",
   },
   "pstack-auto": {
-    name: "Poteto auto",
+    name: "Poteto auto (experimental)",
     description:
-      "Poteto mode that routes each request to a playbook and lets the model load the entry skills on its own.",
+      "Experimental. Poteto mode that routes each request to a playbook and lets the model load the entry skills on its own.",
   },
   "poteto-agent": {
     name: "Implementation agent",
@@ -49,8 +49,9 @@ const ZH: Record<string, PresetCopy> = {
     description: "基于创造模式，能力与创造模式一致，额外常驻 poteto-mode 工作流。",
   },
   "pstack-auto": {
-    name: "Poteto 自动模式",
-    description: "在 poteto-mode 基础上自动路由到匹配的 playbook，并让模型自己加载入口技能。",
+    name: "Poteto 自动模式（实验性）",
+    description:
+      "实验性。在 poteto-mode 基础上自动路由到匹配的 playbook，并让模型自己加载入口技能。",
   },
   "poteto-agent": {
     name: "实现代理",

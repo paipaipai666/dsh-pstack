@@ -207,8 +207,8 @@
       name: "@paipaipai666/dsh-pstack/preset"
       config:
         id: pstack-auto
-        name: Poteto auto
-        description: Poteto mode that routes each request to a playbook and lets the model load the entry skills on its own.
+        name: Poteto auto (experimental)
+        description: Experimental. Poteto mode that routes each request to a playbook and lets the model load the entry skills on its own.
         order: 7
         plugins:
           - id: persona

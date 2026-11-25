@@ -9,8 +9,10 @@ import type {} from "@deepseek-ai/dsh-client-ui-slots";
 import type {} from "@deepseek-ai/dsh-client-ui-plugin-manager/client";
 
 import { pstackRolesRemote, type PstackRolesNamespace } from "../role-remote.ts";
+import { AutoNotice } from "./AutoNotice.tsx";
 import { createPstackConfigAction } from "./PstackConfigDialog.tsx";
 import { NS, catalogs } from "./locales/index.ts";
+import type {} from "./shell-overlay.ts";
 import type { PluginManagerApi } from "./RecommendedPluginsPage.tsx";
 import type { RoleSettingsApi } from "./RoleSettingsPage.tsx";
 
@@ -48,6 +50,21 @@ export async function apply(ctx: Context): Promise<() => Promise<void>> {
     "pstack-config.locale.plugins",
   );
   ctx.effect(() => ctx.locale.register(NS.roles, catalogs.roles), "pstack-config.locale.roles");
+
+  // The preset roster has no experimental field and the picker belongs to the
+  // harness, so the warning rides on the Session: the first time a Session
+  // records the `pstack-auto` preset, this frame-wide dialog explains it.
+  ctx.slots.inject("shell.overlay", () =>
+    ctx.slots.register(
+      {
+        name: "shell.overlay",
+        id: "pstack-auto-notice",
+        order: 30,
+        locale: NS.common,
+      },
+      AutoNotice,
+    ),
+  );
 
   // Observe the plugin-manager namespace without gating the role action on it.
   // If it arrives later, the next listBundles call sees it; if it never arrives,

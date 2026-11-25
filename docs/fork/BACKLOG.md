@@ -65,8 +65,8 @@
 | ADD-07 | 新增 | P2 | Headless/CLI profile 支持：`ask_user_question` 的纯文本 fallback、`agentPresets` 可用性检测 | 当前只以 Web profile 为唯一基准 | `dsh headless` 能跑 `/poteto-mode` 的最小流程 | L | DSH headless 能力有限；可能只支持子集 |
 | ADD-08 | 新增 | P3 | 角色配置页增强：批量导入/导出、角色预设、复制到另一台机器 | 17 个角色逐个配置麻烦 | 导出 JSON/MDC；导入校验；预设模板 | M | UI 工作量大 |
 | ADD-09 | 新增 | P3 | `pstack_status` 健康面板：当前角色路由、可用模型、启用插件、脚本依赖、最近失败 | 排障入口分散 | 一个页面/工具汇总状态 | M | 需要收集多个服务状态 |
-| ADD-10 | 新增 | P1 | 新增 `pstack-auto` 根 preset：额外挂一个 `dsh-skill-filesystem` 行，指向生成树里去掉 `disable-model-invocation` 的少量入口技能，让模型在匹配任务里自己加载 | 58/59 技能默认隐藏，用户必须手动触发，上手成本高；实验证明只有"可见目录"改变行为，索引旁路无效 | 按 `docs/fork/SKILL-DISCOVERY.md`：入口集合的非对照首次命中高于 0/10，固定上下文成本 ≤ +600 token；`playground/cases` 增加一条自动触发回归 | M | 入口集合要逐个调；部分放弃上游"操作者规则手动加载"的意图 |
-| ADD-11 | 新增 | P1 | 把 `pstack-playbook-router` 接进 `pstack-auto` preset：每条用户消息做一次 playbook 路由，命中就注入一句"该走哪个 playbook 的哪一步"，正文仍由模型自己打开 | 第二轮实验：不路由时 6 个任务 0 次打开 playbook，路由后有路由即读 4/4；路由每次约 1k token、1.1–2.3 s | 非对照任务首次命中 ≥ 3/5 且对照零误报（已达成，见实验）；补上"路由解析失败重试一次"与 `feature`/`multi-phase-plan` 的歧义处置；`playground/cases` 增加一条路由回归 | M | 失败模式已实测两类：路由选错（`feature`→`multi-phase-plan`）、路由不出 JSON（`bug-entry`）；无 trace 时两类都不可见 |
+| ADD-10 | 新增 | P1 | 新增 `pstack-auto` 根 preset：额外挂一个 `dsh-skill-filesystem` 行，指向生成树里去掉 `disable-model-invocation` 的少量入口技能，让模型在匹配任务里自己加载（已落地 `044cd8e`：`preset-pstack-auto` + `scripts/generate-auto-skills.mjs`） | 58/59 技能默认隐藏，用户必须手动触发，上手成本高；实验证明只有"可见目录"改变行为，索引旁路无效 | 已达成：入口集合非对照首次命中 6/10（基线 0/10），固定上下文成本 +413 token；剩余：`playground/cases` 增加一条自动触发回归；在 web/desktop 会话里确认 preset 生效（headless bundle 不组 preset roster） | M | 入口集合要逐个调；部分放弃上游"操作者规则手动加载"的意图 |
+| ADD-11 | 新增 | P1 | 把 `pstack-playbook-router` 接进 `pstack-auto` preset：每条用户消息做一次 playbook 路由，命中就注入一句"该走哪个 playbook 的哪一步"，正文仍由模型自己打开（已落地 `044cd8e`，解析失败重试见 `a9f5b63`） | 第二轮实验：不路由时 6 个任务 0 次打开 playbook，路由后有路由即读 4/4；路由每次约 1k token、1.1–2.3 s | 已达成：非对照任务首次命中 5/5、对照零误报；剩余：`feature`/`multi-phase-plan` 歧义处置（BL-06）；`playground/cases` 增加一条路由回归 | M | 失败模式已实测两类：路由选错（`feature`→`multi-phase-plan`）、路由不出 JSON（`bug-entry`）；无 trace 时两类都不可见 |
 
 ## D. 平台边界（PLAT，暂缓/不修）
 

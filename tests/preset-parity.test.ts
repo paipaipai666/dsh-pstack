@@ -155,6 +155,33 @@ describe("poteto-mode preset parity", () => {
     expectPresetParity("preset-poteto-mode-creator", "cordis.patch.yml", "preset-cordis");
   });
 
+  it("keeps pstack-auto a Poteto mode plus the two auto rows", () => {
+    const auto = presetRows(PATCH, "preset-pstack-auto");
+    const poteto = presetRows(PATCH, "preset-poteto-mode");
+    const extra = new Set(["skill-filesystem-auto", "playbook-router"]);
+    // The persona line names the preset, so it is the one intended difference.
+    const normalize = (block: readonly string[]) =>
+      block.join("\n").replaceAll("pstack-auto", "poteto-mode");
+    expect(
+      auto
+        .filter((row) => !extra.has(row.id))
+        .map((row) => ({ id: row.id, name: row.name, block: normalize(row.block) })),
+    ).toEqual(poteto.map((row) => ({ id: row.id, name: row.name, block: row.block.join("\n") })));
+
+    const ids = auto.map((row) => row.id);
+    expect(ids.indexOf("skill-filesystem-auto")).toBe(ids.indexOf("skill-filesystem") + 1);
+    expect(ids.indexOf("playbook-router")).toBe(ids.indexOf("tool-skill") + 1);
+  });
+
+  it("points the auto provider at the generated visible tree", () => {
+    const row = presetRows(PATCH, "preset-pstack-auto").find(
+      (entry) => entry.id === "skill-filesystem-auto",
+    );
+    expect(row?.block.join("\n")).toContain("dist/pstack/auto-skills");
+    expect(row?.block.join("\n")).toContain("customSkillDirs");
+    expect(row?.block.join("\n")).not.toContain("bundledSkillDir");
+  });
+
   it("hands the standard preset's Office tools to Poteto mode", () => {
     const ids = presetRows(PATCH, "preset-poteto-mode").map((row) => row.id);
     expect(ids).toContain("tool-office");

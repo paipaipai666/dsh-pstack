@@ -33,6 +33,7 @@ describe("bundle configuration", () => {
       "pstack-remote",
       "pstack-chart",
       "preset-poteto-mode",
+      "preset-pstack-auto",
       "preset-poteto-mode-creator",
       "preset-poteto-agent",
       "preset-comment-sicko",

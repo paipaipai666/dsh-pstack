@@ -86,7 +86,7 @@ export default defineConfig({
     tasks: {
       build: {
         command:
-          "vp pack && vpx scripts/replace-runtime-scripts.mjs && vpx scripts/translate-skill-catalog.mjs",
+          "vp pack && vpx scripts/replace-runtime-scripts.mjs && vpx scripts/translate-skill-catalog.mjs && vpx scripts/generate-auto-skills.mjs",
         dependsOn: ["generate"],
       },
       "test:runtime": {

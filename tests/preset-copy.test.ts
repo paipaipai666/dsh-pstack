@@ -10,6 +10,7 @@ const PATCH = readPatch();
 
 const PRESET_IDS = [
   "poteto-mode",
+  "pstack-auto",
   "poteto-mode-creator",
   "poteto-agent",
   "comment-sicko",

@@ -166,5 +166,30 @@ overlap (or let the routed playbook hand off), and record planned-vs-actual load
 is only visible if the trace and the session can be compared afterwards. The repair attempt is in.
 
 `src/skill-index.ts` is the experiment's arm-c/d row. It is built and exported, mounted by no preset,
-and the numbers above argue against shipping it. `src/playbook-router.ts` is the routing row: built,
-tested, and still mounted by no preset.
+and the numbers above argue against shipping it. `src/playbook-router.ts` is the routing row.
+
+## Shipping shape: the `pstack-auto` preset
+
+`preset-pstack-auto` (order 7) is a copy of the Poteto mode rows with two additions, so the preset is the
+only thing a user has to pick:
+
+- `skill-filesystem-auto` mounts a second skill provider over `dist/pstack/auto-skills`, a tree
+  `scripts/generate-auto-skills.mjs` writes during `vp run build` by copying ten entry skills and
+  stripping `disable-model-invocation`. `customSkillDirs` is rank 300 against the bundled 600, so those
+  copies shadow the hidden originals instead of duplicating them: the entry set becomes loadable through
+  the ordinary `skill` tool while the long tail stays behind `pstack_skill`.
+- `playbook-router` runs the routing call in front of every user turn.
+
+The entry set is `architect`, `figure-it-out`, `how`, `interrogate`, `sharpen`, `statechart`, `teach`,
+`technical-writing`, `unslop`, `why`. It is the set arm e scored 6/10 with, minus `why` (0 hits at every
+visibility) and minus the execution skills the matrix could not measure.
+
+### Verification limit
+
+`dsh-headless` composes no preset roster or one-shot agent-preset registry (see the comment in
+`@deepseek-ai/dsh-headless/src/index.ts`: a session that runs under a preset is refused because "the
+one-shot runner does not compose" it). Every arm in this document therefore mounts its row at host level
+in the profile patch, not inside a preset. `pstack-auto` is wired exactly like the Poteto mode row that
+already puts `dsh-doc` in this session's catalog through the same `createRequire(baseUrl)` resolution, so
+the mechanism is the one in daily use; a session-level check of the preset itself needs the web or
+desktop app, where the roster is composed.

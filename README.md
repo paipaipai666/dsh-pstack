@@ -12,14 +12,14 @@
   <p>
     <a href="https://npmx.dev/package/@paipaipai666/dsh-pstack"><img src="https://img.shields.io/npm/v/@paipaipai666/dsh-pstack?style=flat-square&colorA=080f12&colorB=1fa669" alt="npm version" /></a>
     <a href="https://github.com/deepseek-ai/deepseek-harness"><img src="https://img.shields.io/badge/dsh-%3E%3D0.2.2--rc.2-1f6feb?style=flat-square" alt="dsh >=0.2.2-rc.2" /></a>
-    <a href="https://github.com/cursor/plugins/tree/main/pstack"><img src="https://img.shields.io/badge/pstack-0.15.46-d97706?style=flat-square" alt="pstack 0.15.46" /></a>
+    <a href="https://github.com/cursor/plugins/tree/main/pstack"><img src="https://img.shields.io/badge/pstack-0.15.48-d97706?style=flat-square" alt="pstack 0.15.48" /></a>
     <a href="https://github.com/paipaipai666/dsh-pstack/blob/fork/main/LICENSE"><img src="https://img.shields.io/github/license/paipaipai666/dsh-pstack?style=flat-square&colorA=080f12&colorB=1fa669" alt="license" /></a>
     <a href="https://github.com/paipaipai666/dsh-pstack"><img src="https://img.shields.io/badge/fork-of_l246804%2Fdsh--pstack-8957e5?style=flat-square&colorA=080f12&colorB=8957e5" alt="fork of l246804/dsh-pstack" /></a>
   </p>
 
   <table>
     <tr>
-      <td align="center"><strong>58</strong><br /><sub>pstack skills</sub></td>
+      <td align="center"><strong>59</strong><br /><sub>pstack skills</sub></td>
       <td align="center"><strong>23</strong><br /><sub>playbooks</sub></td>
       <td align="center"><strong>8</strong><br /><sub>native tools</sub></td>
       <td align="center"><strong>5</strong><br /><sub>agent presets</sub></td>
@@ -269,7 +269,7 @@ Choose a release by its declared DSH range. Within each compatibility range, eve
 <!-- compatibility-keys: ["dsh-0.2.2-rc.2+port-v1","dsh-0.2.2-rc.1+port-v1","dsh-0.2.1-rc.5+legacy-v1","dsh-0.2.0-0.3.0+legacy-v1"] -->
 | DSH version | dsh-pstack release | Included pstack version |
 |---|---|---|
-| `>=0.2.2-rc.2` | `0.5.6` | `0.15.46` |
+| `>=0.2.2-rc.2` | `0.5.7` | `0.15.48` |
 | `>=0.2.2-rc.1` | `0.4.0-beta.2` | `0.15.43` |
 | `>=0.2.1-rc.5` | `0.2.2` | `0.15.36` |
 | `>=0.2.0 < 0.3.0` | `0.1.0` | `0.15.29` |

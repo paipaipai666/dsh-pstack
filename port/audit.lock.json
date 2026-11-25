@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "baseline": {
-    "id": "dsh-0.2.2-rc.5@pstack-0b46ec399d55f2829e88822998f53b84944837d3",
+    "id": "dsh-0.2.2-rc.5@pstack-9e278fe4d4ecd8bfe98b1b79bf4be662efb338cc",
     "compatibilityKey": "dsh-0.2.2-rc.2+port-v1",
-    "previous": "dsh-0.2.2-rc.2@pstack-0b46ec399d55f2829e88822998f53b84944837d3",
+    "previous": "dsh-0.2.2-rc.5@pstack-0b46ec399d55f2829e88822998f53b84944837d3",
     "transition": "normal"
   },
   "items": {
@@ -43,7 +43,7 @@
       "requirement": "插件提供 `pstack_skill` 按名称加载隐藏技能，支持 `resource` 子路径。验收：加载 `poteto-mode` 的 `playbooks/babysit.md` 并返回正文。",
       "conflict": "`skill` 工具与插件提供的 `pstack_skill` 是两套加载入口。同名技能同时存在时模型可能选错。约定 `skill` 只加载模型目录内的技能，隐藏技能用 `pstack_skill` 或直接读文件。",
       "residual": "被 `disable-model-invocation` 隐藏的技能不会出现在模型目录，模型不能自动发现，只能靠技能正文点名或用户显式调用。",
-      "sourceDigest": "sha256:899bc9c9e7103050b7140ef78f82672731d7e018c95d85642eb5f4d2859ce28c"
+      "sourceDigest": "sha256:7596478be5f6a2ba388ccb276b50fccf2c229ea61e098a8c02a1b70628ce4137"
     },
     "CAP-005": {
       "key": "Read",

@@ -10,7 +10,7 @@
 | DSH version | `0.2.2-rc.5` |
 | Bundled runtime Node | `v24.21.0` |
 | Fork source | `l246804/dsh-pstack` `v0.3.0-beta.1` |
-| Upstream pstack | `0.15.46` |
+| Upstream pstack | `0.15.48` |
 
 ## Verified on 2026-11-22
 
@@ -33,6 +33,16 @@
   `port/audit.lock.json` are re-stamped to `dsh-0.2.2-rc.5@pstack-0b46ec3...` as a `normal`
   transition, because the per-capability `sourceDigest`s and all 217 references are unchanged and
   only the DSH-side facts were re-verified.
+
+## Upstream 0.15.48 (2026-11-25)
+
+- `port/audit.lock.json` moves to `dsh-0.2.2-rc.5@pstack-9e278fe4...` as a `normal` transition.
+  Only `CAP-004` (`Skill`) changed source: upstream added the `/reframe` skill and linked it from
+  `poteto-help` and guide page 2. Its decision and recommendation are unchanged.
+- `/reframe` needs no adapter change. It reads the operator's files, searches, and opens the links
+  it cites, so it runs on the tools `port/dsh.md` already maps. The generated tree carries it with
+  the adapter line.
+- DSH range and compatibility key stay `>=0.2.2-rc.2` / `dsh-0.2.2-rc.2+port-v1`.
 
 `pnpm preset:drift` compares the vendored fixtures with the shipped presets and exits non-zero on
 drift. Pass `--source=<dir>` to point at an extracted `@deepseek-ai/dsh-web-app` package; CI runs

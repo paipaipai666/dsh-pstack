@@ -1,6 +1,8 @@
 import { readFileSync, writeFileSync } from "node:fs";
 
-import { join, relative, resolve } from "node:path";
+import { statSync } from "node:fs";
+
+import { dirname, join, relative, resolve } from "node:path";
 
 import { globSync } from "node:fs";
 
@@ -83,16 +85,64 @@ export function extractExports(text) {
   return [...names].sort();
 }
 
+const STAR_EXPORT = /export\s+(?:type\s+)?\*\s+from\s+["']([^"']+)["']/g;
+const MAX_STAR_DEPTH = 4;
+
+/**
+ * The single file a d.ts star-export points at.
+ *
+ * These trees keep the source extension in the specifier (`./runtime-types.ts`)
+ * or the emitted one (`./types.js`), so the probe tries the declaration file for
+ * each shape and falls back to a directory index.
+ */
+function resolveStarTarget(fromFile, specifier) {
+  if (!specifier.startsWith(".")) return undefined;
+  const base = resolve(dirname(fromFile), specifier);
+  const stem = base.replace(/\.d\.ts$/, "").replace(/\.(?:ts|js|mjs)$/, "");
+  const candidates = [`${stem}.d.ts`, `${stem}.ts`, `${stem}.js`, join(base, "index.d.ts"), base];
+  return candidates.find((candidate) => {
+    try {
+      return statSync(candidate).isFile();
+    } catch {
+      return false;
+    }
+  });
+}
+
+/**
+ * Every name a types entry exports, following `export * from "./x"` chains.
+ *
+ * A package like `@deepseek-ai/dsh-agent` only re-exports its surface
+ * (`export * from "./runtime-types.ts"`), so parsing the entry text alone misses
+ * most names and reports a false drift for every symbol imported through it.
+ */
+export function extractSurfaceExports(entry, depth = 0, seen = new Set()) {
+  const names = new Set();
+  if (entry === undefined || depth > MAX_STAR_DEPTH || seen.has(entry)) return names;
+  seen.add(entry);
+  let text;
+  try {
+    text = readFileSync(entry, "utf8");
+  } catch {
+    return names;
+  }
+  for (const name of extractExports(text)) names.add(name);
+  for (const match of text.matchAll(STAR_EXPORT)) {
+    const target = resolveStarTarget(entry, match[1]);
+    for (const name of extractSurfaceExports(target, depth + 1, seen)) names.add(name);
+  }
+  return [...names].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+}
+
 export function surfaceOf(root) {
   const imported = collectImportedSymbols(root);
   const packages = {};
   for (const name of [...imported.keys()].sort()) {
     const entry = resolveTypesEntry(root, name);
     if (entry === undefined) continue;
-    let text;
     let version = "unknown";
     try {
-      text = readFileSync(entry, "utf8");
+      readFileSync(entry, "utf8");
       version = JSON.parse(
         readFileSync(join(packageDir(root, name), "package.json"), "utf8"),
       ).version;
@@ -102,7 +152,7 @@ export function surfaceOf(root) {
     packages[name] = {
       version: String(version),
       imported: [...imported.get(name)].sort(),
-      exports: extractExports(text),
+      exports: extractSurfaceExports(entry),
     };
   }
   return { packages };

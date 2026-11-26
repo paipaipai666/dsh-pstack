@@ -9,6 +9,7 @@ import {
   collectImportedSymbols,
   compareSurfaces,
   extractExports,
+  extractSurfaceExports,
   resolveTypesEntry,
   surfaceOf,
 } from "../scripts/dsh-api-surface.mjs";
@@ -101,6 +102,101 @@ describe("dsh api surface", () => {
     expect(surface.packages["@deepseek-ai/dsh-thing"].version).toBe("0.2.2-rc.5");
     expect(surface.packages["@deepseek-ai/dsh-thing"].imported).toEqual(["Alpha", "Missing"]);
     expect(surface.packages["@deepseek-ai/dsh-thing"].exports).toEqual(["Alpha", "Beta"]);
+  });
+
+  it("follows star re-exports, in either quote style and extension", () => {
+    const root = fixture({
+      "node_modules/@deepseek-ai/dsh-agent/package.json": JSON.stringify({
+        name: "@deepseek-ai/dsh-agent",
+        version: "0.2.2-rc.5",
+        types: "./lib/types/index.d.ts",
+      }),
+      "node_modules/@deepseek-ai/dsh-agent/lib/types/index.d.ts": [
+        "export * from './runtime-types.ts';",
+        'export * from "./types.js";',
+        "export * from './nested';",
+      ].join("\n"),
+      "node_modules/@deepseek-ai/dsh-agent/lib/types/runtime-types.d.ts":
+        "export type PreStepDecision = {};\n",
+      "node_modules/@deepseek-ai/dsh-agent/lib/types/types.d.ts":
+        "export declare interface ContextFormed {}\n",
+      "node_modules/@deepseek-ai/dsh-agent/lib/types/nested/index.d.ts":
+        "export declare const createUserMessage: 1;\n",
+    });
+    const exports = extractSurfaceExports(
+      join(root, "node_modules/@deepseek-ai/dsh-agent/lib/types/index.d.ts"),
+    );
+    expect(exports).toEqual(["ContextFormed", "PreStepDecision", "createUserMessage"]);
+  });
+
+  it("keeps recording a surface when the re-export graph loops", () => {
+    const root = fixture({
+      "node_modules/@deepseek-ai/dsh-agent/package.json": JSON.stringify({
+        name: "@deepseek-ai/dsh-agent",
+        version: "0.2.2-rc.5",
+        types: "./lib/types/index.d.ts",
+      }),
+      "node_modules/@deepseek-ai/dsh-agent/lib/types/index.d.ts": [
+        "export * from './loop.ts';",
+        "export declare interface Visible {}",
+      ].join("\n"),
+      "node_modules/@deepseek-ai/dsh-agent/lib/types/loop.d.ts": "export * from './index.ts';\n",
+    });
+    expect(
+      extractSurfaceExports(join(root, "node_modules/@deepseek-ai/dsh-agent/lib/types/index.d.ts")),
+    ).toEqual(["Visible"]);
+  });
+
+  it("does not report drift for a symbol reached through a star re-export", () => {
+    const root = fixture({
+      "src/a.ts": 'import type { PreStepDecision } from "@deepseek-ai/dsh-agent";\n',
+      "node_modules/@deepseek-ai/dsh-agent/package.json": JSON.stringify({
+        name: "@deepseek-ai/dsh-agent",
+        version: "0.2.2-rc.5",
+        types: "./lib/types/index.d.ts",
+      }),
+      "node_modules/@deepseek-ai/dsh-agent/lib/types/index.d.ts":
+        "export * from './runtime-types.ts';\n",
+      "node_modules/@deepseek-ai/dsh-agent/lib/types/runtime-types.d.ts":
+        "export type PreStepDecision = {};\n",
+    });
+    const surface = surfaceOf(root);
+    expect(surface.packages["@deepseek-ai/dsh-agent"].exports).toEqual(["PreStepDecision"]);
+    const before = {
+      packages: {
+        "@deepseek-ai/dsh-agent": {
+          version: "0.2.2-rc.5",
+          imported: [],
+          exports: ["PreStepDecision"],
+        },
+      },
+    };
+    expect(compareSurfaces(before, surface).ok).toBe(true);
+  });
+
+  it("still reports an import the package never declares", () => {
+    const root = fixture({
+      "src/a.ts": 'import { Missing } from "@deepseek-ai/dsh-agent";\n',
+      "node_modules/@deepseek-ai/dsh-agent/package.json": JSON.stringify({
+        name: "@deepseek-ai/dsh-agent",
+        version: "0.2.2-rc.5",
+        types: "./lib/types/index.d.ts",
+      }),
+      "node_modules/@deepseek-ai/dsh-agent/lib/types/index.d.ts":
+        "export * from './runtime-types.ts';\n",
+      "node_modules/@deepseek-ai/dsh-agent/lib/types/runtime-types.d.ts":
+        "export type PreStepDecision = {};\n",
+    });
+    const verdict = compareSurfaces({ packages: {} }, surfaceOf(root));
+    expect(verdict.ok).toBe(true);
+    const before = {
+      packages: {
+        "@deepseek-ai/dsh-agent": { version: "0.2.2-rc.5", imported: [], exports: [] },
+      },
+    };
+    const drift = compareSurfaces(before, surfaceOf(root));
+    expect(drift.ok).toBe(false);
+    expect(drift.reason).toContain("Missing");
   });
 
   it("reports a symbol that stopped being exported", () => {
